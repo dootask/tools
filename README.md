@@ -92,6 +92,7 @@ closeApp();
 |-----------------|--------------------------------------|----------|------------------------------------------|
 | `close`         | `destroy?: boolean`                  | `void`   | 关闭当前应用                                   |
 | `back`          | -                                    | `void`   | 返回上一页                                    |
+| `interceptBack` | `callback: (data: any) => boolean`   | `void`   | 设置应用关闭前的回调，返回true可阻止关闭                   |
 | `nextZIndex`    | -                                    | `number` | 获取下一个可用的模态框z-index                       |
 | `openWindow`    | `objects`                            | `void`   | 打开新窗口（只在 isElectron 环境有效）                |
 | `openTabWindow` | `url: string`                        | `void`   | 在新标签页打开URL，直接传入URL地址（只在 isElectron 环境有效） |
@@ -117,6 +118,29 @@ closeApp();
 - 等等...
 
 ## 使用示例
+
+### 应用关闭拦截
+
+```typescript
+import {methods} from 'dootask-tools';
+
+let hasUnsavedChanges = true;
+
+// 设置应用关闭前的回调
+method.interceptBack((data) => {
+    if (hasUnsavedChanges) {
+        // 如果有未保存的数据，则阻止关闭
+        if (confirm('有未保存的数据，确定要关闭吗？')) {
+            // 用户确认关闭，可以执行保存操作
+            saveData();
+            return false; // 允许关闭
+        } else {
+            return true; // 阻止关闭
+        }
+    }
+    return false; // 没有未保存的数据，允许关闭
+});
+```
 
 ### 检测运行环境
 

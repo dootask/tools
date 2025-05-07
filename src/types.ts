@@ -36,6 +36,7 @@ export interface MicroAppProps {
 export interface MicroAppMethods {
     close: (destroy?: boolean) => void;
     back: () => void;
+    interceptBack: (callback: (data: any) => boolean) => void;
     nextZIndex: () => number;
     openWindow: (params: OpenWindowParams) => void;
     openTabWindow: (url: string) => void;
