@@ -1,0 +1,206 @@
+# DooTask 应用工具库
+
+这是一个为DooTask应用开发设计的工具库，提供了一系列实用的API，用于与主应用进行交互。它封装了微前端通信、用户数据获取、页面交互等多种功能，让您的DooTask应用开发变得简单高效。
+
+## 特点
+
+- **零配置** - 导入后自动初始化，无需手动配置
+- **类型支持** - 完善的TypeScript类型定义，提供智能提示
+- **双重访问方式** - 支持对象式和函数式两种调用风格
+- **强大功能** - 提供完整的用户、系统信息和交互方法
+
+## 安装
+
+```bash
+npm install dootask-tools --save
+```
+
+## 使用方法
+
+### 对象式调用 (推荐)
+
+直接引入并使用，无需手动初始化：
+
+```typescript
+import {props, methods, isMicroApp} from 'dootask-tools';
+
+// 使用直接提供的属性
+const theme = props.themeName;
+const userId = props.userId;
+const userInfo = props.userInfo;
+
+// 使用直接提供的方法
+methods.openWindow({url: 'https://example.com'});
+methods.close(); // 关闭当前应用
+
+// 检查是否在微前端环境中
+if (isMicroApp()) {
+    console.log('当前在微前端环境中运行');
+}
+```
+
+### 函数式调用 (兼容模式)
+
+可以继续使用函数式调用风格：
+
+```typescript
+import {
+    getThemeName,
+    getUserInfo,
+    openWindow,
+    closeApp,
+    isMicroApp,
+    // 更多API...
+} from 'dootask-tools';
+
+// 获取当前主题
+const theme = getThemeName();
+
+// 获取用户信息
+const user = getUserInfo();
+
+// 打开新窗口
+openWindow({url: 'https://example.com'});
+
+// 关闭当前应用
+closeApp();
+```
+
+## API 文档
+
+### props 属性
+
+| 属性名                      | 类型               | 说明             |
+|--------------------------|------------------|----------------|
+| `themeName`              | `string`         | 当前主题名称         |
+| `userId`                 | `string\|number` | 当前用户ID         |
+| `userToken`              | `string`         | 当前用户Token      |
+| `userInfo`               | `object`         | 当前用户信息对象       |
+| `baseUrl`                | `string`         | 基础URL          |
+| `systemInfo`             | `object`         | 系统信息对象         |
+| `isEEUIApp`              | `boolean`        | 是否为EEUI应用      |
+| `isElectron`             | `boolean`        | 是否为Electron应用  |
+| `isMainElectron`         | `boolean`        | 是否为主Electron窗口 |
+| `isSubElectron`          | `boolean`        | 是否为子Electron窗口 |
+| `languageList`           | `array`          | 语言列表           |
+| `languageName`           | `string`         | 当前语言名称         |
+| `get(key, defaultValue)` | `function`       | 获取原始属性字段       |
+
+### methods 方法
+
+| 方法名             | 参数                                   | 返回值      | 说明                                       |
+|-----------------|--------------------------------------|----------|------------------------------------------|
+| `close`         | `destroy?: boolean`                  | `void`   | 关闭当前应用                                   |
+| `back`          | -                                    | `void`   | 返回上一页                                    |
+| `nextZIndex`    | -                                    | `number` | 获取下一个可用的模态框z-index                       |
+| `openWindow`    | `objects`                            | `void`   | 打开新窗口（只在 isElectron 环境有效）                |
+| `openTabWindow` | `url: string`                        | `void`   | 在新标签页打开URL，直接传入URL地址（只在 isElectron 环境有效） |
+| `openAppPage`   | `objects`                            | `void`   | 打开应用页面（只在 isEEUIApp 环境有效）                |
+| `extraCallA`    | `methodName: string, ...args: any[]` | `any`    | 调用$A上的额外方法                               |
+
+### 全局函数
+
+| 函数名                  | 参数                                          | 返回值       | 说明              |
+|----------------------|---------------------------------------------|-----------|-----------------|
+| `isMicroApp`         | -                                           | `boolean` | 检查当前是否在微前端环境中运行 |
+| `getAppData`         | `key?: string`                              | `any`     | 获取原始微前端应用数据     |
+| `addDataListener`    | `callback: Function, autoTrigger?: boolean` | `void`    | 添加数据监听器         |
+| `removeDataListener` | `callback: Function`                        | `void`    | 移除数据监听器         |
+
+### 兼容函数
+
+所有`props`和`methods`中的属性和方法都有对应的函数式调用版本，如：
+
+- `getThemeName()` 对应 `props.themeName`
+- `getUserId()` 对应 `props.userId`
+- `closeApp()` 对应 `methods.close()`
+- 等等...
+
+## 使用示例
+
+### 检测运行环境
+
+```typescript
+import {props, isMicroApp} from 'dootask-tools';
+
+if (isMicroApp()) {
+    // 在微前端环境中运行
+    if (props.isElectron) {
+        console.log('在Electron环境中运行');
+        if (props.isMainElectron) {
+            console.log('这是主窗口');
+        } else if (props.isSubElectron) {
+            console.log('这是子窗口');
+        }
+    }
+} else {
+    console.log('不在微前端环境中运行');
+}
+```
+
+### 监听数据变化
+
+```typescript
+import {addDataListener, removeDataListener} from 'dootask-tools';
+
+// 添加数据监听器
+const dataListener = (data) => {
+    console.log('收到新数据:', data);
+};
+
+// 添加监听，并在初次绑定时触发
+addDataListener(dataListener, true);
+
+// 移除监听
+// removeDataListener(dataListener);
+```
+
+### 弹出窗口和页面
+
+```typescript
+import {methods, props} from 'dootask-tools';
+
+// 在Electron环境中打开新窗口
+if (props.isElectron) {
+    // 打开新窗口
+    methods.openWindow({
+        name: 'my-window-id',  // 窗口唯一标识
+        url: 'https://example.com',  // 访问地址
+        force: false,  // 是否强制创建新窗口，而不是重用已有窗口
+        config: {
+            title: '标题',  // 窗口标题
+            titleFixed: true,       // 窗口标题是否固定
+            width: Math.min(window.screen.availWidth, 1200),  // 窗口宽度
+            height: Math.min(window.screen.availHeight, 800),  // 窗口高度
+        }
+    });
+
+    // 在新标签页打开URL
+    methods.openTabWindow('https://example.com');
+}
+
+// 在EEUI环境中打开应用页面
+if (props.isEEUIApp) {
+    methods.openAppPage({
+        title: '标题',       // 页面标题
+        titleFixed: true,    // 窗口标题是否固定
+        url: 'https://example.com',  // 访问地址
+    });
+}
+```
+
+## 注意事项
+
+1. 这个库会自动检测是否在微前端环境中运行。如果不在微前端环境中，大部分属性将返回空值，方法将无操作。
+
+2. `getAppData`方法可以获取微前端应用的原始数据，那些未被`props`和`methods`封装的数据也可以通过这个方法获取。
+
+3. 如果你希望调用$A上的方法，可以使用`methods.extraCallA`或`callExtraA`方法。
+
+## 贡献和反馈
+
+如果你在使用中发现任何问题，或者有改进建议，欢迎在GitHub仓库提交Issue或Pull Request。
+
+## 许可证
+
+MIT
