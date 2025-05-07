@@ -88,16 +88,17 @@ closeApp();
 
 ### methods 方法
 
-| 方法名             | 参数                                   | 返回值      | 说明                                       |
-|-----------------|--------------------------------------|----------|------------------------------------------|
-| `close`         | `destroy?: boolean`                  | `void`   | 关闭当前应用                                   |
-| `back`          | -                                    | `void`   | 返回上一页                                    |
-| `interceptBack` | `callback: (data: any) => boolean`   | `() => void`   | 设置应用关闭前的回调，返回true可阻止关闭。返回一个可注销监听的函数   |
-| `nextZIndex`    | -                                    | `number` | 获取下一个可用的模态框z-index                       |
-| `openWindow`    | `objects`                            | `void`   | 打开新窗口（只在 isElectron 环境有效）                |
-| `openTabWindow` | `url: string`                        | `void`   | 在新标签页打开URL，直接传入URL地址（只在 isElectron 环境有效） |
-| `openAppPage`   | `objects`                            | `void`   | 打开应用页面（只在 isEEUIApp 环境有效）                |
-| `extraCallA`    | `methodName: string, ...args: any[]` | `any`    | 调用$A上的额外方法                               |
+| 方法名             | 参数                                   | 返回值          | 说明                                       |
+|-----------------|--------------------------------------|--------------|------------------------------------------|
+| `close`         | `destroy?: boolean`                  | `void`       | 关闭当前应用                                   |
+| `back`          | -                                    | `void`       | 返回上一页                                    |
+| `interceptBack` | `callback: (data: any) => boolean`   | `() => void` | 设置应用关闭前的回调，返回true可阻止关闭。返回一个可注销监听的函数      |
+| `nextZIndex`    | -                                    | `number`     | 获取下一个可用的模态框z-index                       |
+| `popoutWindow`  | `objects`                            | `void`       | 应用窗口独立显示（只在 isElectron 环境有效）             |
+| `openWindow`    | `objects`                            | `void`       | 打开新窗口（只在 isElectron 环境有效）                |
+| `openTabWindow` | `url: string`                        | `void`       | 在新标签页打开URL，直接传入URL地址（只在 isElectron 环境有效） |
+| `openAppPage`   | `objects`                            | `void`       | 打开应用页面（只在 isEEUIApp 环境有效）                |
+| `extraCallA`    | `methodName: string, ...args: any[]` | `any`        | 调用$A上的额外方法                               |
 
 ### 全局函数
 
@@ -184,8 +185,26 @@ addDataListener(dataListener, true);
 ```typescript
 import {methods, props} from 'dootask-tools';
 
-// 在Electron环境中打开新窗口
+// 在Electron环境中将当前页面以独立窗口形式显示
 if (props.isElectron) {
+    // 将当前页面作为独立窗口显示
+    methods.popoutWindow({
+        title: '独立窗口',  // 窗口标题
+        width: 1000,           // 窗口宽度
+        height: 700,           // 窗口高度
+        minWidth: 800          // 窗口最小宽度
+    });
+    
+    // 打开指定URL作为独立窗口
+    methods.popoutWindow({
+        url: 'https://example.com',  // 自定义访问地址
+        title: '外部网站',   // 窗口标题
+        titleFixed: true,      // 固定窗口标题
+        width: 1200,           // 窗口宽度
+        height: 800            // 窗口高度
+    });
+    
+    // 在Electron环境中打开新窗口
     // 打开新窗口
     methods.openWindow({
         name: 'my-window-id',  // 窗口唯一标识

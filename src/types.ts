@@ -54,18 +54,29 @@ export interface MicroAppData {
     methods: MicroAppMethods;
 }
 
+// 窗口配置接口
+export interface WindowConfig {
+    title?: string;     // 窗口标题
+    titleFixed?: boolean; // 窗口标题是否固定
+    width?: number;    // 窗口宽度
+    height?: number;   // 窗口高度
+    minWidth?: number; // 窗口最小宽度
+    [key: string]: any;
+    // 更多配置项参考 https://www.electronjs.org/docs/latest/api/structures/base-window-options
+}
+
+// 打开独立窗口参数接口
+export interface PopoutWindowParams extends WindowConfig {
+    url?: string;   // 自定义访问地址，如果为空则打开当前页面
+    [key: string]: any;
+}
+
 // 打开窗口参数接口
 export interface OpenWindowParams {
     name?: string;       // 窗口唯一标识
     url?: string;        // 访问地址
     force?: boolean;     // 是否强制创建新窗口，而不是重用已有窗口
-    config?: {
-        title?: string;     // 窗口标题
-        titleFixed?: boolean; // 窗口标题是否固定
-        width?: number;    // 窗口宽度
-        height?: number;   // 窗口高度
-        [key: string]: any;
-    };
+    config?: WindowConfig;
 
     [key: string]: any;
 }

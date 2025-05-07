@@ -1,4 +1,4 @@
-import {MicroAppData, OpenAppPageParams, OpenWindowParams} from './types';
+import {MicroAppData, OpenAppPageParams, OpenWindowParams, PopoutWindowParams} from './types';
 
 // 存储微应用数据（自动初始化）
 let microAppData: MicroAppData | null = null;
@@ -239,6 +239,14 @@ export const methods = {
         return 1000;
     },
 
+    /** 应用窗口独立显示（只在 isElectron 环境有效） */
+    popoutWindow: (params: PopoutWindowParams): void => {
+        const methodsData = getAppData('methods');
+        if (methodsData && typeof methodsData.popoutWindow === 'function') {
+            methodsData.popoutWindow(params);
+        }
+    },
+
     /** 打开新窗口（只在 isElectron 环境有效） */
     openWindow: (params: OpenWindowParams): void => {
         const methodsData = getAppData('methods');
@@ -307,6 +315,15 @@ export const interceptBack = (callback: (data: any) => boolean): (() => void) =>
  */
 export const nextZIndex = (): number => {
     return methods.nextZIndex();
+};
+
+/**
+ * 应用窗口独立显示 (兼容方法)
+ * @param params - 窗口参数
+ * @description 只在 isElectron 环境有效
+ */
+export const popoutWindow = (params: PopoutWindowParams): void => {
+    methods.popoutWindow(params);
 };
 
 /**
