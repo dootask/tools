@@ -207,8 +207,9 @@ export const methods = {
     /** 应用关闭前的回调
      * @param callback - 回调函数，返回true则阻止关闭，false则允许关闭
      * @description 用于在应用关闭前执行操作，可以通过返回true来阻止关闭
+     * @returns 返回一个函数，执行该函数可以注销监听器
      */
-    interceptBack: (callback: (data: any) => boolean): void => {
+    interceptBack: (callback: (data: any) => boolean): (() => void) => {
         if (window.microApp?.addDataListener) {
             const interceptListener = (data: any) => {
                 if (data && data.type === 'beforeClose') {
@@ -217,7 +218,16 @@ export const methods = {
                 return false;
             };
             window.microApp.addDataListener(interceptListener, false);
+            
+            // 返回注销监听的函数
+            return () => {
+                if (window.microApp?.removeDataListener) {
+                    window.microApp.removeDataListener(interceptListener);
+                }
+            };
         }
+        // 如果没有添加监听，返回空函数
+        return () => {};
     },
 
     /** 获取下一个模态框z-index */
@@ -285,9 +295,10 @@ export const backApp = (): void => {
  * 设置应用关闭前的回调 (兼容方法)
  * @param callback - 回调函数，返回true则阻止关闭，false则允许关闭
  * @description 用于在应用关闭前执行操作，可以通过返回true来阻止关闭
+ * @returns 返回一个函数，执行该函数可以注销监听器
  */
-export const interceptBack = (callback: (data: any) => boolean): void => {
-    methods.interceptBack(callback);
+export const interceptBack = (callback: (data: any) => boolean): (() => void) => {
+    return methods.interceptBack(callback);
 };
 
 /**

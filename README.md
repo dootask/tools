@@ -92,7 +92,7 @@ closeApp();
 |-----------------|--------------------------------------|----------|------------------------------------------|
 | `close`         | `destroy?: boolean`                  | `void`   | 关闭当前应用                                   |
 | `back`          | -                                    | `void`   | 返回上一页                                    |
-| `interceptBack` | `callback: (data: any) => boolean`   | `void`   | 设置应用关闭前的回调，返回true可阻止关闭                   |
+| `interceptBack` | `callback: (data: any) => boolean`   | `() => void`   | 设置应用关闭前的回调，返回true可阻止关闭。返回一个可注销监听的函数   |
 | `nextZIndex`    | -                                    | `number` | 获取下一个可用的模态框z-index                       |
 | `openWindow`    | `objects`                            | `void`   | 打开新窗口（只在 isElectron 环境有效）                |
 | `openTabWindow` | `url: string`                        | `void`   | 在新标签页打开URL，直接传入URL地址（只在 isElectron 环境有效） |
