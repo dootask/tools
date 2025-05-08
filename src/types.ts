@@ -38,6 +38,7 @@ export interface MicroAppMethods {
     back: () => void;
     interceptBack: (callback: (data: any) => boolean) => (() => void);
     nextZIndex: () => number;
+    selectUsers: (params: SelectUsersParams) => Promise<any>;
     openWindow: (params: OpenWindowParams) => void;
     openTabWindow: (url: string) => void;
     openAppPage: (params: OpenAppPageParams) => void;
@@ -86,6 +87,26 @@ export interface OpenAppPageParams {
     title?: string;      // 页面标题
     titleFixed?: boolean; // 窗口标题是否固定
     url?: string;        // 访问地址
+    [key: string]: any;
+}
+
+// 选择用户参数接口
+export interface SelectUsersParams {
+    value?: string | number | Array<any>;     // 已选择的值，默认值: []
+    uncancelable?: Array<any>;                // 不允许取消的列表，默认值: []
+    disabledChoice?: Array<any>;              // 禁止选择的列表，默认值: []
+    projectId?: number;                       // 指定项目ID，默认值: 0
+    noProjectId?: number;                     // 指定非项目ID，默认值: 0
+    dialogId?: number;                        // 指定会话ID，默认值: 0
+    showBot?: boolean;                        // 是否显示机器人，默认值: false
+    showDisable?: boolean;                    // 是否显示禁用的，默认值: false
+    multipleMax?: number;                     // 最大选择数量
+    title?: string;                           // 弹窗标题
+    placeholder?: string;                     // 搜索提示
+    showSelectAll?: boolean;                  // 显示全选项，默认值: true
+    showDialog?: boolean;                     // 是否显示会话，默认值: false
+    onlyGroup?: boolean;                      // 仅显示群组，默认值: false
+    beforeSubmit?: Function;                  // 提交前的回调
     [key: string]: any;
 }
 

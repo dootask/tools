@@ -1,4 +1,4 @@
-import {MicroAppData, OpenAppPageParams, OpenWindowParams, PopoutWindowParams} from './types';
+import {MicroAppData, OpenAppPageParams, OpenWindowParams, PopoutWindowParams, SelectUsersParams} from './types';
 
 // 存储微应用数据（自动初始化）
 let microAppData: MicroAppData | null = null;
@@ -239,6 +239,15 @@ export const methods = {
         return 1000;
     },
 
+    /** 选择用户 */
+    selectUsers: async (params: SelectUsersParams): Promise<any> => {
+        const methodsData = getAppData('methods');
+        if (methodsData && typeof methodsData.selectUsers === 'function') {
+            return methodsData.selectUsers(params);
+        }
+        return null;
+    },
+
     /** 应用窗口独立显示（只在 isElectron 环境有效） */
     popoutWindow: (params: PopoutWindowParams): void => {
         const methodsData = getAppData('methods');
@@ -361,6 +370,15 @@ export const openAppPage = (params: OpenAppPageParams): void => {
  */
 export const callExtraA = (methodName: string, ...args: any[]): any => {
     return methods.extraCallA(methodName, ...args);
+};
+
+/**
+ * 选择用户 (兼容方法)
+ * @param params - 可以是值或配置对象
+ * @returns Promise 返回选择的用户结果
+ */
+export const selectUsers = async (params: SelectUsersParams): Promise<any> => {
+    return methods.selectUsers(params);
 };
 
 /**

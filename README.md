@@ -88,17 +88,18 @@ closeApp();
 
 ### methods 方法
 
-| 方法名             | 参数                                   | 返回值          | 说明                                       |
-|-----------------|--------------------------------------|--------------|------------------------------------------|
-| `close`         | `destroy?: boolean`                  | `void`       | 关闭当前应用                                   |
-| `back`          | -                                    | `void`       | 返回上一页                                    |
-| `interceptBack` | `callback: (data: any) => boolean`   | `() => void` | 设置应用关闭前的回调，返回true可阻止关闭。返回一个可注销监听的函数      |
-| `nextZIndex`    | -                                    | `number`     | 获取下一个可用的模态框z-index                       |
-| `popoutWindow`  | `objects`                            | `void`       | 应用窗口独立显示（只在 isElectron 环境有效）             |
-| `openWindow`    | `objects`                            | `void`       | 打开新窗口（只在 isElectron 环境有效）                |
-| `openTabWindow` | `url: string`                        | `void`       | 在新标签页打开URL，直接传入URL地址（只在 isElectron 环境有效） |
-| `openAppPage`   | `objects`                            | `void`       | 打开应用页面（只在 isEEUIApp 环境有效）                |
-| `extraCallA`    | `methodName: string, ...args: any[]` | `any`        | 调用$A上的额外方法                               |
+| 方法名             | 参数                                   | 返回值            | 说明                                       |
+|-----------------|--------------------------------------|----------------|------------------------------------------|
+| `close`         | `destroy?: boolean`                  | `void`         | 关闭当前应用                                   |
+| `back`          | -                                    | `void`         | 返回上一页                                    |
+| `interceptBack` | `callback: (data: any) => boolean`   | `() => void`   | 设置应用关闭前的回调，返回true可阻止关闭。返回一个可注销监听的函数      |
+| `nextZIndex`    | -                                    | `number`       | 获取下一个可用的模态框z-index                       |
+| `selectUsers`   | `params: SelectUsersParams`          | `Promise<any>` | 选择用户，可以传入多种配置来自定义选择器                     |
+| `popoutWindow`  | `objects`                            | `void`         | 应用窗口独立显示（只在 isElectron 环境有效）             |
+| `openWindow`    | `objects`                            | `void`         | 打开新窗口（只在 isElectron 环境有效）                |
+| `openTabWindow` | `url: string`                        | `void`         | 在新标签页打开URL，直接传入URL地址（只在 isElectron 环境有效） |
+| `openAppPage`   | `objects`                            | `void`         | 打开应用页面（只在 isEEUIApp 环境有效）                |
+| `extraCallA`    | `methodName: string, ...args: any[]` | `any`          | 调用$A上的额外方法                               |
 
 ### 全局函数
 
@@ -119,6 +120,26 @@ closeApp();
 - 等等...
 
 ## 使用示例
+
+### 检测运行环境
+
+```typescript
+import {props, isMicroApp} from '@dootask/tools';
+
+if (isMicroApp()) {
+    // 在微前端环境中运行
+    if (props.isElectron) {
+        console.log('在Electron环境中运行');
+        if (props.isMainElectron) {
+            console.log('这是主窗口');
+        } else if (props.isSubElectron) {
+            console.log('这是子窗口');
+        }
+    }
+} else {
+    console.log('不在微前端环境中运行');
+}
+```
 
 ### 应用关闭拦截
 
@@ -143,24 +164,29 @@ method.interceptBack((data) => {
 });
 ```
 
-### 检测运行环境
+### 选择用户
 
 ```typescript
-import {props, isMicroApp} from '@dootask/tools';
+import {methods, selectUsers} from '@dootask/tools';
 
-if (isMicroApp()) {
-    // 在微前端环境中运行
-    if (props.isElectron) {
-        console.log('在Electron环境中运行');
-        if (props.isMainElectron) {
-            console.log('这是主窗口');
-        } else if (props.isSubElectron) {
-            console.log('这是子窗口');
-        }
-    }
-} else {
-    console.log('不在微前端环境中运行');
-}
+// 方法一：使用 methods 对象
+ methods.selectUsers({
+    value: [], // 已选择的值
+    projectId: 123, // 指定项目ID
+    title: '选择成员', // 弹窗标题
+    showSelectAll: true // 显示全选项
+}).then(result => {
+    console.log('选择的用户：', result);
+});
+
+// 方法二：使用兼容函数
+selectUsers({
+    value: [],
+    onlyGroup: true, // 仅显示群组
+    showBot: false // 不显示机器人
+}).then(result => {
+    console.log('选择的群组：', result);
+});
 ```
 
 ### 监听数据变化
