@@ -1,12 +1,15 @@
 {
-    "name": "dootask-tools",
-    "version": "0.1.3",
-    "description": "DooTask应用工具库，用于DooTask微应用开发",
+    "name": "@dootask/tools",
+    "version": "0.1.0",
+    "description": "DooTask 应用工具库，主要用于 DooTask 微应用开发",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "scripts": {
         "build": "tsc",
         "prepare": "npm run build"
+    },
+    "publishConfig": {
+        "access": "public"
     },
     "keywords": [
         "dootask",

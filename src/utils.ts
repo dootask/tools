@@ -8,7 +8,7 @@ if (typeof window !== 'undefined' && window.microApp && window.microApp.getData)
     try {
         microAppData = window.microApp.getData();
     } catch (e) {
-        console.warn('Failed to initialize dootask-tools:', e);
+        console.warn('Failed to initialize DooTask tools:', e);
     }
 }
 
@@ -50,7 +50,7 @@ export const props = {
     themeName: getAppData('props.themeName') || '',
 
     /** 当前用户ID */
-    userId: getAppData('props.userId') || '',
+    userId: Math.max(0, Number(getAppData('props.userId')) || 0),
 
     /** 当前用户Token */
     userToken: getAppData('props.userToken') || '',
@@ -100,9 +100,9 @@ export const getThemeName = (): string => {
 
 /**
  * 获取当前用户ID (兼容方法)
- * @returns {string | number} 当前用户ID
+ * @returns {number} 当前用户ID
  */
-export const getUserId = (): string | number => {
+export const getUserId = (): number => {
     return props.userId;
 };
 
@@ -218,7 +218,7 @@ export const methods = {
                 return false;
             };
             window.microApp.addDataListener(interceptListener, false);
-            
+
             // 返回注销监听的函数
             return () => {
                 if (window.microApp?.removeDataListener) {

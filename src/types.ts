@@ -16,7 +16,7 @@ export interface MicroAppInstance {
 
 // 微应用属性接口
 export interface MicroAppProps {
-    userId: string | number;
+    userId: number;
     userToken: string;
     userInfo: any;
     baseUrl: string;
