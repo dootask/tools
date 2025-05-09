@@ -1,4 +1,4 @@
-import {Any, Func, MicroAppData, OpenAppPageParams, OpenWindowParams, PopoutWindowParams, SelectUsersParams} from './types';
+import {Any, Func, MicroAppData, OpenAppPageParams, OpenWindowParams, PopoutWindowParams, SelectUsersParams, requestParams, responseSuccess, responseError} from './types';
 
 // 存储微应用数据
 let microAppData: MicroAppData | null = null;
@@ -304,6 +304,16 @@ export const methods = {
         }
     },
 
+    /** 请求服务器API */
+    requestAPI: async (params: requestParams): Promise<responseSuccess | responseError> => {
+        const dispatch = getAppData('instance.store.dispatch');
+        if (dispatch && typeof dispatch === 'function') {
+            return dispatch("call", params);
+        } else {
+            throw new Error('requestAPI method not found');
+        }
+    },
+
     /** 调用$A上的额外方法 */
     extraCallA: (methodName: string, ...args: Any[]): Any => {
         const methodsData = getAppData('methods');
@@ -384,6 +394,15 @@ export const openTabWindow = (url: string): void => {
  */
 export const openAppPage = (params: OpenAppPageParams): void => {
     methods.openAppPage(params);
+};
+
+/**
+ * 请求服务器API (兼容方法)
+ * @param params - API请求参数
+ * @returns Promise 返回API请求结果
+ */
+export const requestAPI = async (params: requestParams): Promise<responseSuccess | responseError> => {
+    return methods.requestAPI(params);
 };
 
 /**

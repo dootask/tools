@@ -117,6 +117,33 @@ export interface SelectUsersParams {
     [key: string]: Any;
 }
 
+// 请求服务器API参数接口
+export interface requestParams {
+    url: string;    // 请求地址
+    method?: string; // 请求方式
+    data?: Any;      // 请求数据
+    timeout?: number; // 请求超时时间
+    header?: Any;   // 请求头
+    spinner?: boolean; // 是否显示加载动画
+    [key: string]: Any;
+}
+
+// 请求服务器API返回接口（成功）
+export interface responseSuccess {
+    msg: string; // 返回消息
+    data: Any;   // 返回数据
+    xhr: Any;    // XMLHttpRequest对象
+    [key: string]: Any;
+}
+
+// 请求服务器API返回接口（错误）
+export interface responseError {
+    ret: number;    // 返回状态
+    msg: string;    // 返回消息
+    data: Any;      // 返回数据
+    [key: string]: Any;
+}
+
 // 扩展Window全局接口
 declare global {
     interface Window {

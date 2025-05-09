@@ -88,18 +88,19 @@ closeApp();
 
 ### methods 方法
 
-| 方法名             | 参数                                   | 返回值            | 说明                                       |
-|-----------------|--------------------------------------|----------------|------------------------------------------|
-| `close`         | `destroy?: boolean`                  | `void`         | 关闭当前应用                                   |
-| `back`          | -                                    | `void`         | 返回上一页                                    |
-| `interceptBack` | `callback: (data: any) => boolean`   | `() => void`   | 设置应用关闭前的回调，返回true可阻止关闭。返回一个可注销监听的函数      |
-| `nextZIndex`    | -                                    | `number`       | 获取下一个可用的模态框z-index                       |
-| `selectUsers`   | `params: SelectUsersParams`          | `Promise<any>` | 选择用户，可以传入多种配置来自定义选择器                     |
-| `popoutWindow`  | `objects`                            | `void`         | 应用窗口独立显示（只在 isElectron 环境有效）             |
-| `openWindow`    | `objects`                            | `void`         | 打开新窗口（只在 isElectron 环境有效）                |
-| `openTabWindow` | `url: string`                        | `void`         | 在新标签页打开URL，直接传入URL地址（只在 isElectron 环境有效） |
-| `openAppPage`   | `objects`                            | `void`         | 打开应用页面（只在 isEEUIApp 环境有效）                |
-| `extraCallA`    | `methodName: string, ...args: any[]` | `any`          | 调用$A上的额外方法                               |
+| 方法名             | 参数                                   | 返回值                                         | 说明                                       |
+|-----------------|--------------------------------------|---------------------------------------------|------------------------------------------|
+| `close`         | `destroy?: boolean`                  | `void`                                      | 关闭当前应用                                   |
+| `back`          | -                                    | `void`                                      | 返回上一页                                    |
+| `interceptBack` | `callback: (data: any) => boolean`   | `() => void`                                | 设置应用关闭前的回调，返回true可阻止关闭。返回一个可注销监听的函数      |
+| `nextZIndex`    | -                                    | `number`                                    | 获取下一个可用的模态框z-index                       |
+| `selectUsers`   | `params: SelectUsersParams`          | `Promise<any>`                              | 选择用户，可以传入多种配置来自定义选择器                     |
+| `popoutWindow`  | `objects`                            | `void`                                      | 应用窗口独立显示（只在 isElectron 环境有效）             |
+| `openWindow`    | `objects`                            | `void`                                      | 打开新窗口（只在 isElectron 环境有效）                |
+| `openTabWindow` | `url: string`                        | `void`                                      | 在新标签页打开URL，直接传入URL地址（只在 isElectron 环境有效） |
+| `openAppPage`   | `objects`                            | `void`                                      | 打开应用页面（只在 isEEUIApp 环境有效）                |
+| `requestAPI`    | `params: requestParams`              | `Promise<responseSuccess \| responseError>` | 请求服务器API                                 |
+| `extraCallA`    | `methodName: string, ...args: any[]` | `any`                                       | 调用$A上的额外方法                               |
 
 ### 全局函数
 
@@ -261,6 +262,19 @@ if (props.isEEUIApp) {
         url: 'https://example.com',  // 访问地址
     });
 }
+```
+
+### 请求服务器API
+
+```typescript
+import {methods, props} from '@dootask/tools';
+
+// 请求服务器API
+methods.requestAPI({
+    url: 'users/info',  // 访问接口路径，接口文档请查看 https://你的域名/docs/index.html
+}).then((res) => {
+    console.log(res);
+});
 ```
 
 ## 注意事项
