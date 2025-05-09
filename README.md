@@ -4,7 +4,7 @@
 
 ## 特点
 
-- **零配置** - 导入后自动初始化，无需手动配置
+- **零配置** - 导入后自动初始化，无需手动配置（服务器渲染不支持）
 - **类型支持** - 完善的TypeScript类型定义，提供智能提示
 - **双重访问方式** - 支持对象式和函数式两种调用风格
 - **强大功能** - 提供完整的用户、系统信息和交互方法
@@ -103,12 +103,13 @@ closeApp();
 
 ### 全局函数
 
-| 函数名                  | 参数                                          | 返回值       | 说明              |
-|----------------------|---------------------------------------------|-----------|-----------------|
-| `isMicroApp`         | -                                           | `boolean` | 检查当前是否在微前端环境中运行 |
-| `getAppData`         | `key?: string`                              | `any`     | 获取原始微前端应用数据     |
-| `addDataListener`    | `callback: Function, autoTrigger?: boolean` | `void`    | 添加数据监听器         |
-| `removeDataListener` | `callback: Function`                        | `void`    | 移除数据监听器         |
+| 函数名                  | 参数                                          | 返回值            | 说明               |
+|----------------------|---------------------------------------------|----------------|------------------|
+| `appReady`           | -                                           | `Promise<any>` | 应用准备就绪的Promise对象 |
+| `isMicroApp`         | -                                           | `boolean`      | 检查当前是否在微前端环境中运行  |
+| `getAppData`         | `key?: string`                              | `any`          | 获取原始微前端应用数据      |
+| `addDataListener`    | `callback: Function, autoTrigger?: boolean` | `void`         | 添加数据监听器          |
+| `removeDataListener` | `callback: Function`                        | `void`         | 移除数据监听器          |
 
 ### 兼容函数
 
@@ -124,7 +125,11 @@ closeApp();
 ### 检测运行环境
 
 ```typescript
-import {props, isMicroApp} from '@dootask/tools';
+import {props, appReady, isMicroApp} from '@dootask/tools';
+
+appReady().then(() => {
+    console.log('应用已准备就绪');
+})
 
 if (isMicroApp()) {
     // 在微前端环境中运行

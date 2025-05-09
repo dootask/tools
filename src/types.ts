@@ -2,15 +2,21 @@
  * 微应用数据类型定义
  */
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type Any = any;
+
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+export type Func = Function;
+
 // 微应用实例类型
 export interface MicroAppInstance {
-    Vue: any;
-    store: any;
+    Vue: Any;
+    store: Any;
     components: {
-        DialogWrapper: any;
-        UserSelect: any;
-        DatePicker: any;
-        [key: string]: any;
+        DialogWrapper: Any;
+        UserSelect: Any;
+        DatePicker: Any;
+        [key: string]: Any;
     };
 }
 
@@ -18,33 +24,33 @@ export interface MicroAppInstance {
 export interface MicroAppProps {
     userId: number;
     userToken: string;
-    userInfo: any;
+    userInfo: Any;
     baseUrl: string;
-    systemInfo: any;
+    systemInfo: Any;
     isEEUIApp: boolean;
     isElectron: boolean;
     isMainElectron: boolean;
     isSubElectron: boolean;
-    languageList: any[];
+    languageList: Any[];
     languageName: string;
     themeName: string;
 
-    [key: string]: any;
+    [key: string]: Any;
 }
 
 // 微应用方法接口
 export interface MicroAppMethods {
     close: (destroy?: boolean) => void;
     back: () => void;
-    interceptBack: (callback: (data: any) => boolean) => (() => void);
+    interceptBack: (callback: (data: Any) => boolean) => (() => void);
     nextZIndex: () => number;
-    selectUsers: (params: SelectUsersParams) => Promise<any>;
+    selectUsers: (params: SelectUsersParams) => Promise<Any>;
     openWindow: (params: OpenWindowParams) => void;
     openTabWindow: (url: string) => void;
     openAppPage: (params: OpenAppPageParams) => void;
-    extraCallA: (...args: any[]) => any;
+    extraCallA: (...args: Any[]) => Any;
 
-    [key: string]: any;
+    [key: string]: Any;
 }
 
 // 完整微应用数据接口
@@ -62,14 +68,15 @@ export interface WindowConfig {
     width?: number;    // 窗口宽度
     height?: number;   // 窗口高度
     minWidth?: number; // 窗口最小宽度
-    [key: string]: any;
+    [key: string]: Any;
+
     // 更多配置项参考 https://www.electronjs.org/docs/latest/api/structures/base-window-options
 }
 
 // 打开独立窗口参数接口
 export interface PopoutWindowParams extends WindowConfig {
     url?: string;   // 自定义访问地址，如果为空则打开当前页面
-    [key: string]: any;
+    [key: string]: Any;
 }
 
 // 打开窗口参数接口
@@ -79,7 +86,7 @@ export interface OpenWindowParams {
     force?: boolean;     // 是否强制创建新窗口，而不是重用已有窗口
     config?: WindowConfig;
 
-    [key: string]: any;
+    [key: string]: Any;
 }
 
 // 打开应用页面参数接口
@@ -87,14 +94,14 @@ export interface OpenAppPageParams {
     title?: string;      // 页面标题
     titleFixed?: boolean; // 窗口标题是否固定
     url?: string;        // 访问地址
-    [key: string]: any;
+    [key: string]: Any;
 }
 
 // 选择用户参数接口
 export interface SelectUsersParams {
-    value?: string | number | Array<any>;     // 已选择的值，默认值: []
-    uncancelable?: Array<any>;                // 不允许取消的列表，默认值: []
-    disabledChoice?: Array<any>;              // 禁止选择的列表，默认值: []
+    value?: string | number | Array<Any>;     // 已选择的值，默认值: []
+    uncancelable?: Array<Any>;                // 不允许取消的列表，默认值: []
+    disabledChoice?: Array<Any>;              // 禁止选择的列表，默认值: []
     projectId?: number;                       // 指定项目ID，默认值: 0
     noProjectId?: number;                     // 指定非项目ID，默认值: 0
     dialogId?: number;                        // 指定会话ID，默认值: 0
@@ -106,8 +113,8 @@ export interface SelectUsersParams {
     showSelectAll?: boolean;                  // 显示全选项，默认值: true
     showDialog?: boolean;                     // 是否显示会话，默认值: false
     onlyGroup?: boolean;                      // 仅显示群组，默认值: false
-    beforeSubmit?: Function;                  // 提交前的回调
-    [key: string]: any;
+    beforeSubmit?: Func;                  // 提交前的回调
+    [key: string]: Any;
 }
 
 // 扩展Window全局接口
@@ -115,10 +122,10 @@ declare global {
     interface Window {
         microApp?: {
             getData: () => MicroAppData;
-            addDataListener: (callback: Function, autoTrigger?: boolean) => void;
-            removeDataListener: (callback: Function) => void;
+            addDataListener: (callback: Func, autoTrigger?: boolean) => void;
+            removeDataListener: (callback: Func) => void;
         };
         modalTransferIndex?: number;
-        systemInfo?: any;
+        systemInfo?: Any;
     }
 }

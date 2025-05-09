@@ -1,10 +1,12 @@
-import {MicroAppData, OpenAppPageParams, OpenWindowParams, PopoutWindowParams, SelectUsersParams} from './types';
+import {Any, Func, MicroAppData, OpenAppPageParams, OpenWindowParams, PopoutWindowParams, SelectUsersParams} from './types';
 
-// 存储微应用数据（自动初始化）
+// 存储微应用数据
 let microAppData: MicroAppData | null = null;
+let microAppReady = false;
 
-// 在导入时自动初始化
-if (typeof window !== 'undefined' && window.microApp && window.microApp.getData) {
+
+// 在导入时环境允许自动初始化
+if (!(typeof window === 'undefined' || typeof window.microApp === 'undefined' || typeof window.microApp.getData !== 'function')) {
     try {
         microAppData = window.microApp.getData();
     } catch (e) {
@@ -14,18 +16,39 @@ if (typeof window !== 'undefined' && window.microApp && window.microApp.getData)
 
 /**
  * 检查当前应用是否为微前端应用
+ * @returns {Promise<void>} 返回一个 Promise，当微前端应用准备好时解析
+ */
+export const appReady = (): Promise<MicroAppData> => {
+    return new Promise<MicroAppData>((resolve) => {
+        if (typeof window === 'undefined' || typeof window.microApp === 'undefined' || typeof window.microApp.getData !== 'function') {
+            return;
+        }
+        if (!microAppReady) {
+            microAppReady = true;
+            microAppData = window.microApp.getData();
+            resolve(microAppData)
+        }
+    })
+};
+
+/**
+ * 检查当前应用是否为微前端应用
  * @returns {boolean} 如果当前应用是微前端应用，返回true；否则返回false
  */
 export const isMicroApp = (): boolean => {
-    return window.microApp !== undefined && typeof window.microApp.getData === 'function';
+    return !(typeof window === 'undefined' || typeof window.microApp === 'undefined' || typeof window.microApp.getData !== 'function');
 };
 
 /**
  * 获取应用数据
  * @param {string | null} key - 可选参数，指定要获取的数据键名
- * @returns {any} 当不传key时返回全部共享数据；传key时返回对应值
+ * @returns {Any} 当不传key时返回全部共享数据；传key时返回对应值
  */
-export const getAppData = (key: string | null = null): any => {
+export const getAppData = (key: string | null = null): Any => {
+    if (!isMicroApp()) {
+        return null;
+    }
+
     if (!microAppData && window.microApp?.getData) {
         microAppData = window.microApp.getData();
     }
@@ -38,7 +61,7 @@ export const getAppData = (key: string | null = null): any => {
             // 处理数组索引（如 items.0）
             const arrayIndex = /^\d+$/.test(k) ? parseInt(k) : k;
             // 使用类型断言解决动态索引的类型问题
-            return (obj as Record<string | number, any>)[arrayIndex];
+            return (obj as Record<string | number, Any>)[arrayIndex];
         }
         return null;
     }, microAppData);
@@ -83,7 +106,7 @@ export const props = {
     languageName: getAppData('props.languageName') || '',
 
     /** 获取原始属性字段 */
-    get: function (key: string, defaultValue: any = null): any {
+    get: function (key: string, defaultValue: Any = null): Any {
         return getAppData(`props.${key}`) || defaultValue;
     }
 };
@@ -116,9 +139,9 @@ export const getUserToken = (): string => {
 
 /**
  * 获取当前用户信息 (兼容方法)
- * @returns {any} 当前用户信息对象
+ * @returns {Any} 当前用户信息对象
  */
-export const getUserInfo = (): any => {
+export const getUserInfo = (): Any => {
     return props.userInfo;
 };
 
@@ -132,9 +155,9 @@ export const getBaseUrl = (): string => {
 
 /**
  * 获取系统信息 (兼容方法)
- * @returns {any} 系统信息对象
+ * @returns {Any} 系统信息对象
  */
-export const getSystemInfo = (): any => {
+export const getSystemInfo = (): Any => {
     return props.systemInfo;
 };
 
@@ -172,9 +195,9 @@ export const isSubElectron = (): boolean => {
 
 /**
  * 获取语言列表 (兼容方法)
- * @returns {any[]} 语言列表
+ * @returns {Any[]} 语言列表
  */
-export const getLanguageList = (): any[] => {
+export const getLanguageList = (): Any[] => {
     return props.languageList;
 };
 
@@ -209,9 +232,9 @@ export const methods = {
      * @description 用于在应用关闭前执行操作，可以通过返回true来阻止关闭
      * @returns 返回一个函数，执行该函数可以注销监听器
      */
-    interceptBack: (callback: (data: any) => boolean): (() => void) => {
+    interceptBack: (callback: (data: Any) => boolean): (() => void) => {
         if (window.microApp?.addDataListener) {
-            const interceptListener = (data: any) => {
+            const interceptListener = (data: Any) => {
                 if (data && data.type === 'beforeClose') {
                     return callback(data);
                 }
@@ -227,7 +250,8 @@ export const methods = {
             };
         }
         // 如果没有添加监听，返回空函数
-        return () => {};
+        return () => {
+        };
     },
 
     /** 获取下一个模态框z-index */
@@ -240,7 +264,7 @@ export const methods = {
     },
 
     /** 选择用户 */
-    selectUsers: async (params: SelectUsersParams): Promise<any> => {
+    selectUsers: async (params: SelectUsersParams): Promise<Any> => {
         const methodsData = getAppData('methods');
         if (methodsData && typeof methodsData.selectUsers === 'function') {
             return methodsData.selectUsers(params);
@@ -281,7 +305,7 @@ export const methods = {
     },
 
     /** 调用$A上的额外方法 */
-    extraCallA: (methodName: string, ...args: any[]): any => {
+    extraCallA: (methodName: string, ...args: Any[]): Any => {
         const methodsData = getAppData('methods');
         if (methodsData && typeof methodsData.extraCallA === 'function') {
             return methodsData.extraCallA(methodName, ...args);
@@ -314,7 +338,7 @@ export const backApp = (): void => {
  * @description 用于在应用关闭前执行操作，可以通过返回true来阻止关闭
  * @returns 返回一个函数，执行该函数可以注销监听器
  */
-export const interceptBack = (callback: (data: any) => boolean): (() => void) => {
+export const interceptBack = (callback: (data: Any) => boolean): (() => void) => {
     return methods.interceptBack(callback);
 };
 
@@ -368,7 +392,7 @@ export const openAppPage = (params: OpenAppPageParams): void => {
  * @param args - 参数列表
  * @returns 方法返回值
  */
-export const callExtraA = (methodName: string, ...args: any[]): any => {
+export const callExtraA = (methodName: string, ...args: Any[]): Any => {
     return methods.extraCallA(methodName, ...args);
 };
 
@@ -377,7 +401,7 @@ export const callExtraA = (methodName: string, ...args: any[]): any => {
  * @param params - 可以是值或配置对象
  * @returns Promise 返回选择的用户结果
  */
-export const selectUsers = async (params: SelectUsersParams): Promise<any> => {
+export const selectUsers = async (params: SelectUsersParams): Promise<Any> => {
     return methods.selectUsers(params);
 };
 
@@ -386,7 +410,7 @@ export const selectUsers = async (params: SelectUsersParams): Promise<any> => {
  * @param callback - 回调函数，当数据发生变化时调用
  * @param autoTrigger - 在初次绑定监听函数时如果有缓存数据，是否需要主动触发一次
  */
-export const addDataListener = (callback: Function, autoTrigger = false): void => {
+export const addDataListener = (callback: Func, autoTrigger = false): void => {
     if (window.microApp?.addDataListener) {
         window.microApp.addDataListener(callback, autoTrigger);
     }
@@ -396,7 +420,7 @@ export const addDataListener = (callback: Function, autoTrigger = false): void =
  * 移除数据监听器
  * @param callback - 回调函数，之前添加的监听器
  */
-export const removeDataListener = (callback: Function): void => {
+export const removeDataListener = (callback: Func): void => {
     if (window.microApp?.removeDataListener) {
         window.microApp.removeDataListener(callback);
     }
