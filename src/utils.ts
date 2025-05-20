@@ -4,6 +4,8 @@ import {Any, Func, MicroAppData, OpenAppPageParams, OpenWindowParams, PopoutWind
 let microAppData: MicroAppData | null = null;
 let microAppReady = false;
 
+// 备用z-index值，当无法从主应用获取nextZIndex时使用
+let zIndexMissing = 1000;
 
 // 在导入时环境允许自动初始化
 if (!(typeof window === 'undefined' || typeof window.microApp === 'undefined' || typeof window.microApp.getData !== 'function')) {
@@ -260,7 +262,7 @@ export const methods = {
         if (methodsData && typeof methodsData.nextZIndex === 'function') {
             return methodsData.nextZIndex();
         }
-        return 1000;
+        return zIndexMissing++;
     },
 
     /** 选择用户 */
