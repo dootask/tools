@@ -1,6 +1,6 @@
 {
     "name": "@dootask/tools",
-    "version": "0.1.6",
+    "version": "0.1.7",
     "description": "DooTask 应用工具库，主要用于 DooTask 微应用开发",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -16,8 +16,12 @@
         "micro-frontend",
         "utils"
     ],
-    "author": "",
+    "author": "DooTask",
     "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/dootask/tools.git"
+    },
     "devDependencies": {
         "typescript": "^4.9.5"
     },
