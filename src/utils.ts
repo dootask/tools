@@ -275,7 +275,7 @@ export const methods = {
     },
 
     /** 应用窗口独立显示 */
-    popoutWindow: (params: PopoutWindowParams): void => {
+    popoutWindow: (params?: PopoutWindowParams): void => {
         const methodsData = getAppData('methods');
         if (methodsData && typeof methodsData.popoutWindow === 'function') {
             methodsData.popoutWindow(params);
@@ -366,7 +366,7 @@ export const nextZIndex = (): number => {
  * 应用窗口独立显示 (兼容方法)
  * @param params - 窗口参数
  */
-export const popoutWindow = (params: PopoutWindowParams): void => {
+export const popoutWindow = (params?: PopoutWindowParams): void => {
     methods.popoutWindow(params);
 };
 
