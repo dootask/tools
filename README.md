@@ -70,21 +70,21 @@ closeApp();
 
 ### props 属性
 
-| 属性名                      | 类型         | 说明             |
-|--------------------------|------------|----------------|
-| `themeName`              | `string`   | 当前主题名称         |
-| `userId`                 | `number`   | 当前用户ID，0 表示未登录 |
-| `userToken`              | `string`   | 当前用户Token      |
-| `userInfo`               | `object`   | 当前用户信息对象       |
-| `baseUrl`                | `string`   | 基础URL          |
-| `systemInfo`             | `object`   | 系统信息对象         |
-| `isEEUIApp`              | `boolean`  | 是否为EEUI应用      |
-| `isElectron`             | `boolean`  | 是否为Electron应用  |
-| `isMainElectron`         | `boolean`  | 是否为主Electron窗口 |
-| `isSubElectron`          | `boolean`  | 是否为子Electron窗口 |
-| `languageList`           | `array`    | 语言列表           |
-| `languageName`           | `string`   | 当前语言名称         |
-| `get(key, defaultValue)` | `function` | 获取原始属性字段       |
+| 属性名                      | 类型         | 说明                   |
+|--------------------------|------------|----------------------|
+| `themeName`              | `string`   | 当前主题名称               |
+| `userId`                 | `number`   | 当前用户ID，0 表示未登录       |
+| `userToken`              | `string`   | 当前用户Token            |
+| `userInfo`               | `object`   | 当前用户信息对象             |
+| `baseUrl`                | `string`   | 基础URL                |
+| `systemInfo`             | `object`   | 系统信息对象               |
+| `isEEUIApp`              | `boolean`  | 是否为EEUI应用（App客户端）    |
+| `isElectron`             | `boolean`  | 是否为Electron应用（电脑客户端） |
+| `isMainElectron`         | `boolean`  | 是否为主Electron窗口       |
+| `isSubElectron`          | `boolean`  | 是否为子Electron窗口       |
+| `languageList`           | `array`    | 语言列表                 |
+| `languageName`           | `string`   | 当前语言名称               |
+| `get(key, defaultValue)` | `function` | 获取原始属性字段             |
 
 ### methods 方法
 
@@ -95,7 +95,7 @@ closeApp();
 | `interceptBack` | `callback: (data: any) => boolean`   | `() => void`                                | 设置应用关闭前的回调，返回true可阻止关闭。返回一个可注销监听的函数      |
 | `nextZIndex`    | -                                    | `number`                                    | 获取下一个可用的模态框z-index                       |
 | `selectUsers`   | `params: SelectUsersParams`          | `Promise<any>`                              | 选择用户，可以传入多种配置来自定义选择器                     |
-| `popoutWindow`  | `objects`                            | `void`                                      | 应用窗口独立显示（只在 isElectron 环境有效）             |
+| `popoutWindow`  | `objects`                            | `void`                                      | 应用窗口独立显示                                 |
 | `openWindow`    | `objects`                            | `void`                                      | 打开新窗口（只在 isElectron 环境有效）                |
 | `openTabWindow` | `url: string`                        | `void`                                      | 在新标签页打开URL，直接传入URL地址（只在 isElectron 环境有效） |
 | `openAppPage`   | `objects`                            | `void`                                      | 打开应用页面（只在 isEEUIApp 环境有效）                |
@@ -217,26 +217,19 @@ addDataListener(dataListener, true);
 ```typescript
 import {methods, props} from '@dootask/tools';
 
+// 将当前页面作为独立窗口显示
+methods.popoutWindow();
+
+// 将当前页面作为独立窗口显示（自定义窗口信息，信息仅对Electron环境有效）
+methods.popoutWindow({
+    title: '独立窗口',      // 窗口标题
+    width: 1000,           // 窗口宽度
+    height: 700,           // 窗口高度
+    minWidth: 800          // 窗口最小宽度
+});
+
 // 在Electron环境中将当前页面以独立窗口形式显示
 if (props.isElectron) {
-    // 将当前页面作为独立窗口显示
-    methods.popoutWindow({
-        title: '独立窗口',  // 窗口标题
-        width: 1000,           // 窗口宽度
-        height: 700,           // 窗口高度
-        minWidth: 800          // 窗口最小宽度
-    });
-    
-    // 打开指定URL作为独立窗口
-    methods.popoutWindow({
-        url: 'https://example.com',  // 自定义访问地址
-        title: '外部网站',   // 窗口标题
-        titleFixed: true,      // 固定窗口标题
-        width: 1200,           // 窗口宽度
-        height: 800            // 窗口高度
-    });
-    
-    // 在Electron环境中打开新窗口
     // 打开新窗口
     methods.openWindow({
         name: 'my-window-id',  // 窗口唯一标识

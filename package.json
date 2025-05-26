@@ -1,6 +1,6 @@
 {
     "name": "@dootask/tools",
-    "version": "0.1.7",
+    "version": "0.1.8",
     "description": "DooTask 应用工具库，主要用于 DooTask 微应用开发",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",

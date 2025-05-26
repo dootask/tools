@@ -274,7 +274,7 @@ export const methods = {
         return null;
     },
 
-    /** 应用窗口独立显示（只在 isElectron 环境有效） */
+    /** 应用窗口独立显示 */
     popoutWindow: (params: PopoutWindowParams): void => {
         const methodsData = getAppData('methods');
         if (methodsData && typeof methodsData.popoutWindow === 'function') {
@@ -365,7 +365,6 @@ export const nextZIndex = (): number => {
 /**
  * 应用窗口独立显示 (兼容方法)
  * @param params - 窗口参数
- * @description 只在 isElectron 环境有效
  */
 export const popoutWindow = (params: PopoutWindowParams): void => {
     methods.popoutWindow(params);
