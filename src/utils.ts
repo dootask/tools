@@ -89,6 +89,9 @@ export const props = {
     /** 系统信息 */
     systemInfo: getAppData('props.systemInfo') || null,
 
+    /** 页面类型 */
+    windowType: getAppData('props.windowType') || 'embed',
+
     /** 是否为EEUI应用 */
     isEEUIApp: !!getAppData('props.isEEUIApp'),
 
@@ -162,6 +165,14 @@ export const getBaseUrl = (): string => {
 export const getSystemInfo = (): Any => {
     return props.systemInfo;
 };
+
+/**
+ * 获取页面类型 (兼容方法)
+ * @returns {string} 页面类型，可能的值为 'popout' 或 'embed'
+ */
+export const getWindowType = (): string => {
+    return props.windowType;
+}
 
 /**
  * 检查是否为EEUI应用 (兼容方法)

@@ -70,21 +70,22 @@ closeApp();
 
 ### props 属性
 
-| 属性名                      | 类型         | 说明                   |
-|--------------------------|------------|----------------------|
-| `themeName`              | `string`   | 当前主题名称               |
-| `userId`                 | `number`   | 当前用户ID，0 表示未登录       |
-| `userToken`              | `string`   | 当前用户Token            |
-| `userInfo`               | `object`   | 当前用户信息对象             |
-| `baseUrl`                | `string`   | 基础URL                |
-| `systemInfo`             | `object`   | 系统信息对象               |
-| `isEEUIApp`              | `boolean`  | 是否为EEUI应用（App客户端）    |
-| `isElectron`             | `boolean`  | 是否为Electron应用（电脑客户端） |
-| `isMainElectron`         | `boolean`  | 是否为主Electron窗口       |
-| `isSubElectron`          | `boolean`  | 是否为子Electron窗口       |
-| `languageList`           | `array`    | 语言列表                 |
-| `languageName`           | `string`   | 当前语言名称               |
-| `get(key, defaultValue)` | `function` | 获取原始属性字段             |
+| 属性名                      | 类型                  | 说明                   |
+|--------------------------|---------------------|----------------------|
+| `themeName`              | `string`            | 当前主题名称               |
+| `userId`                 | `number`            | 当前用户ID，0 表示未登录       |
+| `userToken`              | `string`            | 当前用户Token            |
+| `userInfo`               | `object`            | 当前用户信息对象             |
+| `baseUrl`                | `string`            | 基础URL                |
+| `systemInfo`             | `object`            | 系统信息对象               |
+| `windowType`             | 'popout' \| 'embed' | 页面打开类型               |
+| `isEEUIApp`              | `boolean`           | 是否为EEUI应用（App客户端）    |
+| `isElectron`             | `boolean`           | 是否为Electron应用（电脑客户端） |
+| `isMainElectron`         | `boolean`           | 是否为主Electron窗口       |
+| `isSubElectron`          | `boolean`           | 是否为子Electron窗口       |
+| `languageList`           | `array`             | 语言列表                 |
+| `languageName`           | `string`            | 当前语言名称               |
+| `get(key, defaultValue)` | `function`          | 获取原始属性字段             |
 
 ### methods 方法
 

@@ -27,6 +27,7 @@ export interface MicroAppProps {
     userInfo: Any;
     baseUrl: string;
     systemInfo: Any;
+    windowType: 'popout' | 'embed';
     isEEUIApp: boolean;
     isElectron: boolean;
     isMainElectron: boolean;
