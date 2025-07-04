@@ -8,6 +8,47 @@ export type Any = any;
 // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 export type Func = Function;
 
+// 微应用属性接口
+export interface MicroAppProps {
+    name: string;
+    url: string;
+    urlType: string;
+
+    userId: number;
+    userToken: string;
+    userInfo: Any;
+
+    baseUrl: string;
+    systemInfo: Any;
+    windowType: 'popout' | 'embed';
+
+    isEEUIApp: boolean;
+    isElectron: boolean;
+    isMainElectron: boolean;
+    isSubElectron: boolean;
+    
+    languageList: Any[];
+    languageName: string;
+    themeName: string;
+
+    [key: string]: Any;
+}
+
+// 微应用方法接口
+export interface MicroAppMethods {
+    close: (destroy?: boolean) => void;
+    back: () => void;
+    openWindow: (params: OpenWindowParams) => void;
+    openTabWindow: (url: string) => void;
+    openAppPage: (params: OpenAppPageParams) => void;
+    requestAPI: (params: requestParams) => Promise<responseSuccess | responseError>;
+    selectUsers: (params: SelectUsersParams) => Promise<Any>;
+    nextZIndex: () => number;
+    extraCallA: (...args: Any[]) => Any;
+
+    [key: string]: Any;
+}
+
 // 微应用实例类型
 export interface MicroAppInstance {
     Vue: Any;
@@ -20,46 +61,12 @@ export interface MicroAppInstance {
     };
 }
 
-// 微应用属性接口
-export interface MicroAppProps {
-    userId: number;
-    userToken: string;
-    userInfo: Any;
-    baseUrl: string;
-    systemInfo: Any;
-    windowType: 'popout' | 'embed';
-    isEEUIApp: boolean;
-    isElectron: boolean;
-    isMainElectron: boolean;
-    isSubElectron: boolean;
-    languageList: Any[];
-    languageName: string;
-    themeName: string;
-
-    [key: string]: Any;
-}
-
-// 微应用方法接口
-export interface MicroAppMethods {
-    close: (destroy?: boolean) => void;
-    back: () => void;
-    interceptBack: (callback: (data: Any) => boolean) => (() => void);
-    nextZIndex: () => number;
-    selectUsers: (params: SelectUsersParams) => Promise<Any>;
-    openWindow: (params: OpenWindowParams) => void;
-    openTabWindow: (url: string) => void;
-    openAppPage: (params: OpenAppPageParams) => void;
-    extraCallA: (...args: Any[]) => Any;
-
-    [key: string]: Any;
-}
-
 // 完整微应用数据接口
 export interface MicroAppData {
     type: string;
-    instance: MicroAppInstance;
     props: MicroAppProps;
-    methods: MicroAppMethods;
+    methods?: MicroAppMethods;
+    instance?: MicroAppInstance;
 }
 
 // 窗口配置接口
@@ -118,6 +125,18 @@ export interface SelectUsersParams {
     [key: string]: Any;
 }
 
+// 弹出提示框参数接口
+export interface ModalParams {
+    title: string;
+    content?: string;
+    width?: number;
+    okText?: string;
+    cancelText?: string;
+    scrollable?: boolean;
+    closable?: boolean;
+    [key: string]: Any;
+}
+
 // 请求服务器API参数接口
 export interface requestParams {
     url: string;    // 请求地址
@@ -150,8 +169,8 @@ declare global {
     interface Window {
         microApp?: {
             getData: () => MicroAppData;
-            addDataListener: (callback: Func, autoTrigger?: boolean) => void;
-            removeDataListener: (callback: Func) => void;
+            addDataListener?: (callback: Func, autoTrigger?: boolean) => void;
+            removeDataListener?: (callback: Func) => void;
         };
         modalTransferIndex?: number;
         systemInfo?: Any;
