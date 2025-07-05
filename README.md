@@ -125,6 +125,15 @@ closeApp();
 | `modalInfo(message)` | `message: string \| ModalParams` | `Promise<any>` | 弹出信息提示框 |
 | `modalAlert(message)` | `message: string` | `Promise<any>` | 弹出系统提示框 |
 
+### 消息框
+
+| 函数名 | 参数 | 返回值 | 说明 |
+|--------|------|--------|------|
+| `messageSuccess(message)` | `message: string` | `Promise<any>` | 弹出成功消息 |
+| `messageError(message)` | `message: string` | `Promise<any>` | 弹出错误消息 |
+| `messageWarning(message)` | `message: string` | `Promise<any>` | 弹出警告消息 |
+| `messageInfo(message)` | `message: string` | `Promise<any>` | 弹出信息消息 |
+
 ### 扩展功能
 
 | 函数名 | 参数 | 返回值 | 说明 |
@@ -400,6 +409,24 @@ modalSuccess({
 });
 ```
 
+### 弹出消息框
+
+```typescript
+import {messageSuccess, messageError, messageWarning, messageInfo} from '@dootask/tools';
+
+// 弹出成功消息
+messageSuccess('操作成功！');
+
+// 弹出错误消息
+messageError('操作失败！');
+
+// 弹出警告消息
+messageWarning('请注意！');
+
+// 弹出信息消息
+messageInfo('提示信息');
+```
+
 ## 示例项目
 
 我们提供了一个完整的示例项目，展示如何在 Vue 3 + Vite 项目中使用 `@dootask/tools`：
@@ -437,7 +464,7 @@ npm run dev
 
 5. 如果你希望调用$A上的方法，可以使用 `callExtraA` 方法。
 
-6. `interceptBack`、`addDataListener`、`removeDataListener` 这几个方法不支持 [iframe 模式](https://appstore.dootask.com/development/manual)。
+6. `interceptBack`、`addDataListener`、`removeDataListener` 这几个方法仅支持 [inline\[_blank\] 模式](https://appstore.dootask.com/development/manual)。
 
 7. 建议先运行示例项目了解各种功能的使用方法。
 

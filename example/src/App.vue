@@ -29,10 +29,6 @@
             <span class="value">{{ languageName || '--' }}</span>
           </div>
           <div class="status-item">
-            <span class="label">窗口类型:</span>
-            <span class="value">{{ windowType || '--' }}</span>
-          </div>
-          <div class="status-item">
             <span class="label">是否为Electron:</span>
             <span class="value" :class="{ 'true': isElectronRef, 'false': !isElectronRef }">
               {{ isElectronRef ? '是' : '否' }}
@@ -94,6 +90,25 @@
         </div>
       </section>
 
+      <!-- 消息框演示 -->
+      <section class="section">
+        <h2>消息框演示</h2>
+        <div class="button-grid">
+          <button @click="handleOpenMessage('info')" class="btn btn-primary">
+            打开默认消息框
+          </button>
+          <button @click="handleOpenMessage('warning')" class="btn btn-warning">
+            打开警告消息框
+          </button>
+          <button @click="handleOpenMessage('error')" class="btn btn-danger">
+            打开错误消息框
+          </button>
+          <button @click="handleOpenMessage('success')" class="btn btn-success">
+            打开成功消息框
+          </button>
+        </div>
+      </section>
+
       <!-- 用户信息 -->
       <section class="section" v-if="userInfo">
         <h2>用户信息</h2>
@@ -116,7 +131,6 @@ import {
   getUserId,
   getThemeName,
   getLanguageName,
-  getWindowType,
   isElectron,
   isEEUIApp,
   getSystemInfo,
@@ -132,7 +146,11 @@ import {
   modalWarning,
   modalError,
   modalSuccess,
-  modalAlert
+  modalAlert,
+  messageInfo,
+  messageWarning,
+  messageError,
+  messageSuccess
 } from '../../src/index'
 
 // 响应式数据
@@ -140,7 +158,6 @@ const isMicroAppRef = ref(false)
 const userId = ref(0)
 const themeName = ref('')
 const languageName = ref('')
-const windowType = ref('')
 const isElectronRef = ref(false)
 const isEEUIAppRef = ref(false)
 const userInfo = ref(null)
@@ -158,7 +175,6 @@ onMounted(async () => {
     userId.value = await getUserId()
     themeName.value = await getThemeName()
     languageName.value = await getLanguageName()
-    windowType.value = await getWindowType()
     isElectronRef.value = await isElectron()
     isEEUIAppRef.value = await isEEUIApp()
     userInfo.value = await getUserInfo()
@@ -249,6 +265,22 @@ const handleOpenModal = (type: string) => {
   }
 }
 
+const handleOpenMessage = (type: string) => {
+  switch (type) {
+    case 'info':
+      messageInfo('info')
+      break;
+    case 'warning':
+      messageWarning('warning')
+      break;
+    case 'error':
+      messageError('error')
+      break;
+    case 'success':
+      messageSuccess('success')
+      break;
+  }
+}
 </script>
 
 <style scoped>

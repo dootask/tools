@@ -379,6 +379,46 @@ export const modalAlert = async (message: string): Promise<Any> => {
 // **************************************************************************************
 
 /**
+ * 弹出成功消息
+ * @param message - 消息内容
+ * @returns Promise 返回消息结果
+ */
+export const messageSuccess = async (message: string): Promise<Any> => {
+    return await methodTryParent('extraCallA', 'messageSuccess', message);
+};
+
+/**
+ * 弹出错误消息
+ * @param message - 消息内容
+ * @returns Promise 返回消息结果
+ */
+export const messageError = async (message: string): Promise<Any> => {
+    return await methodTryParent('extraCallA', 'messageError', message);
+};
+
+/**
+ * 弹出警告消息
+ * @param message - 消息内容
+ * @returns Promise 返回消息结果
+ */
+export const messageWarning = async (message: string): Promise<Any> => {
+    return await methodTryParent('extraCallA', 'messageWarning', message);
+};
+
+/**
+ * 弹出信息消息
+ * @param message - 消息内容
+ * @returns Promise 返回消息结果
+ */
+export const messageInfo = async (message: string): Promise<Any> => {
+    return await methodTryParent('extraCallA', 'messageInfo', message);
+};
+
+// **************************************************************************************
+// **************************************************************************************
+// **************************************************************************************
+
+/**
  * 获取下一个可用的模态框 z-index 值
  * @returns {number} 返回一个递增的 z-index 值
  */
