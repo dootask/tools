@@ -183,7 +183,6 @@ interface SelectUsersParams {
     showSelectAll?: boolean;               // 显示全选项，默认值: true
     showDialog?: boolean;                  // 是否显示会话，默认值: false
     onlyGroup?: boolean;                   // 仅显示群组，默认值: false
-    beforeSubmit?: Function;               // 提交前的回调
 }
 ```
 
@@ -426,14 +425,6 @@ npm run dev
 - **应用控制** - 关闭应用、返回操作等
 - **提示框** - 各种类型的提示框演示
 
-### 示例特性
-
-- 🚀 基于 Vite 的快速开发体验
-- 🎨 现代化的 UI 设计
-- 📱 响应式布局
-- 🔧 完整的 dootask-tools 功能演示
-- 📝 详细的代码注释和使用说明
-
 ## 注意事项
 
 1. 这个库会自动检测是否在微前端环境中运行。如果不在微前端环境中，大部分方法将返回空值或抛出错误。
@@ -446,7 +437,9 @@ npm run dev
 
 5. 如果你希望调用$A上的方法，可以使用 `callExtraA` 方法。
 
-6. 建议先运行示例项目了解各种功能的使用方法。
+6. `interceptBack`、`addDataListener`、`removeDataListener` 这几个方法不支持 [iframe 模式](https://appstore.dootask.com/development/manual)。
+
+7. 建议先运行示例项目了解各种功能的使用方法。
 
 ## 贡献和反馈
 
