@@ -1,5 +1,13 @@
 <template>
   <div class="app">
+    <nav class="nav">
+      <div class="nav-left" @click="handleCloseApp">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-icon lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </div>
+      <div class="nav-center">DooTask</div>
+      <div class="nav-right"></div>
+    </nav>
+
     <header class="header">
       <h1>DooTask Tools - Vite 示例</h1>
       <p>展示如何在Vite项目中使用dootask-tools</p>
@@ -289,6 +297,41 @@ const handleOpenMessage = (type: string) => {
   margin: 0 auto;
   padding: 20px;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.nav {
+  display: none;
+  grid-template-columns: 60px 1fr 60px;
+  align-items: center;
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 600px) {
+  .nav {
+    display: grid;
+  }
+}
+
+.nav-left {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.nav-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.2rem;
+}
+
+.nav-right {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
 }
 
 .header {
