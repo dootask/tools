@@ -68,6 +68,10 @@ if (typeof window !== 'undefined') {
                 break;
         }
     });
+    // 向主应用发送准备就绪消息
+    window.parent.postMessage({
+        type: 'MICRO_APP_READY',
+    }, '*');
 }
 
 /**
