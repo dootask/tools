@@ -1,77 +1,98 @@
-import {Any, Func, MicroAppData, OpenAppPageParams, OpenWindowParams, PopoutWindowParams, SelectUsersParams, requestParams, responseSuccess, responseError, ModalParams} from './types';
+import {
+  Any,
+  Func,
+  MicroAppData,
+  OpenAppPageParams,
+  OpenWindowParams,
+  PopoutWindowParams,
+  SelectUsersParams,
+  requestParams,
+  responseSuccess,
+  responseError,
+  ModalParams,
+  DooTaskUserInfo,
+  DooTaskSystemInfo,
+  DooTaskLanguage,
+} from "./types"
 
 // 存储微应用数据
-let microAppData: MicroAppData | null = null;
+let microAppData: MicroAppData | null = null
 
 // 微应用是否已准备好
-let microAppReady = false;
+let microAppReady = false
 
 // 备用z-index值，当无法从主应用获取nextZIndex时使用
-let zIndexMissing = 1000;
+let zIndexMissing = 1000
 
 // 存储主应用方法调用结果
-const parentEvents: Record<string, (data: Any, error: Any) => void> = {};
+const parentEvents: Record<string, (data: Any, error: Any) => void> = {}
 
 // 调用主应用方法，如果主应用没有该方法，则向主应用发送消息
 const methodTryParent = async (method: string, ...args: Any[]): Promise<Any | null> => {
-    if (typeof window === 'undefined') {
-        return null;
+  if (typeof window === "undefined") {
+    return null
+  }
+  const methodFunc = await getAppData("methods." + method)
+  if (typeof methodFunc === "function") {
+    return methodFunc(...args)
+  }
+  return new Promise<Any | null>((resolve, reject) => {
+    const id = Math.random().toString(36).substring(2, 15)
+    parentEvents[id] = (data: Any, error: Any) => {
+      delete parentEvents[id]
+      if (error) {
+        reject(error)
+      } else {
+        resolve(data)
+      }
     }
-    const methodFunc = await getAppData('methods.' + method);
-    if (typeof methodFunc === 'function') {
-        return methodFunc(...args);
+    window.parent.postMessage(
+      {
+        type: "MICRO_APP_METHOD",
+        message: { id, method, args },
+      },
+      "*"
+    )
+  })
+}
+
+if (typeof window !== "undefined") {
+  // 监听主应用注入的 microApp 对象
+  window.addEventListener("message", event => {
+    if (!event.data) {
+      return
     }
-    return new Promise<Any | null>((resolve, reject) => {
-        const id = Math.random().toString(36).substring(2, 15);
-        parentEvents[id] = (data: Any, error: Any) => {
-            delete parentEvents[id];
-            if (error) {
-                reject(error);
-            } else {
-                resolve(data);
+    const { type, message } = event.data
+    switch (type) {
+      case "MICRO_APP_INJECT":
+        window.microApp = {
+          getData: () => {
+            return {
+              type: message.type,
+              props: message.props,
             }
-        };
-        window.parent.postMessage({
-            type: 'MICRO_APP_METHOD',
-            message: {id, method, args}
-        }, '*');
-    });
-};
-
-if (typeof window !== 'undefined') {
-    // 监听主应用注入的 microApp 对象
-    window.addEventListener('message', (event) => {
-        if (!event.data) {
-            return;
+          },
         }
-        const {type, message} = event.data;
-        switch (type) {
-            case 'MICRO_APP_INJECT':
-                window.microApp = {
-                    getData: () => {
-                        return {
-                            type: message.type,
-                            props: message.props,
-                        }
-                    },
-                }
-                break;
+        break
 
-            case 'MICRO_APP_METHOD_RESULT':
-                const {id, result, error} = message;
-                if (parentEvents[id]) {
-                    parentEvents[id](result, error);
-                }
-                break;
-
-            default:
-                break;
+      case "MICRO_APP_METHOD_RESULT":
+        const { id, result, error } = message
+        if (parentEvents[id]) {
+          parentEvents[id](result, error)
         }
-    });
-    // 向主应用发送准备就绪消息
-    window.parent.postMessage({
-        type: 'MICRO_APP_READY',
-    }, '*');
+        break
+
+      default:
+        break
+    }
+  })
+  // 向主应用发送准备就绪消息
+  window.parent.postMessage(
+    {
+      type: "MICRO_APP_READY",
+    },
+    "*"
+  )
 }
 
 /**
@@ -79,29 +100,29 @@ if (typeof window !== 'undefined') {
  * @returns {Promise<MicroAppData | null>} 返回微应用数据或null
  */
 export const appReady = (): Promise<MicroAppData | null> => {
-    return new Promise<MicroAppData | null>(async(resolve) => {
-        if (typeof window === 'undefined') {
-            resolve(null);
-            return;
-        }
-        if (microAppReady) {
-            resolve(microAppData);
-            return;
-        }
-        let count = 0;
-        while (typeof window.microApp === 'undefined' || typeof window.microApp.getData !== 'function') {
-            await new Promise(resolve => setTimeout(resolve, 100));
-            count++;
-            if (count > 30) {
-                resolve(null);
-                return;
-            }
-        }
-        microAppReady = true;
-        microAppData = window.microApp.getData();
-        resolve(microAppData);
-    })
-};
+  return new Promise<MicroAppData | null>(async resolve => {
+    if (typeof window === "undefined") {
+      resolve(null)
+      return
+    }
+    if (microAppReady) {
+      resolve(microAppData)
+      return
+    }
+    let count = 0
+    while (typeof window.microApp === "undefined" || typeof window.microApp.getData !== "function") {
+      await new Promise(resolve => setTimeout(resolve, 100))
+      count++
+      if (count > 30) {
+        resolve(null)
+        return
+      }
+    }
+    microAppReady = true
+    microAppData = window.microApp.getData()
+    resolve(microAppData)
+  })
+}
 
 /**
  * 获取应用数据
@@ -109,21 +130,20 @@ export const appReady = (): Promise<MicroAppData | null> => {
  * @returns {Promise<Any>} 返回应用数据
  */
 const getAppData = async (key: string | null = null): Promise<Any> => {
-    if (await appReady() === null) {
-        return null;
+  if ((await appReady()) === null) {
+    return null
+  }
+
+  if (!key) return microAppData
+
+  return key.split(".").reduce((obj, k) => {
+    if (obj && typeof obj === "object") {
+      const arrayIndex = /^\d+$/.test(k) ? parseInt(k) : k
+      return (obj as Record<string | number, Any>)[arrayIndex]
     }
-
-    if (!key) return microAppData;
-
-    return key.split('.').reduce((obj, k) => {
-        if (obj && typeof obj === 'object') {
-            const arrayIndex = /^\d+$/.test(k) ? parseInt(k) : k;
-            return (obj as Record<string | number, Any>)[arrayIndex];
-        }
-        return null;
-    }, microAppData);
-};
-
+    return null
+  }, microAppData)
+}
 
 // **************************************************************************************
 // **************************************************************************************
@@ -134,41 +154,40 @@ const getAppData = async (key: string | null = null): Promise<Any> => {
  * @returns {Promise<boolean>} 返回是否为微前端应用
  */
 export const isMicroApp = async (): Promise<boolean> => {
-    return await appReady() !== null;
-};
+  return (await appReady()) !== null
+}
 
 /**
  * 检查是否为EEUI应用
  * @returns {Promise<boolean>} 返回是否为EEUI应用
  */
 export const isEEUIApp = async (): Promise<boolean> => {
-    return await getAppData('props.isEEUIApp');
-};
+  return await getAppData("props.isEEUIApp")
+}
 
 /**
  * 检查是否为Electron应用
  * @returns {Promise<boolean>} 返回是否为Electron应用
  */
 export const isElectron = async (): Promise<boolean> => {
-    return await getAppData('props.isElectron');
-};
+  return await getAppData("props.isElectron")
+}
 
 /**
  * 检查是否为主Electron窗口
  * @returns {Promise<boolean>} 返回是否为主Electron窗口
  */
 export const isMainElectron = async (): Promise<boolean> => {
-    return await getAppData('props.isMainElectron');
-};
+  return await getAppData("props.isMainElectron")
+}
 
 /**
  * 检查是否为子Electron窗口
  * @returns {Promise<boolean>} 返回是否为子Electron窗口
  */
 export const isSubElectron = async (): Promise<boolean> => {
-    return await getAppData('props.isSubElectron');
-};
-
+  return await getAppData("props.isSubElectron")
+}
 
 // **************************************************************************************
 // **************************************************************************************
@@ -179,72 +198,72 @@ export const isSubElectron = async (): Promise<boolean> => {
  * @returns {Promise<string>} 返回当前主题名称
  */
 export const getThemeName = async (): Promise<string> => {
-    return await getAppData('props.themeName');
-};
+  return await getAppData("props.themeName")
+}
 
 /**
  * 获取当前用户ID
  * @returns {Promise<number>} 返回当前用户ID
  */
 export const getUserId = async (): Promise<number> => {
-    return await getAppData('props.userId');
-};
+  return await getAppData("props.userId")
+}
 
 /**
  * 获取当前用户Token
  * @returns {Promise<string>} 返回当前用户Token
  */
 export const getUserToken = async (): Promise<string> => {
-    return await getAppData('props.userToken');
-};
+  return await getAppData("props.userToken")
+}
 
 /**
  * 获取当前用户信息
- * @returns {Promise<Any>} 返回当前用户信息对象
+ * @returns {Promise<DooTaskUserInfo>} 返回当前用户信息对象
  */
-export const getUserInfo = async (): Promise<Any> => {
-    return await getAppData('props.userInfo');
-};
+export const getUserInfo = async (): Promise<DooTaskUserInfo> => {
+  return (await getAppData("props.userInfo")) as DooTaskUserInfo
+}
 
 /**
  * 获取基础URL
  * @returns {Promise<string>} 返回基础URL
  */
 export const getBaseUrl = async (): Promise<string> => {
-    return await getAppData('props.baseUrl');
-};
+  return await getAppData("props.baseUrl")
+}
 
 /**
  * 获取系统信息
- * @returns {Promise<Any>} 返回系统信息对象
+ * @returns {Promise<DooTaskSystemInfo>} 返回系统信息对象
  */
-export const getSystemInfo = async (): Promise<Any> => {
-    return await getAppData('props.systemInfo');
-};
+export const getSystemInfo = async (): Promise<DooTaskSystemInfo> => {
+  return (await getAppData("props.systemInfo")) as DooTaskSystemInfo
+}
 
 /**
  * 获取页面类型
  * @returns {Promise<string>} 返回页面类型，可能的值为 'popout' 或 'embed'
  */
 export const getWindowType = async (): Promise<string> => {
-    return await getAppData('props.windowType');
+  return await getAppData("props.windowType")
 }
 
 /**
  * 获取语言列表
- * @returns {Promise<Any[]>} 返回语言列表
+ * @returns {Promise<{ [key: DooTaskLanguage]: string }>} 返回语言列表
  */
-export const getLanguageList = async (): Promise<Any[]> => {
-    return await getAppData('props.languageList');
-};
+export const getLanguageList = async (): Promise<{ [key in DooTaskLanguage]: string }> => {
+  return (await getAppData("props.languageList")) as { [key in DooTaskLanguage]: string }
+}
 
 /**
  * 获取当前语言名称
- * @returns {Promise<string>} 返回当前语言名称
+ * @returns {Promise<DooTaskLanguage>} 返回当前语言名称
  */
-export const getLanguageName = async (): Promise<string> => {
-    return await getAppData('props.languageName');
-};
+export const getLanguageName = async (): Promise<DooTaskLanguage> => {
+  return (await getAppData("props.languageName")) as DooTaskLanguage
+}
 
 // **************************************************************************************
 // **************************************************************************************
@@ -255,24 +274,24 @@ export const getLanguageName = async (): Promise<string> => {
  * @param destroy - 可选参数，布尔值，表示是否销毁应用。默认为false。
  */
 export const closeApp = async (destroy = false): Promise<void> => {
-    await methodTryParent('close', destroy);
-};
+  await methodTryParent("close", destroy)
+}
 
 /**
  * 逐步返回上一个页面
  * @description 类似于浏览器的后退按钮，返回到最后一个页面时会关闭应用。
  */
 export const backApp = async (): Promise<void> => {
-    await methodTryParent('back');
-};
+  await methodTryParent("back")
+}
 
 /**
  * 应用窗口独立显示
  * @param params - 窗口参数
  */
 export const popoutWindow = async (params?: PopoutWindowParams): Promise<void> => {
-    await methodTryParent('popoutWindow', params);
-};
+  await methodTryParent("popoutWindow", params)
+}
 
 /**
  * 打开新窗口
@@ -280,8 +299,8 @@ export const popoutWindow = async (params?: PopoutWindowParams): Promise<void> =
  * @description 只在 isElectron 环境有效
  */
 export const openWindow = async (params: OpenWindowParams): Promise<void> => {
-    await methodTryParent('openWindow', params);
-};
+  await methodTryParent("openWindow", params)
+}
 
 /**
  * 在新标签页打开URL
@@ -289,8 +308,8 @@ export const openWindow = async (params: OpenWindowParams): Promise<void> => {
  * @description 只在 isElectron 环境有效
  */
 export const openTabWindow = async (url: string): Promise<void> => {
-    await methodTryParent('openTabWindow', url);
-};
+  await methodTryParent("openTabWindow", url)
+}
 
 /**
  * 打开应用页面
@@ -298,8 +317,8 @@ export const openTabWindow = async (url: string): Promise<void> => {
  * @description 只在 isEEUIApp 环境有效
  */
 export const openAppPage = async (params: OpenAppPageParams): Promise<void> => {
-    await methodTryParent('openAppPage', params);
-};
+  await methodTryParent("openAppPage", params)
+}
 
 /**
  * 请求服务器API
@@ -307,17 +326,17 @@ export const openAppPage = async (params: OpenAppPageParams): Promise<void> => {
  * @returns Promise 返回API请求结果
  */
 export const requestAPI = async (params: requestParams): Promise<responseSuccess | responseError> => {
-    return await methodTryParent('requestAPI', params);
-};
+  return await methodTryParent("requestAPI", params)
+}
 
 /**
  * 选择用户
  * @param params - 可以是值或配置对象
  * @returns Promise 返回选择的用户结果
  */
-export const selectUsers = async (params: SelectUsersParams): Promise<Any> => {
-    return await methodTryParent('selectUsers', params);
-};
+export const selectUsers = async (params: SelectUsersParams): Promise<number[]> => {
+  return await methodTryParent("selectUsers", params)
+}
 
 /**
  * 调用$A上的额外方法
@@ -326,8 +345,8 @@ export const selectUsers = async (params: SelectUsersParams): Promise<Any> => {
  * @returns 方法返回值
  */
 export const callExtraA = async (methodName: string, ...args: Any[]): Promise<Any> => {
-    return await methodTryParent('extraCallA', methodName, ...args);
-};
+  return await methodTryParent("extraCallA", methodName, ...args)
+}
 
 // **************************************************************************************
 // **************************************************************************************
@@ -339,8 +358,8 @@ export const callExtraA = async (methodName: string, ...args: Any[]): Promise<An
  * @returns Promise 返回提示框结果
  */
 export const modalSuccess = async (message: string | ModalParams): Promise<Any> => {
-    return await methodTryParent('extraCallA', 'modalSuccess', message);
-};
+  return await methodTryParent("extraCallA", "modalSuccess", message)
+}
 
 /**
  * 弹出错误提示框
@@ -348,8 +367,8 @@ export const modalSuccess = async (message: string | ModalParams): Promise<Any> 
  * @returns Promise 返回提示框结果
  */
 export const modalError = async (message: string | ModalParams): Promise<Any> => {
-    return await methodTryParent('extraCallA', 'modalError', message);
-};
+  return await methodTryParent("extraCallA", "modalError", message)
+}
 
 /**
  * 弹出警告提示框
@@ -357,8 +376,8 @@ export const modalError = async (message: string | ModalParams): Promise<Any> =>
  * @returns Promise 返回提示框结果
  */
 export const modalWarning = async (message: string | ModalParams): Promise<Any> => {
-    return await methodTryParent('extraCallA', 'modalWarning', message);
-};
+  return await methodTryParent("extraCallA", "modalWarning", message)
+}
 
 /**
  * 弹出信息提示框
@@ -366,8 +385,8 @@ export const modalWarning = async (message: string | ModalParams): Promise<Any> 
  * @returns Promise 返回提示框结果
  */
 export const modalInfo = async (message: string | ModalParams): Promise<Any> => {
-    return await methodTryParent('extraCallA', 'modalInfo', message);
-};
+  return await methodTryParent("extraCallA", "modalInfo", message)
+}
 
 /**
  * 弹出系统提示框
@@ -375,8 +394,8 @@ export const modalInfo = async (message: string | ModalParams): Promise<Any> => 
  * @returns Promise 返回提示框结果
  */
 export const modalAlert = async (message: string): Promise<Any> => {
-    return await methodTryParent('extraCallA', 'modalAlert', message);
-};
+  return await methodTryParent("extraCallA", "modalAlert", message)
+}
 
 // **************************************************************************************
 // **************************************************************************************
@@ -388,8 +407,8 @@ export const modalAlert = async (message: string): Promise<Any> => {
  * @returns Promise 返回消息结果
  */
 export const messageSuccess = async (message: string): Promise<Any> => {
-    return await methodTryParent('extraCallA', 'messageSuccess', message);
-};
+  return await methodTryParent("extraCallA", "messageSuccess", message)
+}
 
 /**
  * 弹出错误消息
@@ -397,8 +416,8 @@ export const messageSuccess = async (message: string): Promise<Any> => {
  * @returns Promise 返回消息结果
  */
 export const messageError = async (message: string): Promise<Any> => {
-    return await methodTryParent('extraCallA', 'messageError', message);
-};
+  return await methodTryParent("extraCallA", "messageError", message)
+}
 
 /**
  * 弹出警告消息
@@ -406,8 +425,8 @@ export const messageError = async (message: string): Promise<Any> => {
  * @returns Promise 返回消息结果
  */
 export const messageWarning = async (message: string): Promise<Any> => {
-    return await methodTryParent('extraCallA', 'messageWarning', message);
-};
+  return await methodTryParent("extraCallA", "messageWarning", message)
+}
 
 /**
  * 弹出信息消息
@@ -415,8 +434,8 @@ export const messageWarning = async (message: string): Promise<Any> => {
  * @returns Promise 返回消息结果
  */
 export const messageInfo = async (message: string): Promise<Any> => {
-    return await methodTryParent('extraCallA', 'messageInfo', message);
-};
+  return await methodTryParent("extraCallA", "messageInfo", message)
+}
 
 // **************************************************************************************
 // **************************************************************************************
@@ -427,12 +446,12 @@ export const messageInfo = async (message: string): Promise<Any> => {
  * @returns {number} 返回一个递增的 z-index 值
  */
 export const nextZIndex = async (): Promise<number> => {
-    const func = await getAppData('methods.nextZIndex');
-    if (typeof func === 'function') {
-        return func();
-    }
-    return zIndexMissing++;
-};
+  const func = await getAppData("methods.nextZIndex")
+  if (typeof func === "function") {
+    return func()
+  }
+  return zIndexMissing++
+}
 
 /**
  * 设置应用关闭前的回调
@@ -440,26 +459,26 @@ export const nextZIndex = async (): Promise<number> => {
  * @description 用于在应用关闭前执行操作，可以通过返回true来阻止关闭
  * @returns 返回一个函数，执行该函数可以注销监听器
  */
-export const interceptBack = (callback: (data: Any) => boolean): () => void => {
-    if (window.microApp?.addDataListener) {
-        const interceptListener = (data: Any) => {
-            if (data && data.type === 'beforeClose') {
-                return callback(data);
-            }
-            return false;
-        };
-        window.microApp.addDataListener(interceptListener, false);
-
-        // 返回注销监听的函数
-        return () => {
-            if (window.microApp?.removeDataListener) {
-                window.microApp.removeDataListener(interceptListener);
-            }
-        };
+export const interceptBack = (callback: (data: Any) => boolean): (() => void) => {
+  if (window.microApp?.addDataListener) {
+    const interceptListener = (data: Any) => {
+      if (data && data.type === "beforeClose") {
+        return callback(data)
+      }
+      return false
     }
-    // 如果没有添加监听，返回空函数
-    return () => { };
-};
+    window.microApp.addDataListener(interceptListener, false)
+
+    // 返回注销监听的函数
+    return () => {
+      if (window.microApp?.removeDataListener) {
+        window.microApp.removeDataListener(interceptListener)
+      }
+    }
+  }
+  // 如果没有添加监听，返回空函数
+  return () => {}
+}
 
 // **************************************************************************************
 // **************************************************************************************
@@ -471,17 +490,17 @@ export const interceptBack = (callback: (data: Any) => boolean): () => void => {
  * @param autoTrigger - 在初次绑定监听函数时如果有缓存数据，是否需要主动触发一次
  */
 export const addDataListener = (callback: Func, autoTrigger = false): void => {
-    if (window.microApp?.addDataListener) {
-        window.microApp.addDataListener(callback, autoTrigger);
-    }
-};
+  if (window.microApp?.addDataListener) {
+    window.microApp.addDataListener(callback, autoTrigger)
+  }
+}
 
 /**
  * 移除数据监听器
  * @param callback - 回调函数，之前添加的监听器
  */
 export const removeDataListener = (callback: Func): void => {
-    if (window.microApp?.removeDataListener) {
-        window.microApp.removeDataListener(callback);
-    }
-};
+  if (window.microApp?.removeDataListener) {
+    window.microApp.removeDataListener(callback)
+  }
+}
