@@ -44,23 +44,28 @@ npm run preview
 这个示例展示了 `@dootask/tools` 的主要功能：
 
 ### 1. 应用状态检测
+
 - 检测是否为微前端应用
 - 获取用户信息、主题、语言等配置
 - 显示窗口类型和运行环境
 
 ### 2. 窗口管理
+
 - **打开独立窗口**: 使用 `popoutWindow()` 创建独立窗口
-- **打开新窗口**: 使用 `openWindow()` 创建新窗口（仅在Electron环境有效）
+- **打开新窗口**: 使用 `openWindow()` 创建新窗口（仅在 Electron 环境有效）
 
 ### 3. 用户交互
+
 - **选择用户**: 使用 `selectUsers()` 打开用户选择器
 - **API 请求**: 使用 `requestAPI()` 发送服务器请求
 
 ### 4. 应用控制
+
 - **关闭应用**: 使用 `closeApp()` 关闭当前应用
 - **返回操作**: 使用 `backApp()` 执行返回操作
 
 ### 5. 提示框
+
 - **成功提示**: 使用 `modalSuccess()` 显示成功消息
 - **错误提示**: 使用 `modalError()` 显示错误消息
 - **警告提示**: 使用 `modalWarning()` 显示警告消息
@@ -80,8 +85,8 @@ npm run preview
 1. 这个示例需要在 DooTask 微前端环境中运行才能获得完整功能
 2. 在独立环境中运行时，某些功能可能不可用或会显示默认值
 3. 确保 `@dootask/tools` 库已正确安装和配置
-4. 所有API都是异步的，返回Promise对象
-5. 某些功能只在特定环境中有效（如 `openWindow` 只在Electron环境中有效）
+4. 所有 API 都是异步的，返回 Promise 对象
+5. 某些功能只在特定环境中有效（如 `openWindow` 只在 Electron 环境中有效）
 
 ## 开发建议
 
@@ -93,9 +98,9 @@ npm run preview
 
 ## 相关链接
 
-- [主项目 README](../README.md) - 查看完整的API文档和使用说明
+- [主项目 README](../README.md) - 查看完整的 API 文档和使用说明
 - [@dootask/tools 源码](../src/) - 查看工具库源码
 
 ## 许可证
 
-MIT License 
+MIT License

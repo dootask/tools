@@ -2,7 +2,12 @@
   <div class="app">
     <nav class="nav">
       <div class="nav-left" @click="handleCloseApp">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-icon lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          class="lucide lucide-x-icon lucide-x">
+          <path d="M18 6 6 18" />
+          <path d="m6 6 12 12" />
+        </svg>
       </div>
       <div class="nav-center">DooTask</div>
       <div class="nav-right"></div>
@@ -133,7 +138,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted } from "vue"
 import {
   isMicroApp,
   getUserId,
@@ -158,7 +163,9 @@ import {
   messageInfo,
   messageWarning,
   messageError,
-  messageSuccess
+  messageSuccess,
+  DooTaskUserInfo,
+  DooTaskSystemInfo
 } from '../../src/index'
 
 // 响应式数据
@@ -168,8 +175,8 @@ const themeName = ref('')
 const languageName = ref('')
 const isElectronRef = ref(false)
 const isEEUIAppRef = ref(false)
-const userInfo = ref(null)
-const systemInfo = ref(null)
+const userInfo = ref<DooTaskUserInfo | null>(null)
+const systemInfo = ref<DooTaskSystemInfo | null>(null)
 
 // 初始化应用
 onMounted(async () => {
@@ -177,7 +184,7 @@ onMounted(async () => {
     // 等待应用准备就绪
     const appData = await appReady()
     console.log('应用已准备就绪:', appData)
-    
+
     // 更新状态
     isMicroAppRef.value = await isMicroApp()
     userId.value = await getUserId()
@@ -473,17 +480,17 @@ const handleOpenMessage = (type: string) => {
   .app {
     padding: 10px;
   }
-  
+
   .header h1 {
     font-size: 2rem;
   }
-  
+
   .status-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .button-grid {
     grid-template-columns: 1fr;
   }
 }
-</style> 
+</style>
