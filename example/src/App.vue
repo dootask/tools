@@ -1,6 +1,6 @@
 <template>
   <div class="app">
-    <nav class="nav">
+    <nav class="nav" v-if="showNav">
       <div class="nav-left" @click="handleCloseApp">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -9,7 +9,7 @@
           <path d="m6 6 12 12" />
         </svg>
       </div>
-      <div class="nav-center">DooTask</div>
+      <div class="nav-center">DooTask Tools</div>
       <div class="nav-right"></div>
     </nav>
 
@@ -138,7 +138,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue"
+import { ref, onMounted, onBeforeUnmount } from "vue"
 import {
   isMicroApp,
   getUserId,
@@ -165,7 +165,10 @@ import {
   messageError,
   messageSuccess,
   DooTaskUserInfo,
-  DooTaskSystemInfo
+  DooTaskSystemInfo,
+  isFullScreen,
+  getWindowType,
+  interceptBack
 } from '../../src/index'
 
 // 响应式数据
@@ -175,6 +178,8 @@ const themeName = ref('')
 const languageName = ref('')
 const isElectronRef = ref(false)
 const isEEUIAppRef = ref(false)
+const showNav = ref(false)
+const preventClose = ref(true)
 const userInfo = ref<DooTaskUserInfo | null>(null)
 const systemInfo = ref<DooTaskSystemInfo | null>(null)
 
@@ -197,7 +202,33 @@ onMounted(async () => {
   } catch (error) {
     console.error('应用初始化失败:', error)
   }
+
+  // 阻止返回
+  interceptBack(() => {
+    if (preventClose.value) {
+      preventClose.value = false
+      modalInfo("阻止返回，再次点击将关闭应用")
+      return true
+    } else {
+      return false
+    }
+  })
+
+  // 检查尺寸发生变化
+  handleResize()
+  window.addEventListener('resize', handleResize)
 })
+
+// 卸载时移除事件监听
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', handleResize)
+})
+
+// 检查尺寸发生变化
+const handleResize = async () => {
+  // 如果当前是嵌入式窗口，并且是满屏，则显示导航栏
+  showNav.value = (await getWindowType()) === 'embed' && (await isFullScreen())
+}
 
 // 处理函数
 const handlePopoutWindow = () => {
@@ -307,19 +338,16 @@ const handleOpenMessage = (type: string) => {
 }
 
 .nav {
-  display: none;
+  position: sticky;
+  top: 10px;
+  z-index: 1000;
+  display: grid;
   grid-template-columns: 60px 1fr 60px;
   align-items: center;
   padding: 10px;
   background: #f8f9fa;
   border-radius: 12px;
   margin-bottom: 20px;
-}
-
-@media (max-width: 600px) {
-  .nav {
-    display: grid;
-  }
 }
 
 .nav-left {

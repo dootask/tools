@@ -1,3 +1,4 @@
+import { initSlideBack } from "./slide-back"
 import {
   Any,
   Func,
@@ -13,6 +14,7 @@ import {
   DooTaskUserInfo,
   DooTaskSystemInfo,
   DooTaskLanguage,
+  DooTaskUserBasicInfo,
 } from "./types"
 
 /** 存储微应用数据 */
@@ -26,6 +28,9 @@ let zIndexMissing = 1000
 
 /** 存储主应用方法调用结果 */
 const parentEvents: Record<string, (data: Any, error: Any) => void> = {}
+
+/** 存储iframe应用的beforeClose监听器 */
+const iframeBeforeClose: Record<string, () => boolean> = {}
 
 /** 调用主应用方法，如果主应用没有该方法，则向主应用发送消息 */
 const methodTryParent = async (method: string, ...args: Any[]): Promise<Any | null> => {
@@ -54,45 +59,6 @@ const methodTryParent = async (method: string, ...args: Any[]): Promise<Any | nu
       "*"
     )
   })
-}
-
-if (typeof window !== "undefined") {
-  /** 监听主应用注入的 microApp 对象 */
-  window.addEventListener("message", event => {
-    if (!event.data) {
-      return
-    }
-    const { type, message } = event.data
-    switch (type) {
-      case "MICRO_APP_INJECT":
-        window.microApp = {
-          getData: () => {
-            return {
-              type: message.type,
-              props: message.props,
-            }
-          },
-        }
-        break
-
-      case "MICRO_APP_METHOD_RESULT":
-        const { id, result, error } = message
-        if (parentEvents[id]) {
-          parentEvents[id](result, error)
-        }
-        break
-
-      default:
-        break
-    }
-  })
-  /** 向主应用发送准备就绪消息 */
-  window.parent.postMessage(
-    {
-      type: "MICRO_APP_READY",
-    },
-    "*"
-  )
 }
 
 /**
@@ -187,6 +153,22 @@ export const isMainElectron = async (): Promise<boolean> => {
  */
 export const isSubElectron = async (): Promise<boolean> => {
   return await getAppData("props.isSubElectron")
+}
+
+/**
+ * 检查当前是否满屏
+ * @returns Promise 返回是否为满屏
+ */
+export const isFullScreen = async (): Promise<boolean> => {
+  return await methodTryParent("isFullScreen")
+}
+
+/**
+ * 检查当前是否为iframe
+ * @returns {Promise<boolean>} 返回是否为iframe
+ */
+export const isIframe = async (): Promise<boolean> => {
+  return /^iframe/i.test(await getAppData("props.urlType"))
 }
 
 // **************************************************************************************
@@ -353,6 +335,25 @@ export const callExtraA = async (methodName: string, ...args: Any[]): Promise<An
 // **************************************************************************************
 
 /**
+ * 查询用户基本信息
+ * @param userid - 用户ID或用户ID数组
+ * @returns Promise 返回用户基本信息数组
+ */
+export const fetchUserBasic = async (userid: number | number[]): Promise<DooTaskUserBasicInfo[]> => {
+  const { data } = await requestAPI({
+    url: "users/basic",
+    data: {
+      userid: Array.isArray(userid) ? userid : [userid],
+    },
+  })
+  return data || []
+}
+
+// **************************************************************************************
+// **************************************************************************************
+// **************************************************************************************
+
+/**
  * 弹出成功提示框
  * @param message - 提示框内容
  * @returns Promise 返回提示框结果
@@ -457,13 +458,23 @@ export const nextZIndex = async (): Promise<number> => {
  * 设置应用关闭前的回调
  * @param callback - 回调函数，返回true则阻止关闭，false则允许关闭
  * @description 用于在应用关闭前执行操作，可以通过返回true来阻止关闭
- * @returns 返回一个函数，执行该函数可以注销监听器
+ * @returns {Promise<() => void>} 返回一个函数，执行该函数可以注销监听器
  */
-export const interceptBack = (callback: (data: Any) => boolean): (() => void) => {
+export const interceptBack = async (callback: () => boolean): Promise<() => void> => {
+  // 如果当前是iframe应用，则添加beforeClose监听器
+  if (await isIframe()) {
+    const id = Math.random().toString(36).substring(2, 15)
+    iframeBeforeClose[id] = callback
+    return () => {
+      delete iframeBeforeClose[id]
+    }
+  }
+
+  // 如果当前是微前端应用，则添加数据监听器
   if (window.microApp?.addDataListener) {
     const interceptListener = (data: Any) => {
       if (data && data.type === "beforeClose") {
-        return callback(data)
+        return callback()
       }
       return false
     }
@@ -476,6 +487,7 @@ export const interceptBack = (callback: (data: Any) => boolean): (() => void) =>
       }
     }
   }
+
   // 如果没有添加监听，返回空函数
   return () => {}
 }
@@ -504,3 +516,93 @@ export const removeDataListener = (callback: Func): void => {
     window.microApp.removeDataListener(callback)
   }
 }
+
+// **************************************************************************************
+// **************************************************************************************
+// **************************************************************************************
+;(async () => {
+  /** 如果 window 对象不存在，则直接返回 */
+  if (typeof window === "undefined") {
+    return
+  }
+
+  /** 如果 microInitialized 为 true，则直接返回 */
+  if (window.microInitialized === true) {
+    return
+  }
+  window.microInitialized = true
+
+  /** 监听主应用注入的 microApp 对象 */
+  window.addEventListener("message", event => {
+    if (!event.data) {
+      return
+    }
+    const { type, message } = event.data
+    switch (type) {
+      case "MICRO_APP_INJECT":
+        window.microApp = {
+          getData: () => {
+            return {
+              type: message.type,
+              props: message.props,
+            }
+          },
+        }
+        break
+
+      case "MICRO_APP_METHOD_RESULT":
+        const { id, result, error } = message
+        if (parentEvents[id]) {
+          parentEvents[id](result, error)
+        }
+        break
+
+      case "MICRO_APP_BEFORE_CLOSE":
+        let isBeforeClose = false
+        for (const iframeId in iframeBeforeClose) {
+          if (iframeBeforeClose[iframeId]()) {
+            isBeforeClose = true
+          }
+        }
+        if (!isBeforeClose) {
+          window.parent.postMessage(
+            {
+              type: "MICRO_APP_BEFORE_CLOSE",
+              message: {
+                id: message.id,
+                result: true,
+              },
+            },
+            "*"
+          )
+        }
+        break
+
+      default:
+        break
+    }
+  })
+
+  /** 向主应用发送准备就绪消息 */
+  window.parent.postMessage(
+    {
+      type: "MICRO_APP_READY",
+    },
+    "*"
+  )
+
+  /** 初始化 iframe 环境 */
+  if (await isIframe()) {
+    /** 自动初始化滑动返回功能 */
+    initSlideBack(() => {
+      backApp()
+    })
+
+    /** 监听 esc 键 */
+    window.addEventListener("keydown", event => {
+      if (event.key === "Escape") {
+        backApp()
+      }
+    })
+  }
+})()

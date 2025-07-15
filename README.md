@@ -92,12 +92,12 @@ closeApp()
 
 ### 应用控制
 
-| 函数名                        | 参数                               | 返回值            | 说明                                                                 |
-| ----------------------------- | ---------------------------------- | ----------------- | -------------------------------------------------------------------- |
-| `closeApp(destroy?: boolean)` | `destroy?: boolean`                | `Promise<void>`   | 关闭当前应用，destroy 为 true 时销毁应用                             |
-| `backApp()`                   | -                                  | `Promise<void>`   | 返回上一页，返回到最后一个页面时会关闭应用                           |
-| `interceptBack(callback)`     | `callback: (data: any) => boolean` | `() => void`      | 设置应用关闭前的回调，返回 true 可阻止关闭。返回一个可注销监听的函数 |
-| `nextZIndex()`                | -                                  | `Promise<number>` | 获取下一个可用的模态框 z-index                                       |
+| 函数名                        | 参数                      | 返回值                | 说明                                                                 |
+| ----------------------------- | ------------------------- | --------------------- | -------------------------------------------------------------------- |
+| `backApp()`                   | -                         | `Promise<void>`       | 返回上一页，返回到最后一个页面时会关闭应用                           |
+| `closeApp(destroy?: boolean)` | `destroy?: boolean`       | `Promise<void>`       | 关闭当前应用，destroy 为 true 时销毁应用                             |
+| `interceptBack(callback)`     | `callback: () => boolean` | `Promise<() => void>` | 设置应用关闭前的回调，返回 true 可阻止关闭。返回一个可注销监听的函数 |
+| `nextZIndex()`                | -                         | `Promise<number>`     | 获取下一个可用的模态框 z-index                                       |
 
 ### 窗口操作
 
@@ -110,10 +110,11 @@ closeApp()
 
 ### 用户交互
 
-| 函数名                | 参数                        | 返回值                                      | 说明                                     |
-| --------------------- | --------------------------- | ------------------------------------------- | ---------------------------------------- |
-| `selectUsers(params)` | `params: SelectUsersParams` | `Promise<number[]>`                         | 选择用户，可以传入多种配置来自定义选择器 |
-| `requestAPI(params)`  | `params: requestParams`     | `Promise<responseSuccess \| responseError>` | 请求服务器 API                           |
+| 函数名                   | 参数                         | 返回值                                      | 说明                                     |
+| ------------------------ | ---------------------------- | ------------------------------------------- | ---------------------------------------- |
+| `selectUsers(params)`    | `params: SelectUsersParams`  | `Promise<number[]>`                         | 选择用户，可以传入多种配置来自定义选择器 |
+| `fetchUserBasic(userid)` | `userid: number \| number[]` | `Promise<DooTaskUserBasicInfo[]>`           | 查询用户基本信息                         |
+| `requestAPI(params)`     | `params: requestParams`      | `Promise<responseSuccess \| responseError>` | 请求服务器 API                           |
 
 ### 提示框
 
@@ -136,11 +137,9 @@ closeApp()
 
 ### 扩展功能
 
-| 函数名                                    | 参数                                        | 返回值         | 说明                |
-| ----------------------------------------- | ------------------------------------------- | -------------- | ------------------- |
-| `callExtraA(methodName, ...args)`         | `methodName: string, ...args: any[]`        | `Promise<any>` | 调用$A 上的额外方法 |
-| `addDataListener(callback, autoTrigger?)` | `callback: Function, autoTrigger?: boolean` | `void`         | 添加数据监听器      |
-| `removeDataListener(callback)`            | `callback: Function`                        | `void`         | 移除数据监听器      |
+| 函数名                            | 参数                                 | 返回值         | 说明                |
+| --------------------------------- | ------------------------------------ | -------------- | ------------------- |
+| `callExtraA(methodName, ...args)` | `methodName: string, ...args: any[]` | `Promise<any>` | 调用$A 上的额外方法 |
 
 ## 类型定义
 
@@ -309,23 +308,6 @@ selectUsers({
 })
 ```
 
-### 监听数据变化
-
-```typescript
-import { addDataListener, removeDataListener } from "@dootask/tools"
-
-// 添加数据监听器
-const dataListener = data => {
-  console.log("收到新数据:", data)
-}
-
-// 添加监听，并在初次绑定时触发
-addDataListener(dataListener, true)
-
-// 移除监听
-// removeDataListener(dataListener);
-```
-
 ### 弹出窗口和页面
 
 ```typescript
@@ -470,9 +452,7 @@ npm run dev
 
 5. 如果你希望调用$A 上的方法，可以使用 `callExtraA` 方法。
 
-6. `interceptBack`、`addDataListener`、`removeDataListener` 这几个方法仅支持 [inline\[\_blank\] 模式](https://appstore.dootask.com/development/manual)。
-
-7. 建议先运行示例项目了解各种功能的使用方法。
+6. 建议先运行示例项目了解各种功能的使用方法。
 
 ## 贡献和反馈
 

@@ -16,6 +16,7 @@ declare global {
       addDataListener?: (callback: Func, autoTrigger?: boolean) => void
       removeDataListener?: (callback: Func) => void
     }
+    microInitialized?: boolean
     modalTransferIndex?: number
     systemInfo?: DooTaskSystemInfo
   }
@@ -239,6 +240,29 @@ export interface DooTaskUserInfo {
   /** 创建时间 */
   created_at: string
   [key: string]: Any
+}
+
+/** 用户基本信息接口 */
+export interface DooTaskUserBasicInfo {
+  /** 用户ID */
+  userid: number
+  /** 部门ID列表 */
+  department: number[]
+  /** 邮箱 */
+  email: string
+  /** 昵称 */
+  nickname: string
+  /** 职业 */
+  profession: string
+  /** 用户头像 */
+  userimg: string
+  /** 是否机器人 */
+  bot: number
+  /** 是否在线 */
+  online: boolean
+  /** 最近上线时间 */
+  line_at: string
+  [key: string]: any
 }
 
 /** 系统信息接口 */
