@@ -17,7 +17,7 @@ declare global {
       removeDataListener?: (callback: Func) => void
     }
     modalTransferIndex?: number
-    systemInfo?: Any
+    systemInfo?: DooTaskSystemInfo
   }
 }
 
@@ -29,10 +29,10 @@ export interface MicroAppProps {
 
   userId: number
   userToken: string
-  userInfo: Any
+  userInfo: DooTaskUserInfo
 
   baseUrl: string
-  systemInfo: Any
+  systemInfo: DooTaskSystemInfo
   windowType: "popout" | "embed"
 
   isEEUIApp: boolean
@@ -40,7 +40,7 @@ export interface MicroAppProps {
   isMainElectron: boolean
   isSubElectron: boolean
 
-  languageList: Any[]
+  languageList: DooTaskLanguage[]
   languageName: string
   themeName: string
 
@@ -55,7 +55,7 @@ export interface MicroAppMethods {
   openTabWindow: (url: string) => void
   openAppPage: (params: OpenAppPageParams) => void
   requestAPI: (params: requestParams) => Promise<responseSuccess | responseError>
-  selectUsers: (params: SelectUsersParams) => Promise<Any>
+  selectUsers: (params: SelectUsersParams) => Promise<number[]>
   nextZIndex: () => number
   extraCallA: (...args: Any[]) => Any
 
@@ -133,11 +133,11 @@ export interface OpenAppPageParams {
 /** 选择用户参数接口 */
 export interface SelectUsersParams {
   /** 已选择的值，默认值: [] */
-  value?: string | number | Array<Any>
+  value?: string | number | Array<string | number>
   /** 不允许取消的列表，默认值: [] */
-  uncancelable?: Array<Any>
+  uncancelable?: Array<string | number>
   /** 禁止选择的列表，默认值: [] */
-  disabledChoice?: Array<Any>
+  disabledChoice?: Array<string | number>
   /** 指定项目ID，默认值: 0 */
   projectId?: number
   /** 指定非项目ID，默认值: 0 */
