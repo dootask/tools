@@ -123,14 +123,14 @@ export class SlideBack {
     
     private options: Required<SlideBackOptions>;
     
-    // 事件处理函数，需要保存引用以便移除监听
+    /** 事件处理函数，需要保存引用以便移除监听 */
     private handleTouchStart = (e: TouchEvent) => {
         const touch = e.touches[0];
         this.touchStartX = touch.clientX;
         this.touchStartY = touch.clientY;
         this.touchStartTime = Date.now();
         
-        // 只有在屏幕左边缘开始触摸才启用滑动检测
+        /** 只有在屏幕左边缘开始触摸才启用滑动检测 */
         if (this.touchStartX <= this.options.edgeWidth) {
             this.isSwiping = true;
         } else {
@@ -145,14 +145,14 @@ export class SlideBack {
         const deltaX = touch.clientX - this.touchStartX;
         const deltaY = Math.abs(touch.clientY - this.touchStartY);
         
-        // 如果垂直偏移太大，取消滑动检测
+        /** 如果垂直偏移太大，取消滑动检测 */
         if (deltaY > this.options.maxVerticalOffset) {
             this.isSwiping = false;
         }
         
-        // 如果向右滑动距离超过一半最小距离且垂直偏移不大，可以考虑预处理
+        /** 如果向右滑动距离超过一半最小距离且垂直偏移不大，可以考虑预处理 */
         if (this.isSwiping && deltaX > this.options.minSwipeDistance / 2 && deltaY < this.options.maxVerticalOffset) {
-            // 可以在这里添加视觉反馈，比如显示返回指示器
+            /** 可以在这里添加视觉反馈，比如显示返回指示器 */
         }
     };
     

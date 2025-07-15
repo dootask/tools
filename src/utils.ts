@@ -15,19 +15,19 @@ import {
   DooTaskLanguage,
 } from "./types"
 
-// 存储微应用数据
+/** 存储微应用数据 */
 let microAppData: MicroAppData | null = null
 
-// 微应用是否已准备好
+/** 微应用是否已准备好 */
 let microAppReady = false
 
-// 备用z-index值，当无法从主应用获取nextZIndex时使用
+/** 备用z-index值，当无法从主应用获取nextZIndex时使用 */
 let zIndexMissing = 1000
 
-// 存储主应用方法调用结果
+/** 存储主应用方法调用结果 */
 const parentEvents: Record<string, (data: Any, error: Any) => void> = {}
 
-// 调用主应用方法，如果主应用没有该方法，则向主应用发送消息
+/** 调用主应用方法，如果主应用没有该方法，则向主应用发送消息 */
 const methodTryParent = async (method: string, ...args: Any[]): Promise<Any | null> => {
   if (typeof window === "undefined") {
     return null
@@ -57,7 +57,7 @@ const methodTryParent = async (method: string, ...args: Any[]): Promise<Any | nu
 }
 
 if (typeof window !== "undefined") {
-  // 监听主应用注入的 microApp 对象
+  /** 监听主应用注入的 microApp 对象 */
   window.addEventListener("message", event => {
     if (!event.data) {
       return
@@ -86,7 +86,7 @@ if (typeof window !== "undefined") {
         break
     }
   })
-  // 向主应用发送准备就绪消息
+  /** 向主应用发送准备就绪消息 */
   window.parent.postMessage(
     {
       type: "MICRO_APP_READY",
