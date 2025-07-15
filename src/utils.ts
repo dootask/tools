@@ -587,6 +587,9 @@ export const removeDataListener = (callback: Func): void => {
   window.parent.postMessage(
     {
       type: "MICRO_APP_READY",
+      message: {
+        supportBeforeClose: true,
+      },
     },
     "*"
   )
