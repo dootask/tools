@@ -1,4 +1,4 @@
-package utils
+package dootask
 
 import (
 	"bytes"
@@ -199,54 +199,14 @@ func (c *Client) GetUserBasic(userid int) (*UserBasic, error) {
 	return &users[0], nil
 }
 
-// SendAnonymousMessage 发送匿名消息
-func (c *Client) SendAnonymousMessage(userid int, text string) (*Response, error) {
-	body := map[string]interface{}{
-		"userid": userid,
-		"text":   text,
-	}
-
-	var response Response
-	_, err := c.NewPostRequest("/api/dialog/msg/sendanon", body, &response)
-	if err != nil {
-		return nil, err
-	}
-
-	if response.Ret != 1 {
-		return nil, errors.New(response.Msg)
-	}
-
-	return &response, nil
-}
-
 // SendMessage 发送消息
-func (c *Client) SendMessage(dialogId int, text string, args ...interface{}) (*Response, error) {
-	// 处理可选参数
-	botType := "md"
-	silence := false
-
-	for i, arg := range args {
-		switch i {
-		case 0:
-			if bt, ok := arg.(string); ok && bt != "" {
-				botType = bt
-			}
-		case 1:
-			if s, ok := arg.(bool); ok {
-				silence = s
-			}
-		}
-	}
-
-	body := map[string]interface{}{
-		"dialog_id": dialogId,
-		"text":      text,
-		"text_type": botType,
-		"silence":   silence,
+func (c *Client) SendMessage(message SendMessageRequest) (*Response, error) {
+	if message.TextType == "" {
+		message.TextType = "md"
 	}
 
 	var response Response
-	_, err := c.NewPostRequest("/api/dialog/msg/sendtext", body, &response)
+	_, err := c.NewPostRequest("/api/dialog/msg/sendtext", message, &response)
 	if err != nil {
 		return nil, err
 	}
@@ -259,10 +219,10 @@ func (c *Client) SendMessage(dialogId int, text string, args ...interface{}) (*R
 }
 
 // SendMessageToUser 发送消息到用户
-func (c *Client) SendMessageToUser(userid int, text string, args ...interface{}) (*Response, error) {
+func (c *Client) SendMessageToUser(message SendMessageToUserRequest) (*Response, error) {
 	// 获取用户对话ID
 	var response DialogOpenUserResponse
-	_, err := c.NewGetRequest("/api/dialog/open/user?userid="+strconv.Itoa(userid), &response)
+	_, err := c.NewGetRequest("/api/dialog/open/user?userid="+strconv.Itoa(message.UserID), &response)
 	if err != nil {
 		return nil, err
 	} else if response.Ret != 1 {
@@ -270,37 +230,33 @@ func (c *Client) SendMessageToUser(userid int, text string, args ...interface{})
 	}
 
 	// 发送消息
-	return c.SendMessage(response.Data.DialogUser.DialogID, text, args...)
+	return c.SendMessage(SendMessageRequest{
+		DialogID: response.Data.DialogUser.DialogID,
+		Text:     message.Text,
+		TextType: message.TextType,
+		Silence:  message.Silence,
+	})
 }
 
 // SendBotMessage 发送机器人消息
-func (c *Client) SendBotMessage(userid int, text string, args ...interface{}) (*Response, error) {
-	// 处理可选参数
-	botType := "system-msg"
-	silence := false
-
-	for i, arg := range args {
-		switch i {
-		case 0:
-			if bt, ok := arg.(string); ok && bt != "" {
-				botType = bt
-			}
-		case 1:
-			if s, ok := arg.(bool); ok {
-				silence = s
-			}
-		}
-	}
-
-	body := map[string]interface{}{
-		"userid":   userid,
-		"text":     text,
-		"bot_type": botType,
-		"silence":  silence,
-	}
-
+func (c *Client) SendBotMessage(message SendBotMessageRequest) (*Response, error) {
 	var response Response
-	_, err := c.NewPostRequest("/api/dialog/msg/sendbot", body, &response)
+	_, err := c.NewPostRequest("/api/dialog/msg/sendbot", message, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	if response.Ret != 1 {
+		return nil, errors.New(response.Msg)
+	}
+
+	return &response, nil
+}
+
+// SendAnonymousMessage 发送匿名消息
+func (c *Client) SendAnonymousMessage(message SendAnonymousMessageRequest) (*Response, error) {
+	var response Response
+	_, err := c.NewPostRequest("/api/dialog/msg/sendanon", message, &response)
 	if err != nil {
 		return nil, err
 	}

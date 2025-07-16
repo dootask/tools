@@ -1,4 +1,4 @@
-package utils
+package dootask
 
 import "time"
 
@@ -85,4 +85,35 @@ type Client struct {
 	cache     map[string]UserCache
 	cacheTime time.Duration
 	timeout   time.Duration
+}
+
+// SendMessageRequest 消息
+type SendMessageRequest struct {
+	DialogID int    `json:"dialog_id"` // 必填：对话ID
+	Text     string `json:"text"`      // 必填：消息内容
+	TextType string `json:"text_type"` // 可选：消息类型，可选值：md、text
+	Silence  bool   `json:"silence"`   // 可选：是否静默，可选值：true、false，默认 false
+}
+
+// SendMessageToUserRequest 发送消息到用户
+type SendMessageToUserRequest struct {
+	UserID   int    `json:"userid"`    // 必填：用户ID，发送给指定用户
+	Text     string `json:"text"`      // 必填：消息内容
+	TextType string `json:"text_type"` // 可选：消息类型，可选值：md、text
+	Silence  bool   `json:"silence"`   // 可选：是否静默，可选值：true、false，默认 false
+}
+
+// SendBotMessageRequest 发送机器人消息
+type SendBotMessageRequest struct {
+	UserID  int    `json:"userid"`   // 必填：用户ID，发送给指定用户
+	Text    string `json:"text"`     // 必填：消息内容，支持 markdown 格式
+	BotType string `json:"bot_type"` // 可选：机器人类型，可选值：system-msg、task-alert、check-in、approval-alert、meeting-alert、xxxxxx（自定义机器人，6-20个字符）
+	BotName string `json:"bot_name"` // 可选：机器人名称，当 bot_type 为 xxxxxx 时有效
+	Silence bool   `json:"silence"`  // 可选：是否静默，可选值：true、false，默认 false
+}
+
+// SendAnonymousMessageRequest 发送匿名消息
+type SendAnonymousMessageRequest struct {
+	UserID int    `json:"userid"` // 必填：用户ID，发送给指定用户
+	Text   string `json:"text"`   // 必填：消息内容
 }
