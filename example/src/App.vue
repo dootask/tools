@@ -1,7 +1,7 @@
 <template>
-  <div class="app">
-    <nav class="nav" v-if="showNav">
-      <div class="nav-left" @click="handleCloseApp">
+  <div class="max-w-6xl mx-auto p-5 bg-background text-foreground">
+    <nav class="sticky top-2.5 z-50 grid grid-cols-[60px_1fr_60px] items-center p-2.5 mb-5 bg-card border border-border rounded-lg shadow-sm" v-if="showNav">
+      <div class="flex justify-start items-center cursor-pointer p-2 rounded-sm transition-colors hover:bg-accent" @click="handleCloseApp">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
           class="lucide lucide-x-icon lucide-x">
@@ -9,47 +9,47 @@
           <path d="m6 6 12 12" />
         </svg>
       </div>
-      <div class="nav-center">DooTask Tools</div>
-      <div class="nav-right"></div>
+      <div class="flex justify-center items-center text-xl font-semibold text-foreground">DooTask Tools</div>
+      <div class="flex justify-end items-center"></div>
     </nav>
 
-    <header class="header">
-      <h1>DooTask Tools - Vite 示例</h1>
-      <p>展示如何在Vite项目中使用dootask-tools</p>
+    <header class="text-center mb-10 p-5 bg-primary text-primary-foreground rounded-lg shadow-md">
+      <h1 class="text-4xl font-bold mb-2.5">DooTask Tools - Vite 示例</h1>
+      <p class="text-lg opacity-90">展示如何在Vite项目中使用dootask-tools</p>
     </header>
 
-    <main class="main">
+    <main>
       <!-- 应用状态信息 -->
-      <section class="section">
-        <h2>应用状态</h2>
-        <div class="status-grid">
-          <div class="status-item">
-            <span class="label">是否为微应用:</span>
-            <span class="value" :class="{ 'true': isMicroAppRef, 'false': !isMicroAppRef }">
+      <section class="mb-10 p-6 bg-card border border-border rounded-lg shadow-sm">
+        <h2 class="text-2xl font-semibold mb-5 text-card-foreground">应用状态</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div class="flex justify-between items-center p-3 px-4 bg-muted rounded-sm border-l-4 border-primary">
+            <span class="font-medium text-muted-foreground">是否为微应用:</span>
+            <span class="font-semibold" :class="isMicroAppRef ? 'text-green-600' : 'text-destructive'">
               {{ isMicroAppRef ? '是' : '否' }}
             </span>
           </div>
-          <div class="status-item">
-            <span class="label">用户ID:</span>
-            <span class="value">{{ userId }}</span>
+          <div class="flex justify-between items-center p-3 px-4 bg-muted rounded-sm border-l-4 border-primary">
+            <span class="font-medium text-muted-foreground">用户ID:</span>
+            <span class="font-semibold text-foreground">{{ userId }}</span>
           </div>
-          <div class="status-item">
-            <span class="label">主题:</span>
-            <span class="value">{{ themeName || '--' }}</span>
+          <div class="flex justify-between items-center p-3 px-4 bg-muted rounded-sm border-l-4 border-primary">
+            <span class="font-medium text-muted-foreground">主题:</span>
+            <span class="font-semibold text-foreground">{{ themeName || '--' }}</span>
           </div>
-          <div class="status-item">
-            <span class="label">语言:</span>
-            <span class="value">{{ languageName || '--' }}</span>
+          <div class="flex justify-between items-center p-3 px-4 bg-muted rounded-sm border-l-4 border-primary">
+            <span class="font-medium text-muted-foreground">语言:</span>
+            <span class="font-semibold text-foreground">{{ languageName || '--' }}</span>
           </div>
-          <div class="status-item">
-            <span class="label">是否为Electron:</span>
-            <span class="value" :class="{ 'true': isElectronRef, 'false': !isElectronRef }">
+          <div class="flex justify-between items-center p-3 px-4 bg-muted rounded-sm border-l-4 border-primary">
+            <span class="font-medium text-muted-foreground">是否为Electron:</span>
+            <span class="font-semibold" :class="isElectronRef ? 'text-green-600' : 'text-destructive'">
               {{ isElectronRef ? '是' : '否' }}
             </span>
           </div>
-          <div class="status-item">
-            <span class="label">是否为EEUI应用:</span>
-            <span class="value" :class="{ 'true': isEEUIAppRef, 'false': !isEEUIAppRef }">
+          <div class="flex justify-between items-center p-3 px-4 bg-muted rounded-sm border-l-4 border-primary">
+            <span class="font-medium text-muted-foreground">是否为EEUI应用:</span>
+            <span class="font-semibold" :class="isEEUIAppRef ? 'text-green-600' : 'text-destructive'">
               {{ isEEUIAppRef ? '是' : '否' }}
             </span>
           </div>
@@ -57,88 +57,88 @@
       </section>
 
       <!-- 功能演示 -->
-      <section class="section">
-        <h2>功能演示</h2>
-        <div class="button-grid">
-          <button @click="handlePopoutWindow" class="btn btn-primary">
+      <section class="mb-10 p-6 bg-card border border-border rounded-lg shadow-sm">
+        <h2 class="text-2xl font-semibold mb-5 text-card-foreground">功能演示</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <button @click="handlePopoutWindow" class="px-6 py-3 bg-primary text-primary-foreground rounded-sm font-medium uppercase tracking-wide shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
             打开独立窗口
           </button>
-          <button @click="handleOpenWindow" class="btn btn-secondary">
+          <button @click="handleOpenWindow" class="px-6 py-3 bg-secondary text-secondary-foreground rounded-sm font-medium uppercase tracking-wide shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
             打开新窗口
           </button>
-          <button @click="handleSelectUsers" class="btn btn-success">
+          <button @click="handleSelectUsers" class="px-6 py-3 bg-green-600 text-white rounded-sm font-medium uppercase tracking-wide shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
             选择用户
           </button>
-          <button @click="handleRequestAPI" class="btn btn-info">
+          <button @click="handleRequestAPI" class="px-6 py-3 bg-blue-600 text-white rounded-sm font-medium uppercase tracking-wide shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
             测试API请求
           </button>
-          <button @click="handleCloseApp" class="btn btn-danger">
+          <button @click="handleCloseApp" class="px-6 py-3 bg-destructive text-white rounded-sm font-medium uppercase tracking-wide shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
             关闭应用
           </button>
-          <button @click="handleBackApp" class="btn btn-warning">
+          <button @click="handleBackApp" class="px-6 py-3 bg-orange-500 text-white rounded-sm font-medium uppercase tracking-wide shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
             返回
           </button>
         </div>
       </section>
 
       <!-- 提示框演示 -->
-      <section class="section">
-        <h2>提示框演示</h2>
-        <div class="button-grid">
-          <button @click="handleOpenModal('info')" class="btn btn-primary">
+      <section class="mb-10 p-6 bg-card border border-border rounded-lg shadow-sm">
+        <h2 class="text-2xl font-semibold mb-5 text-card-foreground">提示框演示</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <button @click="handleOpenModal('info')" class="px-6 py-3 bg-primary text-primary-foreground rounded-sm font-medium uppercase tracking-wide shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
             打开默认提示框
           </button>
-          <button @click="handleOpenModal('warning')" class="btn btn-warning">
+          <button @click="handleOpenModal('warning')" class="px-6 py-3 bg-orange-500 text-white rounded-sm font-medium uppercase tracking-wide shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
             打开警告提示框
           </button>
-          <button @click="handleOpenModal('error')" class="btn btn-danger">
+          <button @click="handleOpenModal('error')" class="px-6 py-3 bg-destructive text-white rounded-sm font-medium uppercase tracking-wide shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
             打开错误提示框
           </button>
-          <button @click="handleOpenModal('success')" class="btn btn-success">
+          <button @click="handleOpenModal('success')" class="px-6 py-3 bg-green-600 text-white rounded-sm font-medium uppercase tracking-wide shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
             打开成功提示框
           </button>
-          <button @click="handleOpenModal('alert')" class="btn btn-info">
+          <button @click="handleOpenModal('alert')" class="px-6 py-3 bg-blue-600 text-white rounded-sm font-medium uppercase tracking-wide shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
             打开系统提示框
           </button>
         </div>
       </section>
 
       <!-- 消息框演示 -->
-      <section class="section">
-        <h2>消息框演示</h2>
-        <div class="button-grid">
-          <button @click="handleOpenMessage('info')" class="btn btn-primary">
+      <section class="mb-10 p-6 bg-card border border-border rounded-lg shadow-sm">
+        <h2 class="text-2xl font-semibold mb-5 text-card-foreground">消息框演示</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <button @click="handleOpenMessage('info')" class="px-6 py-3 bg-primary text-primary-foreground rounded-sm font-medium uppercase tracking-wide shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
             打开默认消息框
           </button>
-          <button @click="handleOpenMessage('warning')" class="btn btn-warning">
+          <button @click="handleOpenMessage('warning')" class="px-6 py-3 bg-orange-500 text-white rounded-sm font-medium uppercase tracking-wide shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
             打开警告消息框
           </button>
-          <button @click="handleOpenMessage('error')" class="btn btn-danger">
+          <button @click="handleOpenMessage('error')" class="px-6 py-3 bg-destructive text-white rounded-sm font-medium uppercase tracking-wide shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
             打开错误消息框
           </button>
-          <button @click="handleOpenMessage('success')" class="btn btn-success">
+          <button @click="handleOpenMessage('success')" class="px-6 py-3 bg-green-600 text-white rounded-sm font-medium uppercase tracking-wide shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
             打开成功消息框
           </button>
         </div>
       </section>
 
       <!-- 用户信息 -->
-      <section class="section" v-if="userInfo">
-        <h2>用户信息</h2>
-        <pre class="code-block">{{ JSON.stringify(userInfo, null, 2) }}</pre>
+      <section class="mb-10 p-6 bg-card border border-border rounded-lg shadow-sm" v-if="userInfo">
+        <h2 class="text-2xl font-semibold mb-5 text-card-foreground">用户信息</h2>
+        <pre class="bg-muted border border-border rounded-sm p-4 overflow-x-auto font-mono text-sm leading-6 text-muted-foreground">{{ JSON.stringify(userInfo, null, 2) }}</pre>
       </section>
 
       <!-- 系统信息 -->
-      <section class="section" v-if="systemInfo">
-        <h2>系统信息</h2>
-        <pre class="code-block">{{ JSON.stringify(systemInfo, null, 2) }}</pre>
+      <section class="mb-10 p-6 bg-card border border-border rounded-lg shadow-sm" v-if="systemInfo">
+        <h2 class="text-2xl font-semibold mb-5 text-card-foreground">系统信息</h2>
+        <pre class="bg-muted border border-border rounded-sm p-4 overflow-x-auto font-mono text-sm leading-6 text-muted-foreground">{{ JSON.stringify(systemInfo, null, 2) }}</pre>
       </section>
     </main>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from "vue"
+import { ref, onMounted, onBeforeUnmount, watch } from "vue"
 import {
   isMicroApp,
   getUserId,
@@ -222,6 +222,11 @@ onMounted(async () => {
 // 卸载时移除事件监听
 onBeforeUnmount(() => {
   window.removeEventListener('resize', handleResize)
+})
+
+// 监听主题变化
+watch(themeName, (newTheme: string) => {
+  document.documentElement.classList.toggle('dark', newTheme === 'dark')
 })
 
 // 检查尺寸发生变化
@@ -328,197 +333,3 @@ const handleOpenMessage = (type: string) => {
   }
 }
 </script>
-
-<style scoped>
-.app {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
-
-.nav {
-  position: sticky;
-  top: 10px;
-  z-index: 1000;
-  display: grid;
-  grid-template-columns: 60px 1fr 60px;
-  align-items: center;
-  padding: 10px;
-  background: #f8f9fa;
-  border-radius: 12px;
-  margin-bottom: 20px;
-}
-
-.nav-left {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-}
-
-.nav-center {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 1.2rem;
-}
-
-.nav-right {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-}
-
-.header {
-  text-align: center;
-  margin-bottom: 40px;
-  padding: 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border-radius: 12px;
-}
-
-.header h1 {
-  margin: 0 0 10px 0;
-  font-size: 2.5rem;
-  font-weight: 700;
-}
-
-.header p {
-  margin: 0;
-  font-size: 1.1rem;
-  opacity: 0.9;
-}
-
-.section {
-  margin-bottom: 40px;
-  padding: 24px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.section h2 {
-  margin: 0 0 20px 0;
-  color: #333;
-  font-size: 1.5rem;
-  font-weight: 600;
-}
-
-.status-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 16px;
-}
-
-.status-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
-  background: #f8f9fa;
-  border-radius: 8px;
-  border-left: 4px solid #007bff;
-}
-
-.label {
-  font-weight: 500;
-  color: #495057;
-}
-
-.value {
-  font-weight: 600;
-  color: #212529;
-}
-
-.value.true {
-  color: #28a745;
-}
-
-.value.false {
-  color: #dc3545;
-}
-
-.button-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
-}
-
-.btn {
-  padding: 12px 24px;
-  border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.btn-primary {
-  background: #007bff;
-  color: white;
-}
-
-.btn-secondary {
-  background: #6c757d;
-  color: white;
-}
-
-.btn-success {
-  background: #28a745;
-  color: white;
-}
-
-.btn-info {
-  background: #17a2b8;
-  color: white;
-}
-
-.btn-danger {
-  background: #dc3545;
-  color: white;
-}
-
-.btn-warning {
-  background: #ffc107;
-  color: #212529;
-}
-
-.code-block {
-  background: #f8f9fa;
-  border: 1px solid #e9ecef;
-  border-radius: 8px;
-  padding: 16px;
-  overflow-x: auto;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 0.9rem;
-  line-height: 1.5;
-  color: #495057;
-}
-
-@media (max-width: 768px) {
-  .app {
-    padding: 10px;
-  }
-
-  .header h1 {
-    font-size: 2rem;
-  }
-
-  .status-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .button-grid {
-    grid-template-columns: 1fr;
-  }
-}
-</style>
