@@ -19,7 +19,7 @@ package main
 
 import (
     "fmt"
-    "github.com/dootask/tools/server/go/dootask"
+    "github.com/dootask/tools/server/go"
 )
 
 func main() {
@@ -196,7 +196,7 @@ package main
 import (
     "fmt"
     "log"
-    "github.com/dootask/tools/server/go/dootask"
+    "github.com/dootask/tools/server/go"
 )
 
 func main() {
