@@ -39,7 +39,7 @@ export class SlideBack {
         left: -50px;
         width: 500px;
         height: 500px;
-        background-color: rgba(0, 0, 0, 0.1);
+        background-color: var(--slide-back-background, rgba(0, 0, 0, 0.1));
         z-index: 9999;
         border-radius: 50%;
         transform: translate(-460px, -50%);
@@ -68,6 +68,18 @@ export class SlideBack {
     document.addEventListener("touchstart", this.touchstart)
     document.addEventListener("touchmove", this.touchmove, { passive: false })
     document.addEventListener("touchend", this.touchend)
+  }
+
+  /** 获取当前主题 */
+  private getTheme = () => {
+    if (typeof window === "undefined") {
+      return "light"
+    }
+    const dataTheme = document.documentElement.getAttribute("data-theme")
+    if (dataTheme) {
+      return dataTheme
+    }
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
   }
 
   /** 获取触摸位置 */
@@ -102,6 +114,14 @@ export class SlideBack {
   /** 触摸开始 */
   private touchstart = (e: TouchEvent) => {
     this.getXY(e)
+
+    if (this.slideBackContainer) {
+      const theme = this.getTheme()
+      this.slideBackContainer.style.setProperty(
+        "--slide-back-background",
+        theme === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)"
+      )
+    }
 
     this.isTouched = this.touchX < 20
     this.isScrolling = undefined
