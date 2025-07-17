@@ -27,9 +27,9 @@ type ResponsePaginate[T any] struct {
 	Data        []T     `json:"data"`
 	NextPageUrl *string `json:"next_page_url"`
 	Path        string  `json:"path"`
-	PerPage     int     `json:"per_page"`
+	PerPage     any     `json:"per_page"` // 可能是 int 或 string
 	PrevPageUrl *string `json:"prev_page_url"`
-	To          int     `json:"to"`
+	To          any     `json:"to"` // 可能是 int 或 string
 	Total       int     `json:"total"`
 }
 
@@ -222,4 +222,265 @@ type GetDialogRequest struct {
 type GetDialogUserRequest struct {
 	DialogID int `json:"dialog_id"` // 必填：会话ID
 	GetUser  int `json:"getuser"`   // 可选：获取会员详情（1: 返回会员昵称、邮箱等基本信息，0: 默认不返回）
+}
+
+// ------------------------------------------------------------------------------------------
+// 项目管理相关结构体
+// ------------------------------------------------------------------------------------------
+
+// Project 项目信息
+type Project struct {
+	ID          int    `json:"id"`           // 项目ID
+	Name        string `json:"name"`         // 项目名称
+	Desc        string `json:"desc"`         // 项目描述
+	UserID      int    `json:"userid"`       // 创建者ID
+	DialogID    int    `json:"dialog_id"`    // 对话ID
+	ArchivedAt  string `json:"archived_at"`  // 归档时间
+	CreatedAt   string `json:"created_at"`   // 创建时间
+	UpdatedAt   string `json:"updated_at"`   // 更新时间
+	Owner       int    `json:"owner"`        // 是否项目负责人
+	OwnerUserID int    `json:"owner_userid"` // 项目负责人ID
+	Personal    int    `json:"personal"`     // 是否个人项目
+	// 任务统计
+	TaskNum        int `json:"task_num"`         // 任务总数
+	TaskComplete   int `json:"task_complete"`    // 已完成任务数
+	TaskPercent    int `json:"task_percent"`     // 任务完成百分比
+	TaskMyNum      int `json:"task_my_num"`      // 我的任务数
+	TaskMyComplete int `json:"task_my_complete"` // 我的完成任务数
+	TaskMyPercent  int `json:"task_my_percent"`  // 我的任务完成百分比
+}
+
+// ProjectColumn 项目列表
+type ProjectColumn struct {
+	ID        int    `json:"id"`         // 列表ID
+	ProjectID int    `json:"project_id"` // 项目ID
+	Name      string `json:"name"`       // 列表名称
+	Color     string `json:"color"`      // 颜色
+	Sort      int    `json:"sort"`       // 排序
+	CreatedAt string `json:"created_at"` // 创建时间
+	UpdatedAt string `json:"updated_at"` // 更新时间
+}
+
+// ProjectTask 项目任务
+type ProjectTask struct {
+	ID           int    `json:"id"`             // 任务ID
+	ProjectID    int    `json:"project_id"`     // 项目ID
+	ColumnID     int    `json:"column_id"`      // 列表ID
+	ParentID     int    `json:"parent_id"`      // 父任务ID
+	Name         string `json:"name"`           // 任务名称
+	Desc         string `json:"desc"`           // 任务描述
+	StartAt      string `json:"start_at"`       // 开始时间
+	EndAt        string `json:"end_at"`         // 结束时间
+	CompleteAt   string `json:"complete_at"`    // 完成时间
+	ArchivedAt   string `json:"archived_at"`    // 归档时间
+	CreatedAt    string `json:"created_at"`     // 创建时间
+	UpdatedAt    string `json:"updated_at"`     // 更新时间
+	UserID       int    `json:"userid"`         // 创建者ID
+	DialogID     int    `json:"dialog_id"`      // 对话ID
+	FlowItemID   int    `json:"flow_item_id"`   // 流程状态ID
+	FlowItemName string `json:"flow_item_name"` // 流程状态名称
+	Visibility   int    `json:"visibility"`     // 可见性
+	Color        string `json:"color"`          // 颜色
+	// 统计信息
+	FileNum     int `json:"file_num"`     // 文件数量
+	MsgNum      int `json:"msg_num"`      // 消息数量
+	SubNum      int `json:"sub_num"`      // 子任务数量
+	SubComplete int `json:"sub_complete"` // 子任务完成数量
+	Percent     int `json:"percent"`      // 完成百分比
+	// 关联数据
+	ProjectName string `json:"project_name"` // 项目名称
+	ColumnName  string `json:"column_name"`  // 列表名称
+}
+
+// TaskFile 任务文件
+type TaskFile struct {
+	ID        int    `json:"id"`         // 文件ID
+	TaskID    int    `json:"task_id"`    // 任务ID
+	Name      string `json:"name"`       // 文件名
+	Ext       string `json:"ext"`        // 文件扩展名
+	Size      int    `json:"size"`       // 文件大小
+	Path      string `json:"path"`       // 文件路径
+	Thumb     string `json:"thumb"`      // 缩略图
+	UserID    int    `json:"userid"`     // 上传者ID
+	CreatedAt string `json:"created_at"` // 创建时间
+	UpdatedAt string `json:"updated_at"` // 更新时间
+}
+
+// TaskContent 任务内容
+type TaskContent struct {
+	Content string `json:"content"` // 任务内容
+	Type    string `json:"type"`    // 内容类型
+}
+
+// ------------------------------------------------------------------------------------------
+// 项目管理请求参数
+// ------------------------------------------------------------------------------------------
+
+// GetProjectListRequest 获取项目列表请求
+type GetProjectListRequest struct {
+	Type          string `json:"type"`          // 可选：项目类型，all、team、personal
+	Archived      string `json:"archived"`      // 可选：归档状态，all、yes、no
+	GetColumn     string `json:"getcolumn"`     // 可选：同时取列表，yes、no
+	GetUserID     string `json:"getuserid"`     // 可选：同时取成员ID，yes、no
+	GetStatistics string `json:"getstatistics"` // 可选：同时取任务统计，yes、no
+	TimeRange     string `json:"timerange"`     // 可选：时间范围
+	Page          int    `json:"page"`          // 可选：当前页，默认1
+	PageSize      int    `json:"pagesize"`      // 可选：每页数量，默认50
+}
+
+// GetProjectRequest 获取项目信息请求
+type GetProjectRequest struct {
+	ProjectID int `json:"project_id"` // 必填：项目ID
+}
+
+// CreateProjectRequest 创建项目请求
+type CreateProjectRequest struct {
+	Name     string `json:"name"`     // 必填：项目名称
+	Desc     string `json:"desc"`     // 可选：项目描述
+	Columns  string `json:"columns"`  // 可选：列表，格式：列表名称1,列表名称2
+	Flow     string `json:"flow"`     // 可选：开启流程，open、close
+	Personal int    `json:"personal"` // 可选：是否个人项目
+}
+
+// UpdateProjectRequest 更新项目请求
+type UpdateProjectRequest struct {
+	ProjectID     int    `json:"project_id"`     // 必填：项目ID
+	Name          string `json:"name"`           // 必填：项目名称
+	Desc          string `json:"desc"`           // 可选：项目描述
+	ArchiveMethod string `json:"archive_method"` // 可选：归档方式
+	ArchiveDays   int    `json:"archive_days"`   // 可选：自动归档天数
+}
+
+// ProjectActionRequest 项目操作请求（退出、删除等）
+type ProjectActionRequest struct {
+	ProjectID int    `json:"project_id"` // 必填：项目ID
+	Type      string `json:"type"`       // 可选：操作类型，如 add、recovery
+}
+
+// GetColumnListRequest 获取列表请求
+type GetColumnListRequest struct {
+	ProjectID int `json:"project_id"` // 必填：项目ID
+	Page      int `json:"page"`       // 可选：当前页，默认1
+	PageSize  int `json:"pagesize"`   // 可选：每页数量，默认100
+}
+
+// CreateColumnRequest 创建列表请求
+type CreateColumnRequest struct {
+	ProjectID int    `json:"project_id"` // 必填：项目ID
+	Name      string `json:"name"`       // 必填：列表名称
+}
+
+// UpdateColumnRequest 更新列表请求
+type UpdateColumnRequest struct {
+	ColumnID int    `json:"column_id"` // 必填：列表ID
+	Name     string `json:"name"`      // 可选：列表名称
+	Color    string `json:"color"`     // 可选：颜色
+}
+
+// ColumnActionRequest 列表操作请求
+type ColumnActionRequest struct {
+	ColumnID int `json:"column_id"` // 必填：列表ID
+}
+
+// GetTaskListRequest 获取任务列表请求
+type GetTaskListRequest struct {
+	ProjectID int    `json:"project_id"` // 可选：项目ID
+	ParentID  int    `json:"parent_id"`  // 可选：主任务ID
+	Archived  string `json:"archived"`   // 可选：归档状态，all、yes、no
+	Deleted   string `json:"deleted"`    // 可选：删除状态，all、yes、no
+	TimeRange string `json:"timerange"`  // 可选：时间范围
+	Page      int    `json:"page"`       // 可选：当前页，默认1
+	PageSize  int    `json:"pagesize"`   // 可选：每页数量，默认100
+}
+
+// GetTaskRequest 获取任务信息请求
+type GetTaskRequest struct {
+	TaskID   int    `json:"task_id"`  // 必填：任务ID
+	Archived string `json:"archived"` // 可选：归档状态，all、yes、no
+}
+
+// GetTaskContentRequest 获取任务内容请求
+type GetTaskContentRequest struct {
+	TaskID    int `json:"task_id"`    // 必填：任务ID
+	HistoryID int `json:"history_id"` // 可选：历史ID
+}
+
+// GetTaskFilesRequest 获取任务文件请求
+type GetTaskFilesRequest struct {
+	TaskID int `json:"task_id"` // 必填：任务ID
+}
+
+// CreateTaskRequest 创建任务请求
+type CreateTaskRequest struct {
+	ProjectID int      `json:"project_id"` // 必填：项目ID
+	ColumnID  any      `json:"column_id"`  // 可选：列表ID
+	Name      string   `json:"name"`       // 必填：任务名称
+	Content   string   `json:"content"`    // 可选：任务内容
+	Times     []string `json:"times"`      // 可选：计划时间
+	Owner     []int    `json:"owner"`      // 可选：负责人
+	Top       int      `json:"top"`        // 可选：置顶
+}
+
+// CreateSubTaskRequest 创建子任务请求
+type CreateSubTaskRequest struct {
+	TaskID int    `json:"task_id"` // 必填：任务ID
+	Name   string `json:"name"`    // 必填：任务名称
+}
+
+// UpdateTaskRequest 更新任务请求
+type UpdateTaskRequest struct {
+	TaskID     int      `json:"task_id"`     // 必填：任务ID
+	Name       string   `json:"name"`        // 可选：任务名称
+	Content    string   `json:"content"`     // 可选：任务内容
+	Times      []string `json:"times"`       // 可选：计划时间
+	Owner      []int    `json:"owner"`       // 可选：负责人
+	Assist     []int    `json:"assist"`      // 可选：协助人
+	Color      string   `json:"color"`       // 可选：颜色
+	Visibility int      `json:"visibility"`  // 可选：可见性
+	CompleteAt any      `json:"complete_at"` // 可选：完成时间
+}
+
+// TaskActionRequest 任务操作请求
+type TaskActionRequest struct {
+	TaskID int    `json:"task_id"` // 必填：任务ID
+	Type   string `json:"type"`    // 可选：操作类型，如 add、recovery、delete
+}
+
+// CreateTaskDialogRequest 创建任务对话请求
+type CreateTaskDialogRequest struct {
+	TaskID int `json:"task_id"` // 必填：任务ID
+}
+
+// CreateTaskDialogResponse 创建任务对话响应
+type CreateTaskDialogResponse struct {
+	ID         int `json:"id"`          // 任务ID
+	DialogID   int `json:"dialog_id"`   // 对话ID
+	DialogData any `json:"dialog_data"` // 对话数据
+}
+
+// ------------------------------------------------------------------------------------------
+// 系统设置相关
+// ------------------------------------------------------------------------------------------
+
+// SystemSettings 系统设置
+type SystemSettings struct {
+	// 用户注册设置
+	Reg *string `json:"reg"` // 用户注册开关：open/close
+
+	// 任务设置
+	TaskDefaultTime *[]string `json:"task_default_time"` // 任务默认时间
+
+	// 系统信息
+	SystemAlias   *string `json:"system_alias"`   // 系统别名
+	SystemWelcome string  `json:"system_welcome"` // 系统欢迎语
+
+	// 服务器信息
+	ServerTimezone *string `json:"server_timezone"` // 服务器时区
+	ServerVersion  *string `json:"server_version"`  // 服务器版本
+}
+
+// VersionInfo 版本信息
+type VersionInfo struct {
+	DeviceCount int    `json:"device_count"` // 设备数量
+	Version     string `json:"version"`      // 版本号
 }
