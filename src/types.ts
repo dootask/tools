@@ -278,3 +278,11 @@ export interface DooTaskSystemInfo {
 
 /** 语言列表接口 */
 export type DooTaskLanguage = "zh" | "zh-CHT" | "en" | "ko" | "ja" | "de" | "fr" | "id" | "ru"
+
+/** 安全距离接口 */
+export interface DooTaskSafeArea {
+  /** 顶部安全距离 */
+  top: number
+  /** 底部安全距离 */
+  bottom: number
+}

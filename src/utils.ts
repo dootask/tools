@@ -15,6 +15,7 @@ import {
   DooTaskSystemInfo,
   DooTaskLanguage,
   DooTaskUserBasicInfo,
+  DooTaskSafeArea,
 } from "./types"
 
 /** 存储微应用数据 */
@@ -245,6 +246,14 @@ export const getLanguageList = async (): Promise<{ [key in DooTaskLanguage]: str
  */
 export const getLanguageName = async (): Promise<DooTaskLanguage> => {
   return (await getAppData("props.languageName")) as DooTaskLanguage
+}
+
+/**
+ * 获取移动端安全距离
+ * @returns {Promise<number>} 返回安全距离
+ */
+export const getSafeArea = async (): Promise<DooTaskSafeArea> => {
+  return (await getAppData("props.safeArea")) as DooTaskSafeArea
 }
 
 // **************************************************************************************
