@@ -30,20 +30,58 @@ let zIndexMissing = 1000
 /** 存储主应用方法调用结果 */
 const parentEvents: Record<string, (data: Any, error: Any) => void> = {}
 
+/** 存储可调用的函数映射 */
+const callableFunctions: Record<string, Function> = {}
+
 /** 存储iframe应用的beforeClose监听器 */
 const iframeBeforeClose: Record<string, () => boolean> = {}
+
+/** 序列化参数中的函数（递归处理） */
+const serializeFunctions = (value: Any): Any => {
+  if (typeof value === "function") {
+    const funcId = `func_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
+    callableFunctions[funcId] = value
+    return { __func: funcId }
+  }
+
+  if (Array.isArray(value)) {
+    return value.map(serializeFunctions)
+  }
+
+  if (value && typeof value === "object" && value.constructor === Object) {
+    const result: Record<string, Any> = {}
+    for (const key in value) {
+      result[key] = serializeFunctions(value[key])
+    }
+    return result
+  }
+
+  return value
+}
+
+/** 执行存储的函数 */
+const executeFunction = (funcId: string, args: Any[]): Any => {
+  const func = callableFunctions[funcId]
+  if (!func) {
+    throw new Error(`Function ${funcId} not found`)
+  }
+  return func(...args)
+}
 
 /** 调用主应用方法，如果主应用没有该方法，则向主应用发送消息 */
 const methodTryParent = async (method: string, ...args: Any[]): Promise<Any | null> => {
   if (typeof window === "undefined") {
     return null
   }
+
   const methodFunc = await getAppData("methods." + method)
   if (typeof methodFunc === "function") {
     return methodFunc(...args)
   }
+
   return new Promise<Any | null>((resolve, reject) => {
-    const id = Math.random().toString(36).substring(2, 15)
+    const id = `call_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
+
     parentEvents[id] = (data: Any, error: Any) => {
       delete parentEvents[id]
       if (error) {
@@ -52,10 +90,15 @@ const methodTryParent = async (method: string, ...args: Any[]): Promise<Any | nu
         resolve(data)
       }
     }
+
     window.parent.postMessage(
       {
         type: "MICRO_APP_METHOD",
-        message: { id, method, args },
+        message: {
+          id,
+          method,
+          args: args.map(serializeFunctions),
+        },
       },
       "*"
     )
@@ -399,6 +442,29 @@ export const modalInfo = async (message: string | ModalParams): Promise<Any> => 
 }
 
 /**
+ * 弹出确认提示框
+ * @param message - 提示框内容
+ * @returns Promise 返回提示框结果
+ */
+export const modalConfirm = async (message: string | ModalParams): Promise<boolean> => {
+  return new Promise<boolean>(resolve => {
+    if (typeof message === "string") {
+      message = {
+        title: message,
+        content: "",
+      }
+    }
+    message.onOk = () => {
+      resolve(true)
+    }
+    message.onCancel = () => {
+      resolve(false)
+    }
+    methodTryParent("extraCallA", "modalConfirm", message)
+  })
+}
+
+/**
  * 弹出系统提示框
  * @param message - 提示框内容
  * @returns Promise 返回提示框结果
@@ -529,6 +595,7 @@ export const removeDataListener = (callback: Func): void => {
 // **************************************************************************************
 // **************************************************************************************
 // **************************************************************************************
+
 ;(async () => {
   /** 如果 window 对象不存在，则直接返回 */
   if (typeof window === "undefined") {
@@ -563,6 +630,38 @@ export const removeDataListener = (callback: Func): void => {
         const { id, result, error } = message
         if (parentEvents[id]) {
           parentEvents[id](result, error)
+        }
+        break
+
+      case "MICRO_APP_FUNCTION_CALL":
+        const { funcId, callId, args } = message
+        try {
+          const result = executeFunction(funcId, args)
+          
+          // 必须处理 Promise
+          if (result && typeof result.then === 'function') {
+            result.then((asyncResult: Any) => {
+              window.parent.postMessage({
+                type: "MICRO_APP_FUNCTION_RESULT",
+                message: { callId, result: asyncResult, error: null }
+              }, "*")
+            }).catch((error: Error) => {
+              window.parent.postMessage({
+                type: "MICRO_APP_FUNCTION_RESULT",
+                message: { callId, result: null, error: error.message }
+              }, "*")
+            })
+          } else {
+            window.parent.postMessage({
+              type: "MICRO_APP_FUNCTION_RESULT",
+              message: { callId, result, error: null }
+            }, "*")
+          }
+        } catch (error) {
+          window.parent.postMessage({
+            type: "MICRO_APP_FUNCTION_RESULT",
+            message: { callId, result: null, error: (error as Error).message }
+          }, "*")
         }
         break
 
