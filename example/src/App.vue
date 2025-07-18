@@ -1,185 +1,177 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-8">
-      <nav class="sticky top-2 sm:top-4 z-50 grid grid-cols-[50px_1fr_50px] sm:grid-cols-[60px_1fr_60px] items-center p-3 sm:p-4 mb-6 sm:mb-10 bg-card/70 backdrop-blur-xl border border-border/50 rounded-xl sm:rounded-2xl shadow-lg shadow-black/5" v-if="showNav">
-        <div class="flex justify-start items-center cursor-pointer p-1.5 sm:p-2 rounded-lg sm:rounded-xl transition-all hover:bg-accent" @click="handleCloseApp">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-            class="lucide lucide-x-icon lucide-x sm:w-[18px] sm:h-[18px]">
-            <path d="M18 6 6 18" />
-            <path d="m6 6 12 12" />
+  <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <!-- 导航栏 -->
+    <nav v-if="showNav" class="sticky top-0 z-50 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
+      <div class="flex items-center justify-between max-w-7xl mx-auto">
+        <button @click="handleCloseApp" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
           </svg>
-        </div>
-        <div class="flex justify-center items-center text-base sm:text-lg font-semibold text-foreground">DooTask Tools</div>
-        <div class="flex justify-end items-center"></div>
-      </nav>
+        </button>
+        <h1 class="text-lg font-semibold text-gray-900 dark:text-white">DooTask Tools</h1>
+        <div class="w-9"></div>
+      </div>
+    </nav>
 
-      <header class="text-center mb-12 sm:mb-16 p-6 sm:p-12 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 rounded-3xl backdrop-blur-sm shadow-lg shadow-primary/5">
-        <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 text-foreground tracking-tight">DooTask Tools</h1>
-        <p class="text-lg sm:text-xl text-muted-foreground font-medium">现代化的 Vite 开发工具集成示例</p>
+    <div class="max-w-7xl mx-auto px-4 py-6">
+      <!-- 页面标题 -->
+      <header class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">DooTask Tools</h1>
+        <p class="text-gray-600 dark:text-gray-400">现代化的 Vite 开发工具集成示例</p>
       </header>
 
-          <main class="relative">
-            <!-- 应用状态信息 -->
-      <section class="mb-8 sm:mb-12 p-4 sm:p-8 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-lg border border-border/50 rounded-2xl sm:rounded-3xl shadow-xl shadow-black/5 hover:shadow-lg hover:shadow-black/10 transition-shadow">
-        <h2 class="text-xl sm:text-2xl font-bold mb-6 sm:mb-8 text-card-foreground flex items-center gap-3">
-          <div class="w-2 h-6 sm:h-8 bg-primary rounded-full"></div>
-          应用状态
-        </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-          <div class="group flex justify-between items-center p-4 sm:p-6 bg-gradient-to-r from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/30 rounded-xl sm:rounded-2xl border border-emerald-200 dark:border-emerald-700/50 hover:shadow-lg hover:shadow-emerald-500/10 transition-shadow">
-            <span class="font-medium text-sm sm:text-base text-emerald-800 dark:text-emerald-200">是否为微应用:</span>
-            <span class="font-bold text-base sm:text-lg" :class="isMicroAppRef ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400'">
-              {{ isMicroAppRef ? '是' : '否' }}
-            </span>
+      <!-- 应用状态信息 -->
+      <section class="mb-8">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">应用状态</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div class="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+            <div class="flex justify-between items-center">
+              <span class="text-sm text-gray-600 dark:text-gray-400">是否为微应用</span>
+              <span class="font-medium" :class="isMicroAppRef ? 'text-green-600' : 'text-gray-500'">
+                {{ isMicroAppRef ? '是' : '否' }}
+              </span>
+            </div>
           </div>
-          <div class="group flex justify-between items-center p-4 sm:p-6 bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/30 rounded-xl sm:rounded-2xl border border-blue-200 dark:border-blue-700/50 hover:shadow-lg hover:shadow-blue-500/10 transition-shadow">
-            <span class="font-medium text-sm sm:text-base text-blue-800 dark:text-blue-200">用户ID:</span>
-            <span class="font-bold text-base sm:text-lg text-blue-600 dark:text-blue-400">{{ userId }}</span>
+          <div class="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+            <div class="flex justify-between items-center">
+              <span class="text-sm text-gray-600 dark:text-gray-400">用户ID</span>
+              <span class="font-medium text-blue-600">{{ userId }}</span>
+            </div>
           </div>
-          <div class="group flex justify-between items-center p-4 sm:p-6 bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/30 rounded-xl sm:rounded-2xl border border-purple-200 dark:border-purple-700/50 hover:shadow-lg hover:shadow-purple-500/10 transition-shadow">
-            <span class="font-medium text-sm sm:text-base text-purple-800 dark:text-purple-200">主题:</span>
-            <span class="font-bold text-base sm:text-lg text-purple-600 dark:text-purple-400">{{ themeName || '--' }}</span>
+          <div class="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+            <div class="flex justify-between items-center">
+              <span class="text-sm text-gray-600 dark:text-gray-400">主题</span>
+              <span class="font-medium text-purple-600">{{ themeName || '--' }}</span>
+            </div>
           </div>
-          <div class="group flex justify-between items-center p-4 sm:p-6 bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/30 rounded-xl sm:rounded-2xl border border-orange-200 dark:border-orange-700/50 hover:shadow-lg hover:shadow-orange-500/10 transition-shadow">
-            <span class="font-medium text-sm sm:text-base text-orange-800 dark:text-orange-200">语言:</span>
-            <span class="font-bold text-base sm:text-lg text-orange-600 dark:text-orange-400">{{ languageName || '--' }}</span>
+          <div class="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+            <div class="flex justify-between items-center">
+              <span class="text-sm text-gray-600 dark:text-gray-400">语言</span>
+              <span class="font-medium text-orange-600">{{ languageName || '--' }}</span>
+            </div>
           </div>
-          <div class="group flex justify-between items-center p-4 sm:p-6 bg-gradient-to-r from-cyan-50 to-cyan-100 dark:from-cyan-900/20 dark:to-cyan-800/30 rounded-xl sm:rounded-2xl border border-cyan-200 dark:border-cyan-700/50 hover:shadow-lg hover:shadow-cyan-500/10 transition-shadow">
-            <span class="font-medium text-sm sm:text-base text-cyan-800 dark:text-cyan-200">是否为Electron:</span>
-            <span class="font-bold text-base sm:text-lg" :class="isElectronRef ? 'text-cyan-600 dark:text-cyan-400' : 'text-slate-500 dark:text-slate-400'">
-              {{ isElectronRef ? '是' : '否' }}
-            </span>
+          <div class="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+            <div class="flex justify-between items-center">
+              <span class="text-sm text-gray-600 dark:text-gray-400">是否为Electron</span>
+              <span class="font-medium" :class="isElectronRef ? 'text-green-600' : 'text-gray-500'">
+                {{ isElectronRef ? '是' : '否' }}
+              </span>
+            </div>
           </div>
-          <div class="group flex justify-between items-center p-4 sm:p-6 bg-gradient-to-r from-pink-50 to-pink-100 dark:from-pink-900/20 dark:to-pink-800/30 rounded-xl sm:rounded-2xl border border-pink-200 dark:border-pink-700/50 hover:shadow-lg hover:shadow-pink-500/10 transition-shadow">
-            <span class="font-medium text-sm sm:text-base text-pink-800 dark:text-pink-200">是否为EEUI应用:</span>
-            <span class="font-bold text-base sm:text-lg" :class="isEEUIAppRef ? 'text-pink-600 dark:text-pink-400' : 'text-slate-500 dark:text-slate-400'">
-              {{ isEEUIAppRef ? '是' : '否' }}
-            </span>
+          <div class="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+            <div class="flex justify-between items-center">
+              <span class="text-sm text-gray-600 dark:text-gray-400">是否为EEUI应用</span>
+              <span class="font-medium" :class="isEEUIAppRef ? 'text-green-600' : 'text-gray-500'">
+                {{ isEEUIAppRef ? '是' : '否' }}
+              </span>
+            </div>
           </div>
         </div>
       </section>
 
       <!-- 功能演示 -->
-      <section class="mb-8 sm:mb-12 p-4 sm:p-8 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-lg border border-border/50 rounded-2xl sm:rounded-3xl shadow-xl shadow-black/5 hover:shadow-lg hover:shadow-black/10 transition-shadow">
-        <h2 class="text-xl sm:text-2xl font-bold mb-6 sm:mb-8 text-card-foreground flex items-center gap-3">
-          <div class="w-2 h-6 sm:h-8 bg-primary rounded-full"></div>
-          功能演示
-        </h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          <button @click="handlePopoutWindow" class="group relative px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-xl sm:rounded-2xl font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-shadow">
-            <div class="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent rounded-xl sm:rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <span class="relative">打开独立窗口</span>
+      <section class="mb-8">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">功能演示</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <button @click="handlePopoutWindow" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg font-medium">
+            打开独立窗口
           </button>
-          <button @click="handleOpenWindow" class="group relative px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-700 text-slate-700 dark:text-slate-300 rounded-xl sm:rounded-2xl font-semibold border border-slate-200 dark:border-slate-600 shadow-lg shadow-slate-500/10 hover:shadow-xl hover:shadow-slate-500/20 transition-shadow">
-            <div class="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent rounded-xl sm:rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <span class="relative">打开新窗口</span>
+          <button @click="handleOpenWindow" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-3 rounded-lg font-medium">
+            打开新窗口
           </button>
-          <button @click="handleSelectUsers" class="group relative px-6 py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-2xl font-semibold shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/30 transition-shadow">
-            <div class="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <span class="relative">选择用户</span>
+          <button @click="handleSelectUsers" class="bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg font-medium">
+            选择用户
           </button>
-          <button @click="handleRequestAPI" class="group relative px-6 py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl font-semibold shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30 transition-shadow">
-            <div class="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <span class="relative">测试API请求</span>
+          <button @click="handleRequestAPI" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-3 rounded-lg font-medium">
+            测试API请求
           </button>
-          <button @click="handleCloseApp" class="group relative px-6 py-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-2xl font-semibold shadow-lg shadow-red-500/25 hover:shadow-xl hover:shadow-red-500/30 transition-shadow">
-            <div class="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <span class="relative">关闭应用</span>
+          <button @click="handleCloseApp" class="bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-lg font-medium">
+            关闭应用
           </button>
-          <button @click="handleBackApp" class="group relative px-6 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl font-semibold shadow-lg shadow-orange-500/25 hover:shadow-xl hover:shadow-orange-500/30 transition-shadow">
-            <div class="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <span class="relative">返回</span>
+          <button @click="handleBackApp" class="bg-orange-600 hover:bg-orange-700 text-white px-4 py-3 rounded-lg font-medium">
+            返回
+          </button>
+
+          <!-- 是否阻止关闭应用 -->
+          <button
+            @click="preventCloseApp = !preventCloseApp"
+            class="bg-gray-600 hover:bg-gray-700 px-4 py-3 rounded-lg font-medium flex items-center justify-center gap-2"
+            :aria-pressed="preventCloseApp"
+            type="button"
+          >
+            <span>
+              <svg v-if="preventCloseApp" class="h-5 w-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                <rect width="20" height="20" rx="4" fill="currentColor"/>
+                <polyline points="5 11 9 15 15 7" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <svg v-else class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 20 20">
+                <rect x="2" y="2" width="16" height="16" rx="4" stroke="currentColor" stroke-width="2" fill="none"/>
+              </svg>
+            </span>
+            <span class="text-white">阻止返回</span>
           </button>
         </div>
       </section>
 
       <!-- 提示框演示 -->
-      <section class="mb-8 sm:mb-12 p-4 sm:p-8 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-lg border border-border/50 rounded-2xl sm:rounded-3xl shadow-xl shadow-black/5 hover:shadow-lg hover:shadow-black/10 transition-shadow">
-        <h2 class="text-xl sm:text-2xl font-bold mb-6 sm:mb-8 text-card-foreground flex items-center gap-3">
-          <div class="w-2 h-6 sm:h-8 bg-primary rounded-full"></div>
-          提示框演示
-        </h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          <button @click="handleOpenModal('info')" class="group relative px-6 py-4 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-2xl font-semibold shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:shadow-indigo-500/30 transition-shadow">
-            <div class="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <span class="relative">打开默认提示框</span>
+      <section class="mb-8">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">提示框演示</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <button @click="handleOpenModal('info')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg font-medium">
+            打开默认提示框
           </button>
-          <button @click="handleOpenModal('warning')" class="group relative px-6 py-4 bg-gradient-to-r from-amber-400 to-amber-500 text-white rounded-2xl font-semibold shadow-lg shadow-amber-400/25 hover:shadow-xl hover:shadow-amber-400/30 transition-shadow">
-            <div class="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <span class="relative">打开警告提示框</span>
+          <button @click="handleOpenModal('warning')" class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-3 rounded-lg font-medium">
+            打开警告提示框
           </button>
-          <button @click="handleOpenModal('error')" class="group relative px-6 py-4 bg-gradient-to-r from-rose-500 to-rose-600 text-white rounded-2xl font-semibold shadow-lg shadow-rose-500/25 hover:shadow-xl hover:shadow-rose-500/30 transition-shadow">
-            <div class="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <span class="relative">打开错误提示框</span>
+          <button @click="handleOpenModal('error')" class="bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-lg font-medium">
+            打开错误提示框
           </button>
-          <button @click="handleOpenModal('success')" class="group relative px-6 py-4 bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-2xl font-semibold shadow-lg shadow-teal-500/25 hover:shadow-xl hover:shadow-teal-500/30 transition-shadow">
-            <div class="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <span class="relative">打开成功提示框</span>
+          <button @click="handleOpenModal('success')" class="bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg font-medium">
+            打开成功提示框
           </button>
-          <button @click="handleOpenModal('confirm')" class="group relative px-6 py-4 bg-gradient-to-r from-sky-500 to-sky-600 text-white rounded-2xl font-semibold shadow-lg shadow-sky-500/25 hover:shadow-xl hover:shadow-sky-500/30 transition-shadow">
-            <div class="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <span class="relative">打开确认提示框</span>
+          <button @click="handleOpenModal('confirm')" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-3 rounded-lg font-medium">
+            打开确认提示框
           </button>
-          <button @click="handleOpenModal('alert')" class="group relative px-6 py-4 bg-gradient-to-r from-gray-400 to-gray-500 text-white rounded-2xl font-semibold shadow-lg shadow-gray-400/25 hover:shadow-xl hover:shadow-gray-400/30 transition-shadow">
-            <div class="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <span class="relative">打开系统提示框</span>
+          <button @click="handleOpenModal('alert')" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-3 rounded-lg font-medium">
+            打开系统提示框
           </button>
         </div>
       </section>
 
       <!-- 消息框演示 -->
-      <section class="mb-8 sm:mb-12 p-4 sm:p-8 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-lg border border-border/50 rounded-2xl sm:rounded-3xl shadow-xl shadow-black/5 hover:shadow-lg hover:shadow-black/10 transition-shadow">
-        <h2 class="text-xl sm:text-2xl font-bold mb-6 sm:mb-8 text-card-foreground flex items-center gap-3">
-          <div class="w-2 h-6 sm:h-8 bg-primary rounded-full"></div>
-          消息框演示
-        </h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          <button @click="handleOpenMessage('info')" class="group relative px-6 py-4 bg-gradient-to-r from-violet-500 to-violet-600 text-white rounded-2xl font-semibold shadow-lg shadow-violet-500/25 hover:shadow-xl hover:shadow-violet-500/30 transition-shadow">
-            <div class="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <span class="relative">打开默认消息框</span>
+      <section class="mb-8">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">消息框演示</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <button @click="handleOpenMessage('info')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg font-medium">
+            打开默认消息框
           </button>
-          <button @click="handleOpenMessage('warning')" class="group relative px-6 py-4 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-2xl font-semibold shadow-lg shadow-yellow-500/25 hover:shadow-xl hover:shadow-yellow-500/30 transition-shadow">
-            <div class="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <span class="relative">打开警告消息框</span>
+          <button @click="handleOpenMessage('warning')" class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-3 rounded-lg font-medium">
+            打开警告消息框
           </button>
-          <button @click="handleOpenMessage('error')" class="group relative px-6 py-4 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-2xl font-semibold shadow-lg shadow-red-600/25 hover:shadow-xl hover:shadow-red-600/30 transition-shadow">
-            <div class="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <span class="relative">打开错误消息框</span>
+          <button @click="handleOpenMessage('error')" class="bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-lg font-medium">
+            打开错误消息框
           </button>
-          <button @click="handleOpenMessage('success')" class="group relative px-6 py-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-2xl font-semibold shadow-lg shadow-green-500/25 hover:shadow-xl hover:shadow-green-500/30 transition-shadow">
-            <div class="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <span class="relative">打开成功消息框</span>
+          <button @click="handleOpenMessage('success')" class="bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg font-medium">
+            打开成功消息框
           </button>
         </div>
       </section>
 
       <!-- 用户信息 -->
-      <section class="mb-8 sm:mb-12 p-4 sm:p-8 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-lg border border-border/50 rounded-2xl sm:rounded-3xl shadow-xl shadow-black/5 hover:shadow-lg hover:shadow-black/10 transition-shadow" v-if="userInfo">
-        <h2 class="text-xl sm:text-2xl font-bold mb-6 sm:mb-8 text-card-foreground flex items-center gap-3">
-          <div class="w-2 h-6 sm:h-8 bg-primary rounded-full"></div>
-          用户信息
-        </h2>
-        <div class="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-inner">
-          <pre class="overflow-x-auto font-mono text-xs sm:text-sm leading-6 text-slate-700 dark:text-slate-300">{{ JSON.stringify(userInfo, null, 2) }}</pre>
+      <section v-if="userInfo" class="mb-8">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">用户信息</h2>
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+          <pre class="text-sm text-gray-700 dark:text-gray-300 overflow-x-auto">{{ JSON.stringify(userInfo, null, 2) }}</pre>
         </div>
       </section>
 
       <!-- 系统信息 -->
-      <section class="mb-8 sm:mb-12 p-4 sm:p-8 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-lg border border-border/50 rounded-2xl sm:rounded-3xl shadow-xl shadow-black/5 hover:shadow-lg hover:shadow-black/10 transition-shadow" v-if="systemInfo">
-        <h2 class="text-xl sm:text-2xl font-bold mb-6 sm:mb-8 text-card-foreground flex items-center gap-3">
-          <div class="w-2 h-6 sm:h-8 bg-primary rounded-full"></div>
-          系统信息
-        </h2>
-        <div class="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-inner">
-          <pre class="overflow-x-auto font-mono text-xs sm:text-sm leading-6 text-slate-700 dark:text-slate-300">{{ JSON.stringify(systemInfo, null, 2) }}</pre>
+      <section v-if="systemInfo" class="mb-8">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">系统信息</h2>
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+          <pre class="text-sm text-gray-700 dark:text-gray-300 overflow-x-auto">{{ JSON.stringify(systemInfo, null, 2) }}</pre>
         </div>
       </section>
-      
-      <!-- 装饰性元素 -->
-      <div class="fixed top-10 right-10 w-20 sm:w-32 h-20 sm:h-32 bg-primary/10 rounded-full blur-2xl animate-pulse pointer-events-none"></div>
-      <div class="fixed bottom-10 left-10 w-16 sm:w-20 h-16 sm:h-20 bg-secondary/10 rounded-full blur-xl animate-pulse pointer-events-none" style="animation-delay: 1s;"></div>
-    </main>
     </div>
   </div>
 </template>
@@ -227,7 +219,7 @@ const languageName = ref('')
 const isElectronRef = ref(false)
 const isEEUIAppRef = ref(false)
 const showNav = ref(false)
-const preventClose = ref(true)
+const preventCloseApp = ref(true)
 const userInfo = ref<DooTaskUserInfo | null>(null)
 const systemInfo = ref<DooTaskSystemInfo | null>(null)
 
@@ -253,9 +245,8 @@ onMounted(async () => {
 
   // 阻止返回
   interceptBack(() => {
-    if (preventClose.value) {
-      preventClose.value = false
-      modalInfo("阻止返回，再次点击将关闭应用")
+    if (preventCloseApp.value) {
+      modalInfo("阻止返回")
       return true
     } else {
       return false
@@ -337,7 +328,7 @@ const handleRequestAPI = async () => {
 }
 
 const handleCloseApp = () => {
-  closeApp(true)
+  closeApp()
 }
 
 const handleBackApp = () => {
