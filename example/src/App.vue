@@ -266,6 +266,7 @@ onBeforeUnmount(() => {
 // 监听主题变化
 watch(themeName, (newTheme: string) => {
   document.documentElement.classList.toggle('dark', newTheme === 'dark')
+  localStorage.setItem('theme', newTheme)
 })
 
 // 检查尺寸发生变化

@@ -454,10 +454,13 @@ export const modalConfirm = async (message: string | ModalParams): Promise<boole
         content: "",
       }
     }
+    const { onOk, onCancel } = message
     message.onOk = () => {
+      onOk?.()
       resolve(true)
     }
     message.onCancel = () => {
+      onCancel?.()
       resolve(false)
     }
     methodTryParent("extraCallA", "modalConfirm", message)
