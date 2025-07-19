@@ -1,6 +1,6 @@
 # 发布指南
 
-本文档指导如何将 DooTask Tools 发布到 PyPI。
+本文档指导如何将 DooTask Tools (Python) 发布到 PyPI。
 
 ## 目录
 
