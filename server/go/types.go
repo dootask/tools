@@ -459,6 +459,118 @@ type CreateTaskDialogResponse struct {
 }
 
 // ------------------------------------------------------------------------------------------
+// 消息相关数据结构
+// ------------------------------------------------------------------------------------------
+
+// DialogMessage 对话消息
+// DialogMessage 结构体，适配 word-chain 类型消息的结构
+type DialogMessage struct {
+	ID         int           `json:"id"`          // 消息ID
+	DialogID   int           `json:"dialog_id"`   // 对话ID
+	UserID     int           `json:"userid"`      // 用户ID
+	Bot        int           `json:"bot"`         // 是否机器人
+	CreatedAt  string        `json:"created_at"`  // 创建时间
+	Type       string        `json:"type"`        // 消息类型
+	MType      string        `json:"mtype"`       // 消息媒体类型
+	Msg        any           `json:"msg"`         // 消息内容
+	ReplyID    int           `json:"reply_id"`    // 回复消息ID
+	ReplyNum   int           `json:"reply_num"`   // 回复数量
+	ForwardID  int           `json:"forward_id"`  // 转发消息ID
+	ForwardNum int           `json:"forward_num"` // 转发数量
+	Tag        int           `json:"tag"`         // 标签
+	Todo       int           `json:"todo"`        // 待办
+	Read       int           `json:"read"`        // 已读人数
+	Send       int           `json:"send"`        // 发送人数
+	ReadAt     *string       `json:"read_at"`     // 已读时间
+	Mention    int           `json:"mention"`     // 提及
+	Dot        int           `json:"dot"`         // 点标记
+	Emoji      []interface{} `json:"emoji"`       // 表情回应
+	Link       int           `json:"link"`        // 链接
+	Modify     int           `json:"modify"`      // 修改标记
+	Percentage int           `json:"percentage"`  // 百分比
+}
+
+// DialogMessageListResponse 消息列表响应
+type DialogMessageListResponse struct {
+	List   []DialogMessage `json:"list"`   // 消息列表
+	Time   int64           `json:"time"`   // 时间戳
+	Dialog DialogInfo      `json:"dialog"` // 对话信息
+	Todo   []interface{}   `json:"todo"`   // 待办列表
+	Top    *interface{}    `json:"top"`    // 置顶消息ID
+}
+
+// DialogMessageSearchResponse 搜索消息响应
+type DialogMessageSearchResponse struct {
+	Data []int `json:"data"`
+}
+
+// TodoUser 待办用户
+type TodoUser struct {
+	UserID   int    `json:"userid"`   // 用户ID
+	Nickname string `json:"nickname"` // 昵称
+	UserImg  string `json:"userimg"`  // 头像
+	Done     bool   `json:"done"`     // 是否完成
+	DoneAt   string `json:"done_at"`  // 完成时间
+}
+
+// TodoListResponse 待办列表响应
+type TodoListResponse struct {
+	Users []TodoUser `json:"users"`
+}
+
+// ------------------------------------------------------------------------------------------
+// 消息请求参数
+// ------------------------------------------------------------------------------------------
+
+// GetMessageListRequest 获取消息列表请求
+type GetMessageListRequest struct {
+	DialogID   int    `json:"dialog_id"`   // 必填：对话ID
+	MsgID      int    `json:"msg_id"`      // 可选：消息ID
+	PositionID int    `json:"position_id"` // 可选：位置ID
+	PrevID     int    `json:"prev_id"`     // 可选：前一个消息ID
+	NextID     int    `json:"next_id"`     // 可选：下一个消息ID
+	MsgType    string `json:"msg_type"`    // 可选：消息类型(tag/todo/link/text/image/file/record/meeting)
+	Take       int    `json:"take"`        // 可选：获取数量，默认50，最大100
+}
+
+// SearchMessageRequest 搜索消息请求
+type SearchMessageRequest struct {
+	DialogID int    `json:"dialog_id"` // 必填：对话ID
+	Key      string `json:"key"`       // 必填：搜索关键词
+}
+
+// GetMessageRequest 获取单个消息请求
+type GetMessageRequest struct {
+	MsgID int `json:"msg_id"` // 必填：消息ID
+}
+
+// WithdrawMessageRequest 撤回消息请求
+type WithdrawMessageRequest struct {
+	MsgID int `json:"msg_id"` // 必填：消息ID
+}
+
+// ForwardMessageRequest 转发消息请求
+type ForwardMessageRequest struct {
+	MsgID        int    `json:"msg_id"`        // 必填：消息ID
+	DialogIDs    []int  `json:"dialogids"`     // 可选：目标对话ID列表
+	UserIDs      []int  `json:"userids"`       // 可选：目标用户ID列表
+	ShowSource   int    `json:"show_source"`   // 可选：是否显示来源，1显示，0不显示
+	LeaveMessage string `json:"leave_message"` // 可选：留言
+}
+
+// ToggleMessageTodoRequest 切换消息待办请求
+type ToggleMessageTodoRequest struct {
+	MsgID   int    `json:"msg_id"`  // 必填：消息ID
+	Type    string `json:"type"`    // 可选：类型(all/指定用户)，默认all
+	UserIDs []int  `json:"userids"` // 可选：用户ID列表，当type不为all时使用
+}
+
+// MarkMessageDoneRequest 标记消息完成请求
+type MarkMessageDoneRequest struct {
+	MsgID int `json:"msg_id"` // 必填：消息ID
+}
+
+// ------------------------------------------------------------------------------------------
 // 系统设置相关
 // ------------------------------------------------------------------------------------------
 

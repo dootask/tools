@@ -703,6 +703,96 @@ func (c *Client) DeleteTask(taskID int, deleteType string) error {
 }
 
 // ------------------------------------------------------------------------------------------
+// 消息管理相关接口
+// ------------------------------------------------------------------------------------------
+
+// GetMessageList 获取消息列表
+func (c *Client) GetMessageList(params GetMessageListRequest) (*DialogMessageListResponse, error) {
+	var response DialogMessageListResponse
+	err := c.NewGetRequest("/api/dialog/msg/list", params, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	return &response, nil
+}
+
+// SearchMessage 搜索消息
+func (c *Client) SearchMessage(params SearchMessageRequest) (*DialogMessageSearchResponse, error) {
+	var response DialogMessageSearchResponse
+	err := c.NewGetRequest("/api/dialog/msg/search", params, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	return &response, nil
+}
+
+// GetMessage 获取单个消息详情
+func (c *Client) GetMessage(params GetMessageRequest) (*DialogMessage, error) {
+	var response DialogMessage
+	err := c.NewGetRequest("/api/dialog/msg/one", params, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	return &response, nil
+}
+
+// GetMessageDetail 获取消息详情（与GetMessage功能相同，提供兼容性）
+func (c *Client) GetMessageDetail(params GetMessageRequest) (*DialogMessage, error) {
+	var response DialogMessage
+	err := c.NewGetRequest("/api/dialog/msg/detail", params, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	return &response, nil
+}
+
+// ------------------------------------------------------------------------------------------
+// 消息操作相关接口
+// ------------------------------------------------------------------------------------------
+
+// WithdrawMessage 撤回消息
+func (c *Client) WithdrawMessage(params WithdrawMessageRequest) error {
+	return c.NewGetRequest("/api/dialog/msg/withdraw", params, nil)
+}
+
+// ForwardMessage 转发消息
+func (c *Client) ForwardMessage(params ForwardMessageRequest) error {
+	return c.NewGetRequest("/api/dialog/msg/forward", params, nil)
+}
+
+// ------------------------------------------------------------------------------------------
+// 消息待办相关接口
+// ------------------------------------------------------------------------------------------
+
+// ToggleMessageTodo 切换消息待办状态
+func (c *Client) ToggleMessageTodo(params ToggleMessageTodoRequest) error {
+	if params.Type == "" {
+		params.Type = "all"
+	}
+	return c.NewGetRequest("/api/dialog/msg/todo", params, nil)
+}
+
+// GetMessageTodoList 获取消息待办列表
+func (c *Client) GetMessageTodoList(params GetMessageRequest) (*TodoListResponse, error) {
+	var response TodoListResponse
+	err := c.NewGetRequest("/api/dialog/msg/todolist", params, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	return &response, nil
+}
+
+// MarkMessageDone 标记消息完成
+func (c *Client) MarkMessageDone(params MarkMessageDoneRequest) error {
+	return c.NewGetRequest("/api/dialog/msg/done", params, nil)
+}
+
+// ------------------------------------------------------------------------------------------
 // 系统设置相关方法
 // ------------------------------------------------------------------------------------------
 

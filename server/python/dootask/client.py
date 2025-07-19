@@ -295,6 +295,56 @@ class DooTaskClient:
         self._post_request('/api/dialog/msg/sendanon', message)
     
     # ------------------------------------------------------------------------------------------
+    # 消息管理相关接口
+    # ------------------------------------------------------------------------------------------
+    
+    def get_message_list(self, params: GetMessageListRequest) -> DialogMessageListResponse:
+        """获取消息列表"""
+        return self._get_request('/api/dialog/msg/list', params, response_type=DialogMessageListResponse)
+    
+    def search_message(self, params: SearchMessageRequest) -> DialogMessageSearchResponse:
+        """搜索消息"""
+        return self._get_request('/api/dialog/msg/search', params, response_type=DialogMessageSearchResponse)
+    
+    def get_message(self, params: GetMessageRequest) -> DialogMessage:
+        """获取单个消息详情"""
+        return self._get_request('/api/dialog/msg/one', params, response_type=DialogMessage)
+    
+    def get_message_detail(self, params: GetMessageRequest) -> DialogMessage:
+        """获取消息详情（与get_message功能相同，提供兼容性）"""
+        return self._get_request('/api/dialog/msg/detail', params, response_type=DialogMessage)
+    
+    # ------------------------------------------------------------------------------------------
+    # 消息操作相关接口
+    # ------------------------------------------------------------------------------------------
+    
+    def withdraw_message(self, params: WithdrawMessageRequest) -> None:
+        """撤回消息"""
+        self._get_request('/api/dialog/msg/withdraw', params)
+    
+    def forward_message(self, params: ForwardMessageRequest) -> None:
+        """转发消息"""
+        self._get_request('/api/dialog/msg/forward', params)
+    
+    # ------------------------------------------------------------------------------------------
+    # 消息待办相关接口
+    # ------------------------------------------------------------------------------------------
+    
+    def toggle_message_todo(self, params: ToggleMessageTodoRequest) -> None:
+        """切换消息待办状态"""
+        if not params.type:
+            params.type = "all"
+        self._get_request('/api/dialog/msg/todo', params)
+    
+    def get_message_todo_list(self, params: GetMessageRequest) -> TodoListResponse:
+        """获取消息待办列表"""
+        return self._get_request('/api/dialog/msg/todolist', params, response_type=TodoListResponse)
+    
+    def mark_message_done(self, params: MarkMessageDoneRequest) -> None:
+        """标记消息完成"""
+        self._get_request('/api/dialog/msg/done', params)
+    
+    # ------------------------------------------------------------------------------------------
     # 对话相关接口
     # ------------------------------------------------------------------------------------------
     

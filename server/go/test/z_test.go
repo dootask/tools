@@ -556,6 +556,27 @@ func TestBasicProjectAPI(t *testing.T) {
 }
 
 // ============================================================================
+// 消息相关测试
+// ============================================================================
+
+func TestMessageListAPI(t *testing.T) {
+	client := setupTestClient()
+
+	t.Run("获取消息列表", func(t *testing.T) {
+		req := dootask.GetMessageListRequest{
+			DialogID: 5176,
+			Take:     10,
+		}
+		messages, err := client.GetMessageList(req)
+		if err != nil {
+			t.Fatalf("获取消息列表失败: %v", err)
+		}
+
+		t.Logf("消息列表: %s", formatJSON(messages))
+	})
+}
+
+// ============================================================================
 // 系统设置测试
 // ============================================================================
 

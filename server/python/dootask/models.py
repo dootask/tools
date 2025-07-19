@@ -485,3 +485,114 @@ class VersionInfo:
     """版本信息"""
     device_count: int = 0
     version: str = "" 
+
+# ------------------------------------------------------------------------------------------
+# 消息相关数据结构
+# ------------------------------------------------------------------------------------------
+
+@dataclass
+class DialogMessage:
+    """对话消息"""
+    id: int
+    dialog_id: int
+    userid: int
+    bot: int = 0
+    created_at: str = ""
+    type: str = ""
+    mtype: str = ""
+    msg: Any = None
+    reply_id: int = 0
+    reply_num: int = 0
+    forward_id: int = 0
+    forward_num: int = 0
+    tag: int = 0
+    todo: int = 0
+    read: int = 0
+    send: int = 0
+    read_at: Optional[str] = None
+    mention: int = 0
+    dot: int = 0
+    emoji: List[Any] = field(default_factory=list)
+    link: int = 0
+    modify: int = 0
+    percentage: int = 100
+
+@dataclass
+class DialogMessageListResponse:
+    """消息列表响应"""
+    list: List[DialogMessage] = field(default_factory=list)
+    time: int = 0
+    dialog: Optional[DialogInfo] = None
+    todo: List[Any] = field(default_factory=list)
+    top: Any = None
+
+@dataclass
+class DialogMessageSearchResponse:
+    """搜索消息响应"""
+    data: List[int] = field(default_factory=list)
+
+@dataclass
+class TodoUser:
+    """待办用户"""
+    userid: int
+    nickname: str = ""
+    userimg: str = ""
+    done: bool = False
+    done_at: str = ""
+
+@dataclass
+class TodoListResponse:
+    """待办列表响应"""
+    users: List[TodoUser] = field(default_factory=list)
+
+# ------------------------------------------------------------------------------------------
+# 消息请求参数
+# ------------------------------------------------------------------------------------------
+
+@dataclass
+class GetMessageListRequest:
+    """获取消息列表请求"""
+    dialog_id: int
+    msg_id: int = 0
+    position_id: int = 0
+    prev_id: int = 0
+    next_id: int = 0
+    msg_type: str = ""
+    take: int = 50
+
+@dataclass
+class SearchMessageRequest:
+    """搜索消息请求"""
+    dialog_id: int
+    key: str
+
+@dataclass
+class GetMessageRequest:
+    """获取单个消息请求"""
+    msg_id: int
+
+@dataclass
+class WithdrawMessageRequest:
+    """撤回消息请求"""
+    msg_id: int
+
+@dataclass
+class ForwardMessageRequest:
+    """转发消息请求"""
+    msg_id: int
+    dialogids: List[int] = field(default_factory=list)
+    userids: List[int] = field(default_factory=list)
+    show_source: int = 0
+    leave_message: str = ""
+
+@dataclass
+class ToggleMessageTodoRequest:
+    """切换消息待办请求"""
+    msg_id: int
+    type: str = "all"
+    userids: List[int] = field(default_factory=list)
+
+@dataclass
+class MarkMessageDoneRequest:
+    """标记消息完成请求"""
+    msg_id: int 
