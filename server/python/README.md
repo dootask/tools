@@ -1,6 +1,6 @@
 # DooTask Tools
 
-一个用于与 DooTask 系统交互的 Python 客户端库，提供了完整的 API 封装和类型支持。
+一个用于与 DooTask 系统交互的 Python 客户端库，提供了完整的 API 封装和类型支持。支持用户管理、消息通信、项目管理、任务协作等功能。
 
 ## 安装
 
@@ -10,15 +10,14 @@ pip install dootask-tools
 
 ## 快速开始
 
-### 初始化客户端
-
 ```python
 from dootask import DooTaskClient
 
 # 创建客户端
 client = DooTaskClient(
     token="your_token_here",
-    server="https://your-dootask-server.com"
+    server="https://your-dootask-server.com",
+    timeout=30
 )
 
 # 获取用户信息
@@ -26,7 +25,9 @@ user = client.get_user_info()
 print(f"用户: {user.nickname}")
 ```
 
-### 发送消息示例
+## 主要功能示例
+
+### 发送消息
 
 ```python
 from dootask import SendMessageRequest, SendMessageToUserRequest
@@ -46,34 +47,55 @@ client.send_message_to_user(SendMessageToUserRequest(
 ))
 ```
 
-### 项目管理示例
+### 项目和任务管理
 
 ```python
-from dootask import GetProjectListRequest, CreateProjectRequest, CreateTaskRequest
-
-# 获取项目列表
-projects = client.get_project_list(GetProjectListRequest(
-    page=1,
-    pagesize=20
-))
+from dootask import CreateProjectRequest, CreateTaskRequest, UpdateTaskRequest
 
 # 创建项目
 project = client.create_project(CreateProjectRequest(
     name="新项目",
-    desc="项目描述"
+    desc="项目描述",
+    columns="待办,进行中,已完成"
 ))
 
 # 创建任务
 task = client.create_task(CreateTaskRequest(
     project_id=project.id,
     name="新任务",
-    content="任务内容"
+    content="任务内容",
+    owner=[123]
+))
+
+# 更新任务
+updated_task = client.update_task(UpdateTaskRequest(
+    task_id=task.id,
+    name="更新后的任务名",
+    content="更新后的内容"
+))
+```
+
+### 群组管理
+
+```python
+from dootask import CreateGroupRequest, AddGroupUserRequest
+
+# 创建群组
+group = client.create_group(CreateGroupRequest(
+    chat_name="新群组",
+    userids=[123, 456, 789]
+))
+
+# 添加群成员
+client.add_group_user(AddGroupUserRequest(
+    dialog_id=group.id,
+    userids=[999]
 ))
 ```
 
 ## API 方法列表
 
-### 客户端配置
+### 基础方法
 
 | 方法 | 描述 | 参数 | 返回值 |
 |------|------|------|--------|
@@ -83,8 +105,8 @@ task = client.create_task(CreateTaskRequest(
 
 | 方法 | 描述 | 参数 | 返回值 |
 |------|------|------|--------|
-| `get_user_info` | 获取用户信息 | `no_cache=False` | `UserInfo` |
-| `check_user_identity` | 检查用户身份 | `identity` | `UserInfo` |
+| `get_user_info` | 获取用户信息 | `no_cache: bool = False` | `UserInfo` |
+| `check_user_identity` | 检查用户身份 | `identity: str` | `UserInfo` |
 | `get_user_departments` | 获取用户部门信息 | - | `List[Department]` |
 | `get_users_basic` | 获取多个用户基础信息 | `userids: List[int]` | `List[UserBasic]` |
 | `get_user_basic` | 获取单个用户基础信息 | `userid: int` | `UserBasic` |
@@ -97,6 +119,15 @@ task = client.create_task(CreateTaskRequest(
 | `send_message_to_user` | 发送消息到用户 | `SendMessageToUserRequest` | `None` |
 | `send_bot_message` | 发送机器人消息 | `SendBotMessageRequest` | `None` |
 | `send_anonymous_message` | 发送匿名消息 | `SendAnonymousMessageRequest` | `None` |
+| `get_message_list` | 获取消息列表 | `GetMessageListRequest` | `DialogMessageListResponse` |
+| `search_message` | 搜索消息 | `SearchMessageRequest` | `DialogMessageSearchResponse` |
+| `get_message` | 获取单个消息详情 | `GetMessageRequest` | `DialogMessage` |
+| `get_message_detail` | 获取消息详情（兼容性） | `GetMessageRequest` | `DialogMessage` |
+| `withdraw_message` | 撤回消息 | `WithdrawMessageRequest` | `None` |
+| `forward_message` | 转发消息 | `ForwardMessageRequest` | `None` |
+| `toggle_message_todo` | 切换消息待办状态 | `ToggleMessageTodoRequest` | `None` |
+| `get_message_todo_list` | 获取消息待办列表 | `GetMessageRequest` | `TodoListResponse` |
+| `mark_message_done` | 标记消息完成 | `MarkMessageDoneRequest` | `None` |
 
 ### 对话相关接口
 
@@ -154,7 +185,7 @@ task = client.create_task(CreateTaskRequest(
 | `archive_task` | 归档任务 | `task_id: int, archive_type: str` | `None` |
 | `delete_task` | 删除任务 | `task_id: int, delete_type: str` | `None` |
 
-### 系统设置相关接口
+### 系统相关接口
 
 | 方法 | 描述 | 参数 | 返回值 |
 |------|------|------|--------|
@@ -163,59 +194,37 @@ task = client.create_task(CreateTaskRequest(
 
 ## 主要数据类型
 
+### 基础类型
+- `Response[T]` - 基础响应结构
+- `ResponsePaginate[T]` - 分页响应结构
+
+### 用户相关
 - `UserInfo` - 用户信息
 - `UserBasic` - 用户基础信息
 - `Department` - 部门信息
+
+### 消息相关
+- `SendMessageRequest` - 发送消息请求
+- `DialogMessage` - 对话消息
+- `DialogMessageListResponse` - 消息列表响应
+- `TodoListResponse` - 待办列表响应
+
+### 对话相关
 - `DialogInfo` - 对话信息
 - `DialogMember` - 对话成员
+
+### 项目和任务相关
 - `Project` - 项目信息
 - `ProjectColumn` - 项目列表
 - `ProjectTask` - 项目任务
 - `TaskFile` - 任务文件
 - `TaskContent` - 任务内容
+
+### 系统相关
 - `SystemSettings` - 系统设置
 - `VersionInfo` - 版本信息
 
-## 详细示例
-
-```python
-from dootask import (
-    DooTaskClient,
-    CreateProjectRequest,
-    CreateTaskRequest,
-    DooTaskException
-)
-
-client = DooTaskClient(
-    token="your_token",
-    server="https://your-server.com"
-)
-
-try:
-    # 创建项目
-    project = client.create_project(CreateProjectRequest(
-        name="我的项目",
-        desc="项目描述"
-    ))
-    
-    # 创建任务
-    task = client.create_task(CreateTaskRequest(
-        project_id=project.id,
-        name="任务名称",
-        content="任务内容",
-        owner=[user.userid]
-    ))
-    
-    print(f"项目创建成功: {project.name}")
-    print(f"任务创建成功: {task.name}")
-    
-except DooTaskException as e:
-    print(f"错误: {e}")
-```
-
 ## 异常处理
-
-所有方法都可能抛出异常，包含详细的错误信息：
 
 ```python
 from dootask import (
@@ -238,6 +247,18 @@ except DooTaskHTTPException as e:
     print(f"网络错误: {e}")
 except DooTaskException as e:
     print(f"其他错误: {e}")
+```
+
+## 缓存机制
+
+客户端内置用户信息缓存机制，默认缓存时间为10分钟：
+
+```python
+# 强制刷新缓存
+user = client.get_user_info(no_cache=True)
+
+# 使用缓存（默认）
+user = client.get_user_info()
 ```
 
 ## 许可证
