@@ -9,7 +9,7 @@ from datetime import datetime
 T = TypeVar('T')
 
 # ------------------------------------------------------------------------------------------
-# 基础响应结构
+# 基础结构定义
 # ------------------------------------------------------------------------------------------
 
 @dataclass
@@ -70,6 +70,144 @@ class Department:
     owner_userid: int = 0
 
 # ------------------------------------------------------------------------------------------
+# 消息相关结构
+# ------------------------------------------------------------------------------------------
+
+@dataclass
+class SendMessageRequest:
+    """发送消息请求"""
+    dialog_id: int
+    text: str
+    text_type: str = "md"
+    silence: bool = False
+
+@dataclass
+class SendMessageToUserRequest:
+    """发送消息到用户请求"""
+    userid: int
+    text: str
+    text_type: str = "md"
+    silence: bool = False
+
+@dataclass
+class SendBotMessageRequest:
+    """发送机器人消息请求"""
+    userid: int
+    text: str
+    bot_type: str = "system-msg"
+    bot_name: str = ""
+    silence: bool = False
+
+@dataclass
+class SendAnonymousMessageRequest:
+    """发送匿名消息请求"""
+    userid: int
+    text: str
+
+@dataclass
+class DialogMessage:
+    """对话消息"""
+    id: int
+    dialog_id: int
+    userid: int
+    bot: int = 0
+    created_at: str = ""
+    type: str = ""
+    mtype: str = ""
+    msg: Any = None
+    reply_id: int = 0
+    reply_num: int = 0
+    forward_id: int = 0
+    forward_num: int = 0
+    tag: int = 0
+    todo: int = 0
+    read: int = 0
+    send: int = 0
+    read_at: Optional[str] = None
+    mention: int = 0
+    dot: int = 0
+    emoji: List[Any] = field(default_factory=list)
+    link: int = 0
+    modify: int = 0
+    percentage: int = 100
+
+@dataclass
+class DialogMessageListResponse:
+    """消息列表响应"""
+    list: List[DialogMessage] = field(default_factory=list)
+    time: int = 0
+    dialog: Optional[DialogInfo] = None
+    todo: List[Any] = field(default_factory=list)
+    top: Any = None
+
+@dataclass
+class DialogMessageSearchResponse:
+    """搜索消息响应"""
+    data: List[int] = field(default_factory=list)
+
+@dataclass
+class TodoUser:
+    """待办用户"""
+    userid: int
+    nickname: str = ""
+    userimg: str = ""
+    done: bool = False
+    done_at: str = ""
+
+@dataclass
+class TodoListResponse:
+    """待办列表响应"""
+    users: List[TodoUser] = field(default_factory=list)
+
+@dataclass
+class GetMessageListRequest:
+    """获取消息列表请求"""
+    dialog_id: int
+    msg_id: int = 0
+    position_id: int = 0
+    prev_id: int = 0
+    next_id: int = 0
+    msg_type: str = ""
+    take: int = 50
+
+@dataclass
+class SearchMessageRequest:
+    """搜索消息请求"""
+    dialog_id: int
+    key: str
+
+@dataclass
+class GetMessageRequest:
+    """获取单个消息请求"""
+    msg_id: int
+
+@dataclass
+class WithdrawMessageRequest:
+    """撤回消息请求"""
+    msg_id: int
+
+@dataclass
+class ForwardMessageRequest:
+    """转发消息请求"""
+    msg_id: int
+    dialogids: List[int] = field(default_factory=list)
+    userids: List[int] = field(default_factory=list)
+    show_source: int = 0
+    leave_message: str = ""
+
+@dataclass
+class ToggleMessageTodoRequest:
+    """切换消息待办请求"""
+    msg_id: int
+    type: str = "all"
+    userids: List[int] = field(default_factory=list)
+
+@dataclass
+class MarkMessageDoneRequest:
+    """标记消息完成请求"""
+    msg_id: int
+
+# ------------------------------------------------------------------------------------------
 # 对话相关结构
 # ------------------------------------------------------------------------------------------
 
@@ -126,40 +264,28 @@ class DialogMember:
     bot: int = 0
     online: bool = False
 
-# ------------------------------------------------------------------------------------------
-# 消息相关结构
-# ------------------------------------------------------------------------------------------
+@dataclass
+class TimeRangeRequest:
+    """时间范围请求参数"""
+    timerange: str = ""
+    page: int = 1
+    pagesize: int = 50
 
 @dataclass
-class SendMessageRequest:
-    """发送消息请求"""
+class SearchDialogRequest:
+    """搜索会话请求"""
+    key: str
+
+@dataclass
+class GetDialogRequest:
+    """获取单个会话请求"""
     dialog_id: int
-    text: str
-    text_type: str = "md"
-    silence: bool = False
 
 @dataclass
-class SendMessageToUserRequest:
-    """发送消息到用户请求"""
-    userid: int
-    text: str
-    text_type: str = "md"
-    silence: bool = False
-
-@dataclass
-class SendBotMessageRequest:
-    """发送机器人消息请求"""
-    userid: int
-    text: str
-    bot_type: str = "system-msg"
-    bot_name: str = ""
-    silence: bool = False
-
-@dataclass
-class SendAnonymousMessageRequest:
-    """发送匿名消息请求"""
-    userid: int
-    text: str
+class GetDialogUserRequest:
+    """获取会话成员请求"""
+    dialog_id: int
+    getuser: int = 0
 
 # ------------------------------------------------------------------------------------------
 # 群组相关结构
@@ -206,33 +332,6 @@ class DisbandGroupRequest:
     dialog_id: int
 
 # ------------------------------------------------------------------------------------------
-# 通用请求参数
-# ------------------------------------------------------------------------------------------
-
-@dataclass
-class TimeRangeRequest:
-    """时间范围请求参数"""
-    timerange: str = ""
-    page: int = 1
-    pagesize: int = 50
-
-@dataclass
-class SearchDialogRequest:
-    """搜索会话请求"""
-    key: str
-
-@dataclass
-class GetDialogRequest:
-    """获取单个会话请求"""
-    dialog_id: int
-
-@dataclass
-class GetDialogUserRequest:
-    """获取会话成员请求"""
-    dialog_id: int
-    getuser: int = 0
-
-# ------------------------------------------------------------------------------------------
 # 项目管理相关结构
 # ------------------------------------------------------------------------------------------
 
@@ -259,6 +358,51 @@ class Project:
     task_my_percent: int = 0
 
 @dataclass
+class GetProjectListRequest:
+    """获取项目列表请求"""
+    type: str = "all"
+    archived: str = "no"
+    getcolumn: str = "no"
+    getuserid: str = "no"
+    getstatistics: str = "no"
+    timerange: str = ""
+    page: int = 1
+    pagesize: int = 50
+
+@dataclass
+class GetProjectRequest:
+    """获取项目信息请求"""
+    project_id: int
+
+@dataclass
+class CreateProjectRequest:
+    """创建项目请求"""
+    name: str
+    desc: str = ""
+    columns: str = ""
+    flow: str = ""
+    personal: int = 0
+
+@dataclass
+class UpdateProjectRequest:
+    """更新项目请求"""
+    project_id: int
+    name: str
+    desc: str = ""
+    archive_method: str = ""
+    archive_days: int = 0
+
+@dataclass
+class ProjectActionRequest:
+    """项目操作请求"""
+    project_id: int
+    type: str = ""
+
+# ------------------------------------------------------------------------------------------
+# 任务列表相关结构
+# ------------------------------------------------------------------------------------------
+
+@dataclass
 class ProjectColumn:
     """项目列表"""
     id: int
@@ -268,6 +412,35 @@ class ProjectColumn:
     sort: int = 0
     created_at: str = ""
     updated_at: str = ""
+
+@dataclass
+class GetColumnListRequest:
+    """获取列表请求"""
+    project_id: int
+    page: int = 1
+    pagesize: int = 100
+
+@dataclass
+class CreateColumnRequest:
+    """创建列表请求"""
+    project_id: int
+    name: str
+
+@dataclass
+class UpdateColumnRequest:
+    """更新列表请求"""
+    column_id: int
+    name: str = ""
+    color: str = ""
+
+@dataclass
+class ColumnActionRequest:
+    """列表操作请求"""
+    column_id: int
+
+# ------------------------------------------------------------------------------------------
+# 任务相关结构
+# ------------------------------------------------------------------------------------------
 
 @dataclass
 class ProjectTask:
@@ -319,76 +492,6 @@ class TaskContent:
     """任务内容"""
     content: str = ""
     type: str = ""
-
-# ------------------------------------------------------------------------------------------
-# 项目管理请求参数
-# ------------------------------------------------------------------------------------------
-
-@dataclass
-class GetProjectListRequest:
-    """获取项目列表请求"""
-    type: str = "all"
-    archived: str = "no"
-    getcolumn: str = "no"
-    getuserid: str = "no"
-    getstatistics: str = "no"
-    timerange: str = ""
-    page: int = 1
-    pagesize: int = 50
-
-@dataclass
-class GetProjectRequest:
-    """获取项目信息请求"""
-    project_id: int
-
-@dataclass
-class CreateProjectRequest:
-    """创建项目请求"""
-    name: str
-    desc: str = ""
-    columns: str = ""
-    flow: str = ""
-    personal: int = 0
-
-@dataclass
-class UpdateProjectRequest:
-    """更新项目请求"""
-    project_id: int
-    name: str
-    desc: str = ""
-    archive_method: str = ""
-    archive_days: int = 0
-
-@dataclass
-class ProjectActionRequest:
-    """项目操作请求"""
-    project_id: int
-    type: str = ""
-
-@dataclass
-class GetColumnListRequest:
-    """获取列表请求"""
-    project_id: int
-    page: int = 1
-    pagesize: int = 100
-
-@dataclass
-class CreateColumnRequest:
-    """创建列表请求"""
-    project_id: int
-    name: str
-
-@dataclass
-class UpdateColumnRequest:
-    """更新列表请求"""
-    column_id: int
-    name: str = ""
-    color: str = ""
-
-@dataclass
-class ColumnActionRequest:
-    """列表操作请求"""
-    column_id: int
 
 @dataclass
 class GetTaskListRequest:
@@ -467,7 +570,7 @@ class CreateTaskDialogResponse:
     dialog_data: Any = None
 
 # ------------------------------------------------------------------------------------------
-# 系统设置相关
+# 系统相关结构
 # ------------------------------------------------------------------------------------------
 
 @dataclass
@@ -485,114 +588,3 @@ class VersionInfo:
     """版本信息"""
     device_count: int = 0
     version: str = "" 
-
-# ------------------------------------------------------------------------------------------
-# 消息相关数据结构
-# ------------------------------------------------------------------------------------------
-
-@dataclass
-class DialogMessage:
-    """对话消息"""
-    id: int
-    dialog_id: int
-    userid: int
-    bot: int = 0
-    created_at: str = ""
-    type: str = ""
-    mtype: str = ""
-    msg: Any = None
-    reply_id: int = 0
-    reply_num: int = 0
-    forward_id: int = 0
-    forward_num: int = 0
-    tag: int = 0
-    todo: int = 0
-    read: int = 0
-    send: int = 0
-    read_at: Optional[str] = None
-    mention: int = 0
-    dot: int = 0
-    emoji: List[Any] = field(default_factory=list)
-    link: int = 0
-    modify: int = 0
-    percentage: int = 100
-
-@dataclass
-class DialogMessageListResponse:
-    """消息列表响应"""
-    list: List[DialogMessage] = field(default_factory=list)
-    time: int = 0
-    dialog: Optional[DialogInfo] = None
-    todo: List[Any] = field(default_factory=list)
-    top: Any = None
-
-@dataclass
-class DialogMessageSearchResponse:
-    """搜索消息响应"""
-    data: List[int] = field(default_factory=list)
-
-@dataclass
-class TodoUser:
-    """待办用户"""
-    userid: int
-    nickname: str = ""
-    userimg: str = ""
-    done: bool = False
-    done_at: str = ""
-
-@dataclass
-class TodoListResponse:
-    """待办列表响应"""
-    users: List[TodoUser] = field(default_factory=list)
-
-# ------------------------------------------------------------------------------------------
-# 消息请求参数
-# ------------------------------------------------------------------------------------------
-
-@dataclass
-class GetMessageListRequest:
-    """获取消息列表请求"""
-    dialog_id: int
-    msg_id: int = 0
-    position_id: int = 0
-    prev_id: int = 0
-    next_id: int = 0
-    msg_type: str = ""
-    take: int = 50
-
-@dataclass
-class SearchMessageRequest:
-    """搜索消息请求"""
-    dialog_id: int
-    key: str
-
-@dataclass
-class GetMessageRequest:
-    """获取单个消息请求"""
-    msg_id: int
-
-@dataclass
-class WithdrawMessageRequest:
-    """撤回消息请求"""
-    msg_id: int
-
-@dataclass
-class ForwardMessageRequest:
-    """转发消息请求"""
-    msg_id: int
-    dialogids: List[int] = field(default_factory=list)
-    userids: List[int] = field(default_factory=list)
-    show_source: int = 0
-    leave_message: str = ""
-
-@dataclass
-class ToggleMessageTodoRequest:
-    """切换消息待办请求"""
-    msg_id: int
-    type: str = "all"
-    userids: List[int] = field(default_factory=list)
-
-@dataclass
-class MarkMessageDoneRequest:
-    """标记消息完成请求"""
-    msg_id: int 

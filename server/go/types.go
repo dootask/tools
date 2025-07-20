@@ -2,6 +2,10 @@ package dootask
 
 import "time"
 
+// ------------------------------------------------------------------------------------------
+// 基础结构定义
+// ------------------------------------------------------------------------------------------
+
 // Client DooTask客户端类
 type Client struct {
 	token     string
@@ -40,7 +44,7 @@ type UserCache struct {
 }
 
 // ------------------------------------------------------------------------------------------
-// ------------------------------------------------------------------------------------------
+// 用户相关结构体
 // ------------------------------------------------------------------------------------------
 
 // UserInfo 用户信息
@@ -77,17 +81,9 @@ type Department struct {
 	OwnerUserID uint   `json:"owner_userid"` // 负责人ID
 }
 
-// DialogOpenUserResponse 打开用户对话响应数据
-type DialogOpenUserResponse struct {
-	DialogUser DialogUserResponse `json:"dialog_user"`
-}
-
-// DialogUserResponse 对话用户信息
-type DialogUserResponse struct {
-	DialogID int `json:"dialog_id"`
-	UserID   int `json:"userid"`
-	Bot      int `json:"bot"`
-}
+// ------------------------------------------------------------------------------------------
+// 消息相关结构体
+// ------------------------------------------------------------------------------------------
 
 // SendMessageRequest 消息
 type SendMessageRequest struct {
@@ -118,6 +114,125 @@ type SendBotMessageRequest struct {
 type SendAnonymousMessageRequest struct {
 	UserID int    `json:"userid"` // 必填：用户ID，发送给指定用户
 	Text   string `json:"text"`   // 必填：消息内容
+}
+
+// DialogMessage 对话消息
+type DialogMessage struct {
+	ID         int           `json:"id"`          // 消息ID
+	DialogID   int           `json:"dialog_id"`   // 对话ID
+	UserID     int           `json:"userid"`      // 用户ID
+	Bot        int           `json:"bot"`         // 是否机器人
+	CreatedAt  string        `json:"created_at"`  // 创建时间
+	Type       string        `json:"type"`        // 消息类型
+	MType      string        `json:"mtype"`       // 消息媒体类型
+	Msg        any           `json:"msg"`         // 消息内容
+	ReplyID    int           `json:"reply_id"`    // 回复消息ID
+	ReplyNum   int           `json:"reply_num"`   // 回复数量
+	ForwardID  int           `json:"forward_id"`  // 转发消息ID
+	ForwardNum int           `json:"forward_num"` // 转发数量
+	Tag        int           `json:"tag"`         // 标签
+	Todo       int           `json:"todo"`        // 待办
+	Read       int           `json:"read"`        // 已读人数
+	Send       int           `json:"send"`        // 发送人数
+	ReadAt     *string       `json:"read_at"`     // 已读时间
+	Mention    int           `json:"mention"`     // 提及
+	Dot        int           `json:"dot"`         // 点标记
+	Emoji      []interface{} `json:"emoji"`       // 表情回应
+	Link       int           `json:"link"`        // 链接
+	Modify     int           `json:"modify"`      // 修改标记
+	Percentage int           `json:"percentage"`  // 百分比
+}
+
+// DialogMessageListResponse 消息列表响应
+type DialogMessageListResponse struct {
+	List   []DialogMessage `json:"list"`   // 消息列表
+	Time   int64           `json:"time"`   // 时间戳
+	Dialog DialogInfo      `json:"dialog"` // 对话信息
+	Todo   []interface{}   `json:"todo"`   // 待办列表
+	Top    *interface{}    `json:"top"`    // 置顶消息ID
+}
+
+// DialogMessageSearchResponse 搜索消息响应
+type DialogMessageSearchResponse struct {
+	Data []int `json:"data"`
+}
+
+// TodoUser 待办用户
+type TodoUser struct {
+	UserID   int    `json:"userid"`   // 用户ID
+	Nickname string `json:"nickname"` // 昵称
+	UserImg  string `json:"userimg"`  // 头像
+	Done     bool   `json:"done"`     // 是否完成
+	DoneAt   string `json:"done_at"`  // 完成时间
+}
+
+// TodoListResponse 待办列表响应
+type TodoListResponse struct {
+	Users []TodoUser `json:"users"`
+}
+
+// GetMessageListRequest 获取消息列表请求
+type GetMessageListRequest struct {
+	DialogID   int    `json:"dialog_id"`   // 必填：对话ID
+	MsgID      int    `json:"msg_id"`      // 可选：消息ID
+	PositionID int    `json:"position_id"` // 可选：位置ID
+	PrevID     int    `json:"prev_id"`     // 可选：前一个消息ID
+	NextID     int    `json:"next_id"`     // 可选：下一个消息ID
+	MsgType    string `json:"msg_type"`    // 可选：消息类型(tag/todo/link/text/image/file/record/meeting)
+	Take       int    `json:"take"`        // 可选：获取数量，默认50，最大100
+}
+
+// SearchMessageRequest 搜索消息请求
+type SearchMessageRequest struct {
+	DialogID int    `json:"dialog_id"` // 必填：对话ID
+	Key      string `json:"key"`       // 必填：搜索关键词
+}
+
+// GetMessageRequest 获取单个消息请求
+type GetMessageRequest struct {
+	MsgID int `json:"msg_id"` // 必填：消息ID
+}
+
+// WithdrawMessageRequest 撤回消息请求
+type WithdrawMessageRequest struct {
+	MsgID int `json:"msg_id"` // 必填：消息ID
+}
+
+// ForwardMessageRequest 转发消息请求
+type ForwardMessageRequest struct {
+	MsgID        int    `json:"msg_id"`        // 必填：消息ID
+	DialogIDs    []int  `json:"dialogids"`     // 可选：目标对话ID列表
+	UserIDs      []int  `json:"userids"`       // 可选：目标用户ID列表
+	ShowSource   int    `json:"show_source"`   // 可选：是否显示来源，1显示，0不显示
+	LeaveMessage string `json:"leave_message"` // 可选：留言
+}
+
+// ToggleMessageTodoRequest 切换消息待办请求
+type ToggleMessageTodoRequest struct {
+	MsgID   int    `json:"msg_id"`  // 必填：消息ID
+	Type    string `json:"type"`    // 可选：类型(all/指定用户)，默认all
+	UserIDs []int  `json:"userids"` // 可选：用户ID列表，当type不为all时使用
+}
+
+// MarkMessageDoneRequest 标记消息完成请求
+type MarkMessageDoneRequest struct {
+	MsgID int `json:"msg_id"` // 必填：消息ID
+}
+
+// ------------------------------------------------------------------------------------------
+// 对话相关结构体
+// ------------------------------------------------------------------------------------------
+
+// DialogOpenUserResponse 打开用户对话响应数据
+type DialogOpenUserResponse struct {
+	DialogUser DialogUserResponse `json:"dialog_user"`
+}
+
+// DialogUserResponse 对话用户信息
+type DialogUserResponse struct {
+	DialogID int `json:"dialog_id"`
+	UserID   int `json:"userid"`
+	Bot      int `json:"bot"`
 }
 
 // DialogInfo 对话信息
@@ -161,6 +276,33 @@ type DialogMember struct {
 	Online   bool   `json:"online"`    // 是否在线
 }
 
+// TimeRangeRequest 时间范围请求参数
+type TimeRangeRequest struct {
+	TimeRange string `json:"timerange"` // 可选：时间范围，例如：1752711205,1751776557，表示时间戳范围
+	Page      int    `json:"page"`      // 可选：当前页，默认1
+	PageSize  int    `json:"pagesize"`  // 可选：每页显示数量，默认50，最大100
+}
+
+// SearchDialogRequest 搜索会话请求
+type SearchDialogRequest struct {
+	Key string `json:"key"` // 必填：搜索关键词
+}
+
+// GetDialogRequest 获取单个会话请求
+type GetDialogRequest struct {
+	DialogID int `json:"dialog_id"` // 必填：对话ID
+}
+
+// GetDialogUserRequest 获取会话成员请求
+type GetDialogUserRequest struct {
+	DialogID int `json:"dialog_id"` // 必填：会话ID
+	GetUser  int `json:"getuser"`   // 可选：获取会员详情（1: 返回会员昵称、邮箱等基本信息，0: 默认不返回）
+}
+
+// ------------------------------------------------------------------------------------------
+// 群组相关结构体
+// ------------------------------------------------------------------------------------------
+
 // CreateGroupRequest 创建群组请求
 type CreateGroupRequest struct {
 	Avatar   string `json:"avatar"`    // 可选：群头像
@@ -201,29 +343,6 @@ type DisbandGroupRequest struct {
 	DialogID int `json:"dialog_id"` // 必填：会话ID
 }
 
-// TimeRangeRequest 时间范围请求参数
-type TimeRangeRequest struct {
-	TimeRange string `json:"timerange"` // 可选：时间范围，例如：1752711205,1751776557，表示时间戳范围
-	Page      int    `json:"page"`      // 可选：当前页，默认1
-	PageSize  int    `json:"pagesize"`  // 可选：每页显示数量，默认50，最大100
-}
-
-// SearchDialogRequest 搜索会话请求
-type SearchDialogRequest struct {
-	Key string `json:"key"` // 必填：搜索关键词
-}
-
-// GetDialogRequest 获取单个会话请求
-type GetDialogRequest struct {
-	DialogID int `json:"dialog_id"` // 必填：对话ID
-}
-
-// GetDialogUserRequest 获取会话成员请求
-type GetDialogUserRequest struct {
-	DialogID int `json:"dialog_id"` // 必填：会话ID
-	GetUser  int `json:"getuser"`   // 可选：获取会员详情（1: 返回会员昵称、邮箱等基本信息，0: 默认不返回）
-}
-
 // ------------------------------------------------------------------------------------------
 // 项目管理相关结构体
 // ------------------------------------------------------------------------------------------
@@ -250,6 +369,51 @@ type Project struct {
 	TaskMyPercent  int `json:"task_my_percent"`  // 我的任务完成百分比
 }
 
+// GetProjectListRequest 获取项目列表请求
+type GetProjectListRequest struct {
+	Type          string `json:"type"`          // 可选：项目类型，all、team、personal
+	Archived      string `json:"archived"`      // 可选：归档状态，all、yes、no
+	GetColumn     string `json:"getcolumn"`     // 可选：同时取列表，yes、no
+	GetUserID     string `json:"getuserid"`     // 可选：同时取成员ID，yes、no
+	GetStatistics string `json:"getstatistics"` // 可选：同时取任务统计，yes、no
+	TimeRange     string `json:"timerange"`     // 可选：时间范围
+	Page          int    `json:"page"`          // 可选：当前页，默认1
+	PageSize      int    `json:"pagesize"`      // 可选：每页数量，默认50
+}
+
+// GetProjectRequest 获取项目信息请求
+type GetProjectRequest struct {
+	ProjectID int `json:"project_id"` // 必填：项目ID
+}
+
+// CreateProjectRequest 创建项目请求
+type CreateProjectRequest struct {
+	Name     string `json:"name"`     // 必填：项目名称
+	Desc     string `json:"desc"`     // 可选：项目描述
+	Columns  string `json:"columns"`  // 可选：列表，格式：列表名称1,列表名称2
+	Flow     string `json:"flow"`     // 可选：开启流程，open、close
+	Personal int    `json:"personal"` // 可选：是否个人项目
+}
+
+// UpdateProjectRequest 更新项目请求
+type UpdateProjectRequest struct {
+	ProjectID     int    `json:"project_id"`     // 必填：项目ID
+	Name          string `json:"name"`           // 必填：项目名称
+	Desc          string `json:"desc"`           // 可选：项目描述
+	ArchiveMethod string `json:"archive_method"` // 可选：归档方式
+	ArchiveDays   int    `json:"archive_days"`   // 可选：自动归档天数
+}
+
+// ProjectActionRequest 项目操作请求
+type ProjectActionRequest struct {
+	ProjectID int    `json:"project_id"` // 必填：项目ID
+	Type      string `json:"type"`       // 可选：操作类型，如 add、recovery
+}
+
+// ------------------------------------------------------------------------------------------
+// 任务列表相关结构体
+// ------------------------------------------------------------------------------------------
+
 // ProjectColumn 项目列表
 type ProjectColumn struct {
 	ID        int    `json:"id"`         // 列表ID
@@ -260,6 +424,35 @@ type ProjectColumn struct {
 	CreatedAt string `json:"created_at"` // 创建时间
 	UpdatedAt string `json:"updated_at"` // 更新时间
 }
+
+// GetColumnListRequest 获取列表请求
+type GetColumnListRequest struct {
+	ProjectID int `json:"project_id"` // 必填：项目ID
+	Page      int `json:"page"`       // 可选：当前页，默认1
+	PageSize  int `json:"pagesize"`   // 可选：每页数量，默认100
+}
+
+// CreateColumnRequest 创建列表请求
+type CreateColumnRequest struct {
+	ProjectID int    `json:"project_id"` // 必填：项目ID
+	Name      string `json:"name"`       // 必填：列表名称
+}
+
+// UpdateColumnRequest 更新列表请求
+type UpdateColumnRequest struct {
+	ColumnID int    `json:"column_id"` // 必填：列表ID
+	Name     string `json:"name"`      // 可选：列表名称
+	Color    string `json:"color"`     // 可选：颜色
+}
+
+// ColumnActionRequest 列表操作请求
+type ColumnActionRequest struct {
+	ColumnID int `json:"column_id"` // 必填：列表ID
+}
+
+// ------------------------------------------------------------------------------------------
+// 任务相关结构体
+// ------------------------------------------------------------------------------------------
 
 // ProjectTask 项目任务
 type ProjectTask struct {
@@ -310,76 +503,6 @@ type TaskFile struct {
 type TaskContent struct {
 	Content string `json:"content"` // 任务内容
 	Type    string `json:"type"`    // 内容类型
-}
-
-// ------------------------------------------------------------------------------------------
-// 项目管理请求参数
-// ------------------------------------------------------------------------------------------
-
-// GetProjectListRequest 获取项目列表请求
-type GetProjectListRequest struct {
-	Type          string `json:"type"`          // 可选：项目类型，all、team、personal
-	Archived      string `json:"archived"`      // 可选：归档状态，all、yes、no
-	GetColumn     string `json:"getcolumn"`     // 可选：同时取列表，yes、no
-	GetUserID     string `json:"getuserid"`     // 可选：同时取成员ID，yes、no
-	GetStatistics string `json:"getstatistics"` // 可选：同时取任务统计，yes、no
-	TimeRange     string `json:"timerange"`     // 可选：时间范围
-	Page          int    `json:"page"`          // 可选：当前页，默认1
-	PageSize      int    `json:"pagesize"`      // 可选：每页数量，默认50
-}
-
-// GetProjectRequest 获取项目信息请求
-type GetProjectRequest struct {
-	ProjectID int `json:"project_id"` // 必填：项目ID
-}
-
-// CreateProjectRequest 创建项目请求
-type CreateProjectRequest struct {
-	Name     string `json:"name"`     // 必填：项目名称
-	Desc     string `json:"desc"`     // 可选：项目描述
-	Columns  string `json:"columns"`  // 可选：列表，格式：列表名称1,列表名称2
-	Flow     string `json:"flow"`     // 可选：开启流程，open、close
-	Personal int    `json:"personal"` // 可选：是否个人项目
-}
-
-// UpdateProjectRequest 更新项目请求
-type UpdateProjectRequest struct {
-	ProjectID     int    `json:"project_id"`     // 必填：项目ID
-	Name          string `json:"name"`           // 必填：项目名称
-	Desc          string `json:"desc"`           // 可选：项目描述
-	ArchiveMethod string `json:"archive_method"` // 可选：归档方式
-	ArchiveDays   int    `json:"archive_days"`   // 可选：自动归档天数
-}
-
-// ProjectActionRequest 项目操作请求（退出、删除等）
-type ProjectActionRequest struct {
-	ProjectID int    `json:"project_id"` // 必填：项目ID
-	Type      string `json:"type"`       // 可选：操作类型，如 add、recovery
-}
-
-// GetColumnListRequest 获取列表请求
-type GetColumnListRequest struct {
-	ProjectID int `json:"project_id"` // 必填：项目ID
-	Page      int `json:"page"`       // 可选：当前页，默认1
-	PageSize  int `json:"pagesize"`   // 可选：每页数量，默认100
-}
-
-// CreateColumnRequest 创建列表请求
-type CreateColumnRequest struct {
-	ProjectID int    `json:"project_id"` // 必填：项目ID
-	Name      string `json:"name"`       // 必填：列表名称
-}
-
-// UpdateColumnRequest 更新列表请求
-type UpdateColumnRequest struct {
-	ColumnID int    `json:"column_id"` // 必填：列表ID
-	Name     string `json:"name"`      // 可选：列表名称
-	Color    string `json:"color"`     // 可选：颜色
-}
-
-// ColumnActionRequest 列表操作请求
-type ColumnActionRequest struct {
-	ColumnID int `json:"column_id"` // 必填：列表ID
 }
 
 // GetTaskListRequest 获取任务列表请求
@@ -459,119 +582,7 @@ type CreateTaskDialogResponse struct {
 }
 
 // ------------------------------------------------------------------------------------------
-// 消息相关数据结构
-// ------------------------------------------------------------------------------------------
-
-// DialogMessage 对话消息
-// DialogMessage 结构体，适配 word-chain 类型消息的结构
-type DialogMessage struct {
-	ID         int           `json:"id"`          // 消息ID
-	DialogID   int           `json:"dialog_id"`   // 对话ID
-	UserID     int           `json:"userid"`      // 用户ID
-	Bot        int           `json:"bot"`         // 是否机器人
-	CreatedAt  string        `json:"created_at"`  // 创建时间
-	Type       string        `json:"type"`        // 消息类型
-	MType      string        `json:"mtype"`       // 消息媒体类型
-	Msg        any           `json:"msg"`         // 消息内容
-	ReplyID    int           `json:"reply_id"`    // 回复消息ID
-	ReplyNum   int           `json:"reply_num"`   // 回复数量
-	ForwardID  int           `json:"forward_id"`  // 转发消息ID
-	ForwardNum int           `json:"forward_num"` // 转发数量
-	Tag        int           `json:"tag"`         // 标签
-	Todo       int           `json:"todo"`        // 待办
-	Read       int           `json:"read"`        // 已读人数
-	Send       int           `json:"send"`        // 发送人数
-	ReadAt     *string       `json:"read_at"`     // 已读时间
-	Mention    int           `json:"mention"`     // 提及
-	Dot        int           `json:"dot"`         // 点标记
-	Emoji      []interface{} `json:"emoji"`       // 表情回应
-	Link       int           `json:"link"`        // 链接
-	Modify     int           `json:"modify"`      // 修改标记
-	Percentage int           `json:"percentage"`  // 百分比
-}
-
-// DialogMessageListResponse 消息列表响应
-type DialogMessageListResponse struct {
-	List   []DialogMessage `json:"list"`   // 消息列表
-	Time   int64           `json:"time"`   // 时间戳
-	Dialog DialogInfo      `json:"dialog"` // 对话信息
-	Todo   []interface{}   `json:"todo"`   // 待办列表
-	Top    *interface{}    `json:"top"`    // 置顶消息ID
-}
-
-// DialogMessageSearchResponse 搜索消息响应
-type DialogMessageSearchResponse struct {
-	Data []int `json:"data"`
-}
-
-// TodoUser 待办用户
-type TodoUser struct {
-	UserID   int    `json:"userid"`   // 用户ID
-	Nickname string `json:"nickname"` // 昵称
-	UserImg  string `json:"userimg"`  // 头像
-	Done     bool   `json:"done"`     // 是否完成
-	DoneAt   string `json:"done_at"`  // 完成时间
-}
-
-// TodoListResponse 待办列表响应
-type TodoListResponse struct {
-	Users []TodoUser `json:"users"`
-}
-
-// ------------------------------------------------------------------------------------------
-// 消息请求参数
-// ------------------------------------------------------------------------------------------
-
-// GetMessageListRequest 获取消息列表请求
-type GetMessageListRequest struct {
-	DialogID   int    `json:"dialog_id"`   // 必填：对话ID
-	MsgID      int    `json:"msg_id"`      // 可选：消息ID
-	PositionID int    `json:"position_id"` // 可选：位置ID
-	PrevID     int    `json:"prev_id"`     // 可选：前一个消息ID
-	NextID     int    `json:"next_id"`     // 可选：下一个消息ID
-	MsgType    string `json:"msg_type"`    // 可选：消息类型(tag/todo/link/text/image/file/record/meeting)
-	Take       int    `json:"take"`        // 可选：获取数量，默认50，最大100
-}
-
-// SearchMessageRequest 搜索消息请求
-type SearchMessageRequest struct {
-	DialogID int    `json:"dialog_id"` // 必填：对话ID
-	Key      string `json:"key"`       // 必填：搜索关键词
-}
-
-// GetMessageRequest 获取单个消息请求
-type GetMessageRequest struct {
-	MsgID int `json:"msg_id"` // 必填：消息ID
-}
-
-// WithdrawMessageRequest 撤回消息请求
-type WithdrawMessageRequest struct {
-	MsgID int `json:"msg_id"` // 必填：消息ID
-}
-
-// ForwardMessageRequest 转发消息请求
-type ForwardMessageRequest struct {
-	MsgID        int    `json:"msg_id"`        // 必填：消息ID
-	DialogIDs    []int  `json:"dialogids"`     // 可选：目标对话ID列表
-	UserIDs      []int  `json:"userids"`       // 可选：目标用户ID列表
-	ShowSource   int    `json:"show_source"`   // 可选：是否显示来源，1显示，0不显示
-	LeaveMessage string `json:"leave_message"` // 可选：留言
-}
-
-// ToggleMessageTodoRequest 切换消息待办请求
-type ToggleMessageTodoRequest struct {
-	MsgID   int    `json:"msg_id"`  // 必填：消息ID
-	Type    string `json:"type"`    // 可选：类型(all/指定用户)，默认all
-	UserIDs []int  `json:"userids"` // 可选：用户ID列表，当type不为all时使用
-}
-
-// MarkMessageDoneRequest 标记消息完成请求
-type MarkMessageDoneRequest struct {
-	MsgID int `json:"msg_id"` // 必填：消息ID
-}
-
-// ------------------------------------------------------------------------------------------
-// 系统设置相关
+// 系统相关结构体
 // ------------------------------------------------------------------------------------------
 
 // SystemSettings 系统设置

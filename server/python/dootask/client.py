@@ -42,6 +42,10 @@ class DooTaskClient:
             'Content-Type': 'application/json'
         })
     
+    # ------------------------------------------------------------------------------------------
+    # 基础方法
+    # ------------------------------------------------------------------------------------------
+    
     def _build_url(self, base_url: str, params: Optional[Dict[str, Any]] = None) -> str:
         """构建带查询参数的URL"""
         if not params:
@@ -248,7 +252,7 @@ class DooTaskClient:
     def get_users_basic(self, userids: List[int]) -> List[UserBasic]:
         """获取指定用户基础信息（支持多个用户）"""
         params = {'userid': userids}
-        return self._get_request('/api/users/basic', params, response_type=List[UserBasic])
+        return self._get_request('/api/users/basic', params, List[UserBasic])
     
     def get_user_basic(self, userid: int) -> UserBasic:
         """获取指定用户基础信息（单个用户）"""
@@ -265,58 +269,48 @@ class DooTaskClient:
         """发送消息"""
         if not message.text_type:
             message.text_type = "md"
-        
         self._post_request('/api/dialog/msg/sendtext', message)
     
     def send_message_to_user(self, message: SendMessageToUserRequest) -> None:
         """发送消息到用户"""
         # 获取用户对话ID
-        query_params = {'userid': message.userid}
-        response = self._get_request('/api/dialog/open/user', query_params, 
-                                   response_type=DialogOpenUserResponse)
+        params = {'userid': message.userid}
+        response = self._get_request('/api/dialog/open/user', params, DialogOpenUserResponse)
         
         # 发送消息
-        self.send_message(SendMessageRequest(
+        send_message = SendMessageRequest(
             dialog_id=response.dialog_user.dialog_id,
             text=message.text,
             text_type=message.text_type,
             silence=message.silence
-        ))
+        )
+        self.send_message(send_message)
     
     def send_bot_message(self, message: SendBotMessageRequest) -> None:
         """发送机器人消息"""
         if not message.bot_type:
             message.bot_type = "system-msg"
-        
         self._post_request('/api/dialog/msg/sendbot', message)
     
     def send_anonymous_message(self, message: SendAnonymousMessageRequest) -> None:
         """发送匿名消息"""
         self._post_request('/api/dialog/msg/sendanon', message)
     
-    # ------------------------------------------------------------------------------------------
-    # 消息管理相关接口
-    # ------------------------------------------------------------------------------------------
-    
     def get_message_list(self, params: GetMessageListRequest) -> DialogMessageListResponse:
         """获取消息列表"""
-        return self._get_request('/api/dialog/msg/list', params, response_type=DialogMessageListResponse)
+        return self._get_request('/api/dialog/msg/list', params, DialogMessageListResponse)
     
     def search_message(self, params: SearchMessageRequest) -> DialogMessageSearchResponse:
         """搜索消息"""
-        return self._get_request('/api/dialog/msg/search', params, response_type=DialogMessageSearchResponse)
+        return self._get_request('/api/dialog/msg/search', params, DialogMessageSearchResponse)
     
     def get_message(self, params: GetMessageRequest) -> DialogMessage:
         """获取单个消息详情"""
-        return self._get_request('/api/dialog/msg/one', params, response_type=DialogMessage)
+        return self._get_request('/api/dialog/msg/one', params, DialogMessage)
     
     def get_message_detail(self, params: GetMessageRequest) -> DialogMessage:
         """获取消息详情（与get_message功能相同，提供兼容性）"""
-        return self._get_request('/api/dialog/msg/detail', params, response_type=DialogMessage)
-    
-    # ------------------------------------------------------------------------------------------
-    # 消息操作相关接口
-    # ------------------------------------------------------------------------------------------
+        return self._get_request('/api/dialog/msg/detail', params, DialogMessage)
     
     def withdraw_message(self, params: WithdrawMessageRequest) -> None:
         """撤回消息"""
@@ -326,10 +320,6 @@ class DooTaskClient:
         """转发消息"""
         self._get_request('/api/dialog/msg/forward', params)
     
-    # ------------------------------------------------------------------------------------------
-    # 消息待办相关接口
-    # ------------------------------------------------------------------------------------------
-    
     def toggle_message_todo(self, params: ToggleMessageTodoRequest) -> None:
         """切换消息待办状态"""
         if not params.type:
@@ -338,7 +328,7 @@ class DooTaskClient:
     
     def get_message_todo_list(self, params: GetMessageRequest) -> TodoListResponse:
         """获取消息待办列表"""
-        return self._get_request('/api/dialog/msg/todolist', params, response_type=TodoListResponse)
+        return self._get_request('/api/dialog/msg/todolist', params, TodoListResponse)
     
     def mark_message_done(self, params: MarkMessageDoneRequest) -> None:
         """标记消息完成"""
@@ -352,19 +342,19 @@ class DooTaskClient:
         """获取对话列表"""
         if params is None:
             params = TimeRangeRequest()
-        return self._get_request('/api/dialog/lists', params, response_type=ResponsePaginate[DialogInfo])
+        return self._get_request('/api/dialog/lists', params, ResponsePaginate[DialogInfo])
     
     def search_dialog(self, params: SearchDialogRequest) -> List[DialogInfo]:
         """搜索会话"""
-        return self._get_request('/api/dialog/search', params, response_type=List[DialogInfo])
+        return self._get_request('/api/dialog/search', params, List[DialogInfo])
     
     def get_dialog_one(self, params: GetDialogRequest) -> DialogInfo:
         """获取单个会话信息"""
-        return self._get_request('/api/dialog/one', params, response_type=DialogInfo)
+        return self._get_request('/api/dialog/one', params, DialogInfo)
     
     def get_dialog_user(self, params: GetDialogUserRequest) -> List[DialogMember]:
         """获取会话成员"""
-        return self._get_request('/api/dialog/user', params, response_type=List[DialogMember])
+        return self._get_request('/api/dialog/user', params, List[DialogMember])
     
     # ------------------------------------------------------------------------------------------
     # 群组相关接口
@@ -372,7 +362,7 @@ class DooTaskClient:
     
     def create_group(self, params: CreateGroupRequest) -> DialogInfo:
         """新增群组"""
-        return self._get_request('/api/dialog/group/add', params, response_type=DialogInfo)
+        return self._get_request('/api/dialog/group/add', params, DialogInfo)
     
     def edit_group(self, params: EditGroupRequest) -> None:
         """修改群组"""
@@ -388,7 +378,8 @@ class DooTaskClient:
     
     def exit_group(self, dialog_id: int) -> None:
         """退出群组"""
-        self.remove_group_user(RemoveGroupUserRequest(dialog_id=dialog_id))
+        params = RemoveGroupUserRequest(dialog_id=dialog_id, userids=[])
+        self.remove_group_user(params)
     
     def transfer_group(self, params: TransferGroupRequest) -> None:
         """转让群组"""
@@ -406,19 +397,19 @@ class DooTaskClient:
         """获取项目列表"""
         if params is None:
             params = GetProjectListRequest()
-        return self._get_request('/api/project/lists', params, response_type=ResponsePaginate[Project])
+        return self._get_request('/api/project/lists', params, ResponsePaginate[Project])
     
     def get_project(self, params: GetProjectRequest) -> Project:
         """获取项目信息"""
-        return self._get_request('/api/project/one', params, response_type=Project)
+        return self._get_request('/api/project/one', params, Project)
     
     def create_project(self, params: CreateProjectRequest) -> Project:
         """创建项目"""
-        return self._get_request('/api/project/add', params, response_type=Project)
+        return self._get_request('/api/project/add', params, Project)
     
     def update_project(self, params: UpdateProjectRequest) -> Project:
         """更新项目"""
-        return self._get_request('/api/project/update', params, response_type=Project)
+        return self._get_request('/api/project/update', params, Project)
     
     def exit_project(self, project_id: int) -> None:
         """退出项目"""
@@ -436,16 +427,15 @@ class DooTaskClient:
     
     def get_column_list(self, params: GetColumnListRequest) -> ResponsePaginate[ProjectColumn]:
         """获取任务列表"""
-        return self._get_request('/api/project/column/lists', params, 
-                               response_type=ResponsePaginate[ProjectColumn])
+        return self._get_request('/api/project/column/lists', params, ResponsePaginate[ProjectColumn])
     
     def create_column(self, params: CreateColumnRequest) -> ProjectColumn:
         """创建任务列表"""
-        return self._get_request('/api/project/column/add', params, response_type=ProjectColumn)
+        return self._get_request('/api/project/column/add', params, ProjectColumn)
     
     def update_column(self, params: UpdateColumnRequest) -> ProjectColumn:
         """更新任务列表"""
-        return self._get_request('/api/project/column/update', params, response_type=ProjectColumn)
+        return self._get_request('/api/project/column/update', params, ProjectColumn)
     
     def delete_column(self, column_id: int) -> None:
         """删除任务列表"""
@@ -460,37 +450,35 @@ class DooTaskClient:
         """获取任务列表"""
         if params is None:
             params = GetTaskListRequest()
-        return self._get_request('/api/project/task/lists', params, 
-                               response_type=ResponsePaginate[ProjectTask])
+        return self._get_request('/api/project/task/lists', params, ResponsePaginate[ProjectTask])
     
     def get_task(self, params: GetTaskRequest) -> ProjectTask:
         """获取任务信息"""
-        return self._get_request('/api/project/task/one', params, response_type=ProjectTask)
+        return self._get_request('/api/project/task/one', params, ProjectTask)
     
     def get_task_content(self, params: GetTaskContentRequest) -> TaskContent:
         """获取任务内容"""
-        return self._get_request('/api/project/task/content', params, response_type=TaskContent)
+        return self._get_request('/api/project/task/content', params, TaskContent)
     
     def get_task_files(self, params: GetTaskFilesRequest) -> List[TaskFile]:
         """获取任务文件列表"""
-        return self._get_request('/api/project/task/files', params, response_type=List[TaskFile])
+        return self._get_request('/api/project/task/files', params, List[TaskFile])
     
     def create_task(self, params: CreateTaskRequest) -> ProjectTask:
         """创建任务"""
-        return self._post_request('/api/project/task/add', params, response_type=ProjectTask)
+        return self._post_request('/api/project/task/add', params, ProjectTask)
     
     def create_sub_task(self, params: CreateSubTaskRequest) -> ProjectTask:
         """创建子任务"""
-        return self._get_request('/api/project/task/addsub', params, response_type=ProjectTask)
+        return self._get_request('/api/project/task/addsub', params, ProjectTask)
     
     def update_task(self, params: UpdateTaskRequest) -> ProjectTask:
         """更新任务"""
-        return self._post_request('/api/project/task/update', params, response_type=ProjectTask)
+        return self._post_request('/api/project/task/update', params, ProjectTask)
     
     def create_task_dialog(self, params: CreateTaskDialogRequest) -> CreateTaskDialogResponse:
         """创建任务对话"""
-        return self._get_request('/api/project/task/dialog', params, 
-                               response_type=CreateTaskDialogResponse)
+        return self._get_request('/api/project/task/dialog', params, CreateTaskDialogResponse)
     
     def archive_task(self, task_id: int, archive_type: str = "add") -> None:
         """归档任务"""
@@ -503,7 +491,7 @@ class DooTaskClient:
         self._get_request('/api/project/task/remove', params)
     
     # ------------------------------------------------------------------------------------------
-    # 系统设置相关方法
+    # 系统相关接口
     # ------------------------------------------------------------------------------------------
     
     def get_system_settings(self) -> SystemSettings:
@@ -512,5 +500,5 @@ class DooTaskClient:
     
     def get_version(self) -> VersionInfo:
         """获取版本信息"""
-        headers = {'version': 'true'}
+        headers = {'version': True}
         return self._get_request('/api/system/version', headers=headers, response_type=VersionInfo) 
