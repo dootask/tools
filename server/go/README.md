@@ -120,6 +120,16 @@ err := client.AddGroupUser(dootask.AddGroupUserRequest{
 | `GetUsersBasic` | 获取多个用户基础信息 | `userids []int` | `[]UserBasic, error` |
 | `GetUserBasic` | 获取单个用户基础信息 | `userid int` | `*UserBasic, error` |
 
+### 机器人相关接口
+
+| 方法 | 描述 | 参数 | 返回值 |
+|------|------|------|--------|
+| `GetBotList` | 获取机器人列表 | - | `*BotListResponse, error` |
+| `GetBot` | 获取机器人信息 | `GetBotRequest` | `*Bot, error` |
+| `CreateBot` | 创建机器人 | `CreateBotRequest` | `*Bot, error` |
+| `UpdateBot` | 更新机器人 | `EditBotRequest` | `*Bot, error` |
+| `DeleteBot` | 删除机器人 | `DeleteBotRequest` | `error` |
+
 ### 消息相关接口
 
 | 方法 | 描述 | 参数 | 返回值 |

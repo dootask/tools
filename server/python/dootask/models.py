@@ -70,6 +70,133 @@ class Department:
     owner_userid: int = 0
 
 # ------------------------------------------------------------------------------------------
+# 机器人相关结构
+# ------------------------------------------------------------------------------------------
+
+@dataclass
+class Bot:
+    """机器人信息"""
+    id: int
+    name: str = ""
+    avatar: str = ""
+    clear_day: int = 0
+    webhook_url: str = ""
+
+@dataclass
+class BotListResponse:
+    """机器人列表响应"""
+    list: List[Bot] = field(default_factory=list)
+
+@dataclass
+class GetBotRequest:
+    """获取机器人请求"""
+    id: int
+
+@dataclass
+class CreateBotRequest:
+    """创建机器人请求"""
+    name: str
+    avatar: str = ""
+    clear_day: int = 7
+    webhook_url: str = ""
+
+@dataclass
+class EditBotRequest:
+    """编辑机器人请求"""
+    id: int
+    name: str = ""
+    avatar: str = ""
+    clear_day: int = 0
+    webhook_url: str = ""
+
+@dataclass
+class DeleteBotRequest:
+    """删除机器人请求"""
+    id: int
+    remark: str
+
+
+# ------------------------------------------------------------------------------------------
+# 对话相关结构
+# ------------------------------------------------------------------------------------------
+
+@dataclass
+class DialogUserResponse:
+    """对话用户信息"""
+    dialog_id: int
+    userid: int
+    bot: int = 0
+
+@dataclass
+class DialogOpenUserResponse:
+    """打开用户对话响应数据"""
+    dialog_user: DialogUserResponse
+
+@dataclass
+class DialogInfo:
+    """对话信息"""
+    id: int
+    type: str = ""
+    group_type: str = ""
+    name: str = ""
+    avatar: str = ""
+    owner_id: int = 0
+    created_at: str = ""
+    updated_at: str = ""
+    last_at: str = ""
+    mark_unread: int = 0
+    silence: int = 0
+    hide: int = 0
+    color: str = ""
+    unread: int = 0
+    unread_one: int = 0
+    mention: int = 0
+    mention_ids: List[int] = field(default_factory=list)
+    people: int = 0
+    people_user: int = 0
+    people_bot: int = 0
+    todo_num: int = 0
+    last_msg: Any = None
+    pinyin: str = ""
+    bot: int = 0
+    top_at: str = ""
+
+@dataclass
+class DialogMember:
+    """会话成员信息"""
+    id: int
+    dialog_id: int
+    userid: int
+    nickname: str = ""
+    email: str = ""
+    userimg: str = ""
+    bot: int = 0
+    online: bool = False
+
+@dataclass
+class TimeRangeRequest:
+    """时间范围请求参数"""
+    timerange: str = ""
+    page: int = 1
+    pagesize: int = 50
+
+@dataclass
+class SearchDialogRequest:
+    """搜索会话请求"""
+    key: str
+
+@dataclass
+class GetDialogRequest:
+    """获取单个会话请求"""
+    dialog_id: int
+
+@dataclass
+class GetDialogUserRequest:
+    """获取会话成员请求"""
+    dialog_id: int
+    getuser: int = 0
+    
+# ------------------------------------------------------------------------------------------
 # 消息相关结构
 # ------------------------------------------------------------------------------------------
 
@@ -206,86 +333,6 @@ class ToggleMessageTodoRequest:
 class MarkMessageDoneRequest:
     """标记消息完成请求"""
     msg_id: int
-
-# ------------------------------------------------------------------------------------------
-# 对话相关结构
-# ------------------------------------------------------------------------------------------
-
-@dataclass
-class DialogUserResponse:
-    """对话用户信息"""
-    dialog_id: int
-    userid: int
-    bot: int = 0
-
-@dataclass
-class DialogOpenUserResponse:
-    """打开用户对话响应数据"""
-    dialog_user: DialogUserResponse
-
-@dataclass
-class DialogInfo:
-    """对话信息"""
-    id: int
-    type: str = ""
-    group_type: str = ""
-    name: str = ""
-    avatar: str = ""
-    owner_id: int = 0
-    created_at: str = ""
-    updated_at: str = ""
-    last_at: str = ""
-    mark_unread: int = 0
-    silence: int = 0
-    hide: int = 0
-    color: str = ""
-    unread: int = 0
-    unread_one: int = 0
-    mention: int = 0
-    mention_ids: List[int] = field(default_factory=list)
-    people: int = 0
-    people_user: int = 0
-    people_bot: int = 0
-    todo_num: int = 0
-    last_msg: Any = None
-    pinyin: str = ""
-    bot: int = 0
-    top_at: str = ""
-
-@dataclass
-class DialogMember:
-    """会话成员信息"""
-    id: int
-    dialog_id: int
-    userid: int
-    nickname: str = ""
-    email: str = ""
-    userimg: str = ""
-    bot: int = 0
-    online: bool = False
-
-@dataclass
-class TimeRangeRequest:
-    """时间范围请求参数"""
-    timerange: str = ""
-    page: int = 1
-    pagesize: int = 50
-
-@dataclass
-class SearchDialogRequest:
-    """搜索会话请求"""
-    key: str
-
-@dataclass
-class GetDialogRequest:
-    """获取单个会话请求"""
-    dialog_id: int
-
-@dataclass
-class GetDialogUserRequest:
-    """获取会话成员请求"""
-    dialog_id: int
-    getuser: int = 0
 
 # ------------------------------------------------------------------------------------------
 # 群组相关结构

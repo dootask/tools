@@ -354,6 +354,59 @@ func (c *Client) GetUserBasic(userid int) (*UserBasic, error) {
 }
 
 // ------------------------------------------------------------------------------------------
+// 机器人相关接口
+// ------------------------------------------------------------------------------------------
+
+// GetBotList 获取机器人列表
+func (c *Client) GetBotList() (*BotListResponse, error) {
+	var response BotListResponse
+	err := c.NewGetRequest("/api/users/bot/list", nil, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	return &response, nil
+}
+
+// GetBot 获取机器人信息
+func (c *Client) GetBot(params GetBotRequest) (*Bot, error) {
+	var response Bot
+	err := c.NewGetRequest("/api/users/bot/info", params, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	return &response, nil
+}
+
+// CreateBot 创建机器人
+func (c *Client) CreateBot(params CreateBotRequest) (*Bot, error) {
+	var response Bot
+	err := c.NewPostRequest("/api/users/bot/edit", params, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	return &response, nil
+}
+
+// UpdateBot 更新机器人
+func (c *Client) UpdateBot(params EditBotRequest) (*Bot, error) {
+	var response Bot
+	err := c.NewPostRequest("/api/users/bot/edit", params, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	return &response, nil
+}
+
+// DeleteBot 删除机器人
+func (c *Client) DeleteBot(params DeleteBotRequest) error {
+	return c.NewGetRequest("/api/users/bot/delete", params, nil)
+}
+
+// ------------------------------------------------------------------------------------------
 // 消息相关接口
 // ------------------------------------------------------------------------------------------
 

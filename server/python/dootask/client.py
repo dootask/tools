@@ -262,6 +262,30 @@ class DooTaskClient:
         return users[0]
     
     # ------------------------------------------------------------------------------------------
+    # 机器人相关接口
+    # ------------------------------------------------------------------------------------------
+    
+    def get_bot_list(self) -> BotListResponse:
+        """获取机器人列表"""
+        return self._get_request('/api/users/bot/list', response_type=BotListResponse)
+    
+    def get_bot(self, params: GetBotRequest) -> Bot:
+        """获取机器人信息"""
+        return self._get_request('/api/users/bot/info', params, Bot)
+    
+    def create_bot(self, params: CreateBotRequest) -> Bot:
+        """创建机器人"""
+        return self._post_request('/api/users/bot/edit', params, Bot)
+    
+    def update_bot(self, params: EditBotRequest) -> Bot:
+        """更新机器人"""
+        return self._post_request('/api/users/bot/edit', params, Bot)
+    
+    def delete_bot(self, params: DeleteBotRequest) -> None:
+        """删除机器人"""
+        self._get_request('/api/users/bot/delete', params)
+    
+    # ------------------------------------------------------------------------------------------
     # 消息相关接口
     # ------------------------------------------------------------------------------------------
     

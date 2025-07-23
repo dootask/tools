@@ -111,6 +111,16 @@ client.add_group_user(AddGroupUserRequest(
 | `get_users_basic` | 获取多个用户基础信息 | `userids: List[int]` | `List[UserBasic]` |
 | `get_user_basic` | 获取单个用户基础信息 | `userid: int` | `UserBasic` |
 
+### 机器人相关接口
+
+| 方法 | 描述 | 参数 | 返回值 |
+|------|------|------|--------|
+| `get_bot_list` | 获取机器人列表 | - | `BotListResponse` |
+| `get_bot` | 获取机器人信息 | `GetBotRequest` | `Bot` |
+| `create_bot` | 创建机器人 | `CreateBotRequest` | `Bot` |
+| `update_bot` | 更新机器人 | `EditBotRequest` | `Bot` |
+| `delete_bot` | 删除机器人 | `DeleteBotRequest` | `None` |
+
 ### 消息相关接口
 
 | 方法 | 描述 | 参数 | 返回值 |

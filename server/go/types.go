@@ -82,6 +82,49 @@ type Department struct {
 }
 
 // ------------------------------------------------------------------------------------------
+// 机器人相关结构体
+// ------------------------------------------------------------------------------------------
+
+// Bot 机器人信息
+type Bot struct {
+	ID         int    `json:"id"`          // 机器人ID
+	Name       string `json:"name"`        // 机器人名称
+	Avatar     string `json:"avatar"`      // 机器人头像
+	ClearDay   int    `json:"clear_day"`   // 清理天数
+	WebhookURL string `json:"webhook_url"` // Webhook地址
+}
+
+// BotListResponse 机器人列表响应
+type BotListResponse struct {
+	List []Bot `json:"list"` // 机器人列表
+}
+
+// GetBotRequest 获取机器人请求
+type GetBotRequest struct {
+	ID int `json:"id"` // 必填：机器人ID
+}
+
+// CreateBotRequest 创建机器人请求
+type CreateBotRequest struct {
+	Name       string `json:"name"`        // 必填：机器人名称
+	Avatar     string `json:"avatar"`      // 必填：机器人头像
+	ClearDay   int    `json:"clear_day"`   // 必填：清理天数
+	WebhookURL string `json:"webhook_url"` // 必填：Webhook地址
+}
+
+// EditBotRequest 编辑机器人请求
+type EditBotRequest struct {
+	CreateBotRequest
+	ID int `json:"id"` // 必填：机器人ID
+}
+
+// DeleteBotRequest 删除机器人请求
+type DeleteBotRequest struct {
+	ID     int    `json:"id"`     // 必填：机器人ID
+	Remark string `json:"remark"` // 必填：删除备注
+}
+
+// ------------------------------------------------------------------------------------------
 // 消息相关结构体
 // ------------------------------------------------------------------------------------------
 
