@@ -234,6 +234,38 @@ class SendAnonymousMessageRequest:
     text: str
 
 @dataclass
+class SendStreamMessageRequest:
+    """通知成员监听消息请求"""
+    userid: int
+    stream_url: str
+    source: str = "api"
+
+@dataclass
+class SendNoticeMessageRequest:
+    """发送通知请求"""
+    dialog_id: int = 0
+    dialog_ids: str = ""
+    notice: str = ""
+    silence: bool = False
+    source: str = "api"
+
+@dataclass
+class TemplateContent:
+    """模板内容"""
+    content: str
+    style: str = ""
+
+@dataclass
+class SendTemplateMessageRequest:
+    """发送模板消息请求"""
+    dialog_id: int = 0
+    dialog_ids: str = ""
+    content: List[TemplateContent] = field(default_factory=list)
+    title: str = ""
+    silence: bool = False
+    source: str = "api"
+
+@dataclass
 class DialogMessage:
     """对话消息"""
     id: int

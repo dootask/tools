@@ -320,6 +320,24 @@ class DooTaskClient:
         """发送匿名消息"""
         return self._post_request('/api/dialog/msg/sendanon', message, dict)
     
+    def send_stream_message(self, message: SendStreamMessageRequest) -> Optional[dict]:
+        """通知成员监听消息"""
+        if not message.source:
+            message.source = "api"
+        return self._post_request('/api/dialog/msg/stream', message, dict)
+    
+    def send_notice_message(self, message: SendNoticeMessageRequest) -> Optional[dict]:
+        """发送通知"""
+        if not message.source:
+            message.source = "api"
+        return self._post_request('/api/dialog/msg/sendnotice', message, dict)
+    
+    def send_template_message(self, message: SendTemplateMessageRequest) -> Optional[dict]:
+        """发送模板消息"""
+        if not message.source:
+            message.source = "api"
+        return self._post_request('/api/dialog/msg/sendtemplate', message, dict)
+    
     def get_message_list(self, params: GetMessageListRequest) -> DialogMessageListResponse:
         """获取消息列表"""
         return self._get_request('/api/dialog/msg/list', params, DialogMessageListResponse)

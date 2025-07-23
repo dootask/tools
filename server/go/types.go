@@ -164,6 +164,38 @@ type SendAnonymousMessageRequest struct {
 	Text   string `json:"text"`   // 必填：消息内容
 }
 
+// SendStreamMessageRequest 通知成员监听消息
+type SendStreamMessageRequest struct {
+	UserID    int    `json:"userid"`     // 必填：通知会员ID
+	StreamURL string `json:"stream_url"` // 必填：流动消息地址
+	Source    string `json:"source"`     // 可选：消息来源，默认 api
+}
+
+// SendNoticeMessageRequest 发送通知
+type SendNoticeMessageRequest struct {
+	DialogID  int    `json:"dialog_id"`  // 必填：对话ID（存在dialog_ids时无效）
+	DialogIDs string `json:"dialog_ids"` // 可选：对话ID列表，多个对话ID用逗号分隔
+	Notice    string `json:"notice"`     // 必填：通知内容（最长500字）
+	Silence   bool   `json:"silence"`    // 可选：是否静默发送，默认 false
+	Source    string `json:"source"`     // 可选：消息来源，默认 api
+}
+
+// TemplateContent 模板内容
+type TemplateContent struct {
+	Content string `json:"content"` // 内容（最长300个字）
+	Style   string `json:"style"`   // 样式（最长300个字）
+}
+
+// SendTemplateMessageRequest 发送模板消息
+type SendTemplateMessageRequest struct {
+	DialogID  int               `json:"dialog_id"`  // 必填：对话ID（存在dialog_ids时无效）
+	DialogIDs string            `json:"dialog_ids"` // 可选：对话ID列表，多个对话ID用逗号分隔
+	Content   []TemplateContent `json:"content"`    // 必填：模板消息（JSON格式）
+	Title     string            `json:"title"`      // 可选：模板标题（留空从模板消息第一个内容提取）
+	Silence   bool              `json:"silence"`    // 可选：是否静默发送，默认 false
+	Source    string            `json:"source"`     // 可选：消息来源，默认 api
+}
+
 // DialogMessage 对话消息
 type DialogMessage struct {
 	ID         int           `json:"id"`          // 消息ID

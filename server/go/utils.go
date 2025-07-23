@@ -470,6 +470,48 @@ func (c *Client) SendAnonymousMessage(message SendAnonymousMessageRequest, respo
 	return c.NewPostRequest("/api/dialog/msg/sendanon", message, responseData)
 }
 
+// SendStreamMessage 通知成员监听消息
+func (c *Client) SendStreamMessage(message SendStreamMessageRequest, response ...any) error {
+	if message.Source == "" {
+		message.Source = "api"
+	}
+
+	var responseData any
+	if len(response) > 0 {
+		responseData = response[0]
+	}
+
+	return c.NewPostRequest("/api/dialog/msg/stream", message, responseData)
+}
+
+// SendNoticeMessage 发送通知
+func (c *Client) SendNoticeMessage(message SendNoticeMessageRequest, response ...any) error {
+	if message.Source == "" {
+		message.Source = "api"
+	}
+
+	var responseData any
+	if len(response) > 0 {
+		responseData = response[0]
+	}
+
+	return c.NewPostRequest("/api/dialog/msg/sendnotice", message, responseData)
+}
+
+// SendTemplateMessage 发送模板消息
+func (c *Client) SendTemplateMessage(message SendTemplateMessageRequest, response ...any) error {
+	if message.Source == "" {
+		message.Source = "api"
+	}
+
+	var responseData any
+	if len(response) > 0 {
+		responseData = response[0]
+	}
+
+	return c.NewPostRequest("/api/dialog/msg/sendtemplate", message, responseData)
+}
+
 // GetMessageList 获取消息列表
 func (c *Client) GetMessageList(params GetMessageListRequest) (*DialogMessageListResponse, error) {
 	var response DialogMessageListResponse
