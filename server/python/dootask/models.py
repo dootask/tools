@@ -209,6 +209,8 @@ class SendMessageRequest:
     silence: bool = False
     reply_id: int = 0
     reply_check: str = "no"
+    update_id: int = 0
+    update_mark: str = "yes"
 
 @dataclass
 class SendMessageToUserRequest:

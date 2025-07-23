@@ -139,6 +139,8 @@ type SendMessageRequest struct {
 	Silence    bool   `json:"silence"`     // 可选：是否静默，可选值：true、false，默认 false
 	ReplyID    int    `json:"reply_id"`    // 可选：回复消息ID
 	ReplyCheck string `json:"reply_check"` // 可选：回复检查，可选值：yes、no，默认 no
+	UpdateID   int    `json:"update_id"`   // 可选：更新消息ID（优先大于 reply_id）
+	UpdateMark string `json:"update_mark"` // 可选：是否更新标记，可选值：yes、no，默认 yes
 }
 
 // SendMessageToUserRequest 发送消息到用户
