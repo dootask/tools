@@ -107,15 +107,18 @@ type GetBotRequest struct {
 // CreateBotRequest 创建机器人请求
 type CreateBotRequest struct {
 	Name       string `json:"name"`        // 必填：机器人名称
-	Avatar     string `json:"avatar"`      // 必填：机器人头像
-	ClearDay   int    `json:"clear_day"`   // 必填：清理天数
-	WebhookURL string `json:"webhook_url"` // 必填：Webhook地址
+	Avatar     string `json:"avatar"`      // 可选：机器人头像
+	ClearDay   int    `json:"clear_day"`   // 可选：清理天数
+	WebhookURL string `json:"webhook_url"` // 可选：Webhook地址
 }
 
 // EditBotRequest 编辑机器人请求
 type EditBotRequest struct {
-	CreateBotRequest
-	ID int `json:"id"` // 必填：机器人ID
+	ID         int    `json:"id"`          // 必填：机器人ID
+	Name       string `json:"name"`        // 可选：机器人名称
+	Avatar     string `json:"avatar"`      // 可选：机器人头像
+	ClearDay   int    `json:"clear_day"`   // 可选：清理天数
+	WebhookURL string `json:"webhook_url"` // 可选：Webhook地址
 }
 
 // DeleteBotRequest 删除机器人请求
