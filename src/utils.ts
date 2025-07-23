@@ -382,6 +382,16 @@ export const callExtraA = async (methodName: string, ...args: Any[]): Promise<An
   return await methodTryParent("extraCallA", methodName, ...args)
 }
 
+/**
+ * 调用$store.dispatch上的额外方法
+ * @param actionName - 方法名
+ * @param payload - 参数列表
+ * @returns 方法返回值
+ */
+export const callExtraStore = async (actionName: string, ...payload: Any[]): Promise<Any> => {
+  return await methodTryParent("extraCallStore", actionName, ...payload)
+}
+
 // **************************************************************************************
 // **************************************************************************************
 // **************************************************************************************
@@ -399,6 +409,46 @@ export const fetchUserBasic = async (userid: number | number[]): Promise<DooTask
     },
   })
   return data || []
+}
+
+// **************************************************************************************
+// **************************************************************************************
+// **************************************************************************************
+
+/**
+ * 打开对话框
+ * @param dialogId - 对话框ID
+ * @returns Promise 返回对话框结果
+ */
+export const openDialog = async (dialogId: number): Promise<void> => {
+  return await methodTryParent("extraCallStore", "openDialog", dialogId)
+}
+
+/**
+ * 打开对话框（新窗口，仅支持Electron环境）
+ * @param dialogId - 对话框ID
+ * @returns Promise 返回对话框结果
+ */
+export const openDialogNewWindow = async (dialogId: number): Promise<void> => {
+  return await methodTryParent("extraCallStore", "openDialogNewWindow", dialogId)
+}
+
+/**
+ * 打开对话框（指定用户）
+ * @param userid - 用户ID
+ * @returns Promise 返回对话框结果
+ */
+export const openDialogUserid = async (userid: number): Promise<void> => {
+  return await methodTryParent("extraCallStore", "openDialogUserid", userid)
+}
+
+/**
+ * 打开任务
+ * @param taskId - 任务ID
+ * @returns Promise 返回任务结果
+ */
+export const openTask = async (taskId: number): Promise<void> => {
+  return await methodTryParent("openTask", taskId)
 }
 
 // **************************************************************************************

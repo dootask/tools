@@ -126,6 +126,15 @@ closeApp()
 | `modalInfo(message)`    | `message: string \| ModalParams` | `Promise<any>` | 弹出信息提示框 |
 | `modalAlert(message)`   | `message: string`                | `Promise<any>` | 弹出系统提示框 |
 
+### 打开特定窗口
+
+| 函数名                          | 参数               | 返回值         | 说明                                       |
+| ------------------------------- | ------------------ | -------------- | ------------------------------------------ |
+| `openDialog(dialogId)`          | `dialogId: number` | `Promise<any>` | 打开对话框                                 |
+| `openDialogNewWindow(dialogId)` | `dialogId: number` | `Promise<any>` | 打开对话框（新窗口，仅支持 Electron 环境） |
+| `openDialogUserid(userid)`      | `userid: number`   | `Promise<any>` | 打开对话框（指定用户）                     |
+| `openTask(taskId)`              | `taskId: number`   | `Promise<any>` | 打开任务                                   |
+
 ### 消息框
 
 | 函数名                    | 参数              | 返回值         | 说明         |
@@ -137,9 +146,10 @@ closeApp()
 
 ### 扩展功能
 
-| 函数名                            | 参数                                 | 返回值         | 说明                |
-| --------------------------------- | ------------------------------------ | -------------- | ------------------- |
-| `callExtraA(methodName, ...args)` | `methodName: string, ...args: any[]` | `Promise<any>` | 调用$A 上的额外方法 |
+| 函数名                                   | 参数                                    | 返回值         | 说明                              |
+| ---------------------------------------- | --------------------------------------- | -------------- | --------------------------------- |
+| `callExtraA(methodName, ...args)`        | `methodName: string, ...args: any[]`    | `Promise<any>` | 调用 $A 上的额外方法              |
+| `callExtraStore(actionName, ...payload)` | `actionName: string, ...payload: any[]` | `Promise<any>` | 调用 $store.dispatch 上的额外方法 |
 
 ## 类型定义
 
