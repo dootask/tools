@@ -289,13 +289,13 @@ class DooTaskClient:
     # 消息相关接口
     # ------------------------------------------------------------------------------------------
     
-    def send_message(self, message: SendMessageRequest) -> None:
+    def send_message(self, message: SendMessageRequest) -> Optional[dict]:
         """发送消息"""
         if not message.text_type:
             message.text_type = "md"
-        self._post_request('/api/dialog/msg/sendtext', message)
+        return self._post_request('/api/dialog/msg/sendtext', message, dict)
     
-    def send_message_to_user(self, message: SendMessageToUserRequest) -> None:
+    def send_message_to_user(self, message: SendMessageToUserRequest) -> Optional[dict]:
         """发送消息到用户"""
         # 获取用户对话ID
         params = {'userid': message.userid}
@@ -308,17 +308,17 @@ class DooTaskClient:
             text_type=message.text_type,
             silence=message.silence
         )
-        self.send_message(send_message)
+        return self.send_message(send_message)
     
-    def send_bot_message(self, message: SendBotMessageRequest) -> None:
+    def send_bot_message(self, message: SendBotMessageRequest) -> Optional[dict]:
         """发送机器人消息"""
         if not message.bot_type:
             message.bot_type = "system-msg"
-        self._post_request('/api/dialog/msg/sendbot', message)
+        return self._post_request('/api/dialog/msg/sendbot', message, dict)
     
-    def send_anonymous_message(self, message: SendAnonymousMessageRequest) -> None:
+    def send_anonymous_message(self, message: SendAnonymousMessageRequest) -> Optional[dict]:
         """发送匿名消息"""
-        self._post_request('/api/dialog/msg/sendanon', message)
+        return self._post_request('/api/dialog/msg/sendanon', message, dict)
     
     def get_message_list(self, params: GetMessageListRequest) -> DialogMessageListResponse:
         """获取消息列表"""

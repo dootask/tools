@@ -411,48 +411,63 @@ func (c *Client) DeleteBot(params DeleteBotRequest) error {
 // ------------------------------------------------------------------------------------------
 
 // SendMessage 发送消息
-func (c *Client) SendMessage(message SendMessageRequest) error {
+func (c *Client) SendMessage(message SendMessageRequest, response ...any) error {
 	if message.TextType == "" {
 		message.TextType = "md"
 	}
 
-	return c.NewPostRequest("/api/dialog/msg/sendtext", message, nil)
+	var responseData any
+	if len(response) > 0 {
+		responseData = response[0]
+	}
+
+	return c.NewPostRequest("/api/dialog/msg/sendtext", message, responseData)
 }
 
 // SendMessageToUser 发送消息到用户
-func (c *Client) SendMessageToUser(message SendMessageToUserRequest) error {
+func (c *Client) SendMessageToUser(message SendMessageToUserRequest, response ...any) error {
 	// 获取用户对话ID
 	queryParams := map[string]any{
 		"userid": message.UserID,
 	}
 
-	var response DialogOpenUserResponse
-	err := c.NewGetRequest("/api/dialog/open/user", queryParams, &response)
+	var userResponse DialogOpenUserResponse
+	err := c.NewGetRequest("/api/dialog/open/user", queryParams, &userResponse)
 	if err != nil {
 		return err
 	}
 
 	// 发送消息
 	return c.SendMessage(SendMessageRequest{
-		DialogID: response.DialogUser.DialogID,
+		DialogID: userResponse.DialogUser.DialogID,
 		Text:     message.Text,
 		TextType: message.TextType,
 		Silence:  message.Silence,
-	})
+	}, response...)
 }
 
 // SendBotMessage 发送机器人消息
-func (c *Client) SendBotMessage(message SendBotMessageRequest) error {
+func (c *Client) SendBotMessage(message SendBotMessageRequest, response ...any) error {
 	if message.BotType == "" {
 		message.BotType = "system-msg"
 	}
 
-	return c.NewPostRequest("/api/dialog/msg/sendbot", message, nil)
+	var responseData any
+	if len(response) > 0 {
+		responseData = response[0]
+	}
+
+	return c.NewPostRequest("/api/dialog/msg/sendbot", message, responseData)
 }
 
 // SendAnonymousMessage 发送匿名消息
-func (c *Client) SendAnonymousMessage(message SendAnonymousMessageRequest) error {
-	return c.NewPostRequest("/api/dialog/msg/sendanon", message, nil)
+func (c *Client) SendAnonymousMessage(message SendAnonymousMessageRequest, response ...any) error {
+	var responseData any
+	if len(response) > 0 {
+		responseData = response[0]
+	}
+
+	return c.NewPostRequest("/api/dialog/msg/sendanon", message, responseData)
 }
 
 // GetMessageList 获取消息列表

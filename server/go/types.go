@@ -133,10 +133,12 @@ type DeleteBotRequest struct {
 
 // SendMessageRequest 消息
 type SendMessageRequest struct {
-	DialogID int    `json:"dialog_id"` // 必填：对话ID
-	Text     string `json:"text"`      // 必填：消息内容
-	TextType string `json:"text_type"` // 可选：消息类型，可选值：md、text
-	Silence  bool   `json:"silence"`   // 可选：是否静默，可选值：true、false，默认 false
+	DialogID   int    `json:"dialog_id"`   // 必填：对话ID
+	Text       string `json:"text"`        // 必填：消息内容
+	TextType   string `json:"text_type"`   // 可选：消息类型，可选值：md、text
+	Silence    bool   `json:"silence"`     // 可选：是否静默，可选值：true、false，默认 false
+	ReplyID    int    `json:"reply_id"`    // 可选：回复消息ID
+	ReplyCheck string `json:"reply_check"` // 可选：回复检查，可选值：yes、no，默认 no
 }
 
 // SendMessageToUserRequest 发送消息到用户

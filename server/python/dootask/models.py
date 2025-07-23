@@ -207,6 +207,8 @@ class SendMessageRequest:
     text: str
     text_type: str = "md"
     silence: bool = False
+    reply_id: int = 0
+    reply_check: str = "no"
 
 @dataclass
 class SendMessageToUserRequest:
