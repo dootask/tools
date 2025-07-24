@@ -99,6 +99,7 @@ class CreateBotRequest:
     avatar: str = ""
     clear_day: int = 7
     webhook_url: str = ""
+    session: int = 0
 
 @dataclass
 class EditBotRequest:

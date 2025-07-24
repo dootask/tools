@@ -110,6 +110,7 @@ type CreateBotRequest struct {
 	Avatar     string `json:"avatar"`      // 可选：机器人头像
 	ClearDay   int    `json:"clear_day"`   // 可选：清理天数
 	WebhookURL string `json:"webhook_url"` // 可选：Webhook地址
+	Session    int    `json:"session"`     // 可选：是否开启会话功能，0: 不开启，1: 开启
 }
 
 // EditBotRequest 编辑机器人请求
