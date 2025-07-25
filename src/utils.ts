@@ -699,31 +699,45 @@ export const removeDataListener = (callback: Func): void => {
         const { funcId, callId, args } = message
         try {
           const result = executeFunction(funcId, args)
-          
+
           // 必须处理 Promise
-          if (result && typeof result.then === 'function') {
-            result.then((asyncResult: Any) => {
-              window.parent.postMessage({
-                type: "MICRO_APP_FUNCTION_RESULT",
-                message: { callId, result: asyncResult, error: null }
-              }, "*")
-            }).catch((error: Error) => {
-              window.parent.postMessage({
-                type: "MICRO_APP_FUNCTION_RESULT",
-                message: { callId, result: null, error: error.message }
-              }, "*")
-            })
+          if (result && typeof result.then === "function") {
+            result
+              .then((asyncResult: Any) => {
+                window.parent.postMessage(
+                  {
+                    type: "MICRO_APP_FUNCTION_RESULT",
+                    message: { callId, result: asyncResult, error: null },
+                  },
+                  "*"
+                )
+              })
+              .catch((error: Error) => {
+                window.parent.postMessage(
+                  {
+                    type: "MICRO_APP_FUNCTION_RESULT",
+                    message: { callId, result: null, error: error.message },
+                  },
+                  "*"
+                )
+              })
           } else {
-            window.parent.postMessage({
-              type: "MICRO_APP_FUNCTION_RESULT",
-              message: { callId, result, error: null }
-            }, "*")
+            window.parent.postMessage(
+              {
+                type: "MICRO_APP_FUNCTION_RESULT",
+                message: { callId, result, error: null },
+              },
+              "*"
+            )
           }
         } catch (error) {
-          window.parent.postMessage({
-            type: "MICRO_APP_FUNCTION_RESULT",
-            message: { callId, result: null, error: (error as Error).message }
-          }, "*")
+          window.parent.postMessage(
+            {
+              type: "MICRO_APP_FUNCTION_RESULT",
+              message: { callId, result: null, error: (error as Error).message },
+            },
+            "*"
+          )
         }
         break
 
@@ -771,11 +785,33 @@ export const removeDataListener = (callback: Func): void => {
       backApp()
     })
 
+    /** 向主应用发送心跳消息 */
+    window.setInterval(() => {
+      window.parent.postMessage(
+        {
+          type: "MICRO_APP_HEARTBEAT",
+          message: { timestamp: Date.now() },
+        },
+        "*"
+      )
+    }, 1000)
+
     /** 监听 esc 键 */
     window.addEventListener("keydown", event => {
       if (event.key === "Escape") {
         backApp()
       }
+    })
+
+    /** 监听页面卸载并通知主应用 */
+    window.addEventListener("beforeunload", () => {
+      window.parent.postMessage(
+        {
+          type: "MICRO_APP_BEFORE_UNLOAD",
+          message: { timestamp: Date.now() },
+        },
+        "*"
+      )
     })
   }
 })()
