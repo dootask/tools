@@ -1,5 +1,9 @@
 # DooTask Tools
 
+[![pypi version](https://img.shields.io/pypi/v/dootask-tools.svg?style=flat-square)](https://pypi.org/project/dootask-tools/)
+[![pypi downloads](https://img.shields.io/pypi/dm/dootask-tools.svg?style=flat-square)](https://pypi.org/project/dootask-tools/)
+[![license](https://img.shields.io/pypi/l/dootask-tools.svg?style=flat-square)](https://github.com/dootask/tools/blob/main/LICENSE)
+
 一个用于与 DooTask 系统交互的 Python 客户端库，提供了完整的 API 封装和类型支持。支持用户管理、消息通信、项目管理、任务协作等功能。
 
 ## 安装
@@ -125,10 +129,13 @@ client.add_group_user(AddGroupUserRequest(
 
 | 方法 | 描述 | 参数 | 返回值 |
 |------|------|------|--------|
-| `send_message` | 发送消息 | `SendMessageRequest` | `None` |
-| `send_message_to_user` | 发送消息到用户 | `SendMessageToUserRequest` | `None` |
-| `send_bot_message` | 发送机器人消息 | `SendBotMessageRequest` | `None` |
-| `send_anonymous_message` | 发送匿名消息 | `SendAnonymousMessageRequest` | `None` |
+| `send_message` | 发送消息 | `SendMessageRequest` | `Optional[dict]` |
+| `send_message_to_user` | 发送消息到用户 | `SendMessageToUserRequest` | `Optional[dict]` |
+| `send_bot_message` | 发送机器人消息 | `SendBotMessageRequest` | `Optional[dict]` |
+| `send_anonymous_message` | 发送匿名消息 | `SendAnonymousMessageRequest` | `Optional[dict]` |
+| `send_stream_message` | 通知成员监听消息 | `SendStreamMessageRequest` | `Optional[dict]` |
+| `send_notice_message` | 发送通知 | `SendNoticeMessageRequest` | `Optional[dict]` |
+| `send_template_message` | 发送模板消息 | `SendTemplateMessageRequest` | `Optional[dict]` |
 | `get_message_list` | 获取消息列表 | `GetMessageListRequest` | `DialogMessageListResponse` |
 | `search_message` | 搜索消息 | `SearchMessageRequest` | `DialogMessageSearchResponse` |
 | `get_message` | 获取单个消息详情 | `GetMessageRequest` | `DialogMessage` |

@@ -1,5 +1,10 @@
 # DooTask 应用工具库
 
+[![npm version](https://img.shields.io/npm/v/@dootask/tools.svg?style=flat-square)](https://www.npmjs.com/package/@dootask/tools)
+[![npm downloads](https://img.shields.io/npm/dm/@dootask/tools.svg?style=flat-square)](https://www.npmjs.com/package/@dootask/tools)
+[![license](https://img.shields.io/npm/l/@dootask/tools.svg?style=flat-square)](https://github.com/dootask/tools/blob/main/LICENSE)
+
+
 这是一个为 DooTask 应用开发设计的工具库，提供了一系列实用的 API，用于与主应用进行交互。它封装了微前端通信、用户数据获取、页面交互等多种功能，让您的 DooTask 应用开发变得简单高效。
 
 ## 特点
@@ -461,13 +466,18 @@ npm run dev
 
 4. 某些方法只在特定环境中有效（如 `openWindow` 只在 Electron 环境中有效），使用前请检查运行环境。
 
-5. 如果你希望调用$A 上的方法，可以使用 `callExtraA` 方法。
+5. 如果你希望调用 `$A` 上的方法，可以使用 `callExtraA` 方法。
 
 6. 建议先运行示例项目了解各种功能的使用方法。
 
 ## 贡献和反馈
 
 如果你在使用中发现任何问题，或者有改进建议，欢迎在 GitHub 仓库提交 Issue 或 Pull Request。
+
+## 后端服务
+
+- [Go](server/go)
+- [Python](server/python)
 
 ## 许可证
 

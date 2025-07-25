@@ -138,6 +138,9 @@ err := client.AddGroupUser(dootask.AddGroupUserRequest{
 | `SendMessageToUser` | 发送消息到用户 | `SendMessageToUserRequest` | `error` |
 | `SendBotMessage` | 发送机器人消息 | `SendBotMessageRequest` | `error` |
 | `SendAnonymousMessage` | 发送匿名消息 | `SendAnonymousMessageRequest` | `error` |
+| `SendStreamMessage` | 通知成员监听消息 | `SendStreamMessageRequest` | `error` |
+| `SendNoticeMessage` | 发送通知 | `SendNoticeMessageRequest` | `error` |
+| `SendTemplateMessage` | 发送模板消息 | `SendTemplateMessageRequest` | `error` |
 | `GetMessageList` | 获取消息列表 | `GetMessageListRequest` | `*DialogMessageListResponse, error` |
 | `SearchMessage` | 搜索消息 | `SearchMessageRequest` | `*DialogMessageSearchResponse, error` |
 | `GetMessage` | 获取单个消息详情 | `GetMessageRequest` | `*DialogMessage, error` |
