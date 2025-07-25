@@ -448,7 +448,16 @@ export const openDialogUserid = async (userid: number): Promise<void> => {
  * @returns Promise 返回任务结果
  */
 export const openTask = async (taskId: number): Promise<void> => {
-  return await methodTryParent("openTask", taskId)
+  return await methodTryParent("extraCallStore", "openTask", taskId)
+}
+
+/**
+ * 下载文件
+ * @param url - 文件URL，会自动添加 token，如果不需要 token，请传参数 url={url:xxx,token:false}
+ * @returns Promise 返回调用结果
+ */
+export const downloadUrl = async (url: string | { url: string; token: boolean }): Promise<void> => {
+  return await methodTryParent("extraCallStore", "downUrl", url)
 }
 
 // **************************************************************************************

@@ -134,6 +134,7 @@ closeApp()
 | `openDialogNewWindow(dialogId)` | `dialogId: number` | `Promise<any>` | 打开对话框（新窗口，仅支持 Electron 环境） |
 | `openDialogUserid(userid)`      | `userid: number`   | `Promise<any>` | 打开对话框（指定用户）                     |
 | `openTask(taskId)`              | `taskId: number`   | `Promise<any>` | 打开任务                                   |
+| `downloadUrl(url)`              | `url: string`     | `Promise<any>` | 下载文件                                   |
 
 ### 消息框
 
