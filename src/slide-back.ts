@@ -24,6 +24,8 @@ export class SlideBack {
   private isTouched = false
   /** 是否滚动 */
   private isScrolling: boolean | undefined = undefined
+  /** body 是否滚动 */
+  private isBodyScroll = false
 
   /** 初始化样式 */
   private initSlideStyle = () => {
@@ -99,7 +101,7 @@ export class SlideBack {
     const isVisible = this.isVisibleSlideBack()
     if (isVisible) {
       const offset = 135
-      const top = Math.max(offset, this.touchY) + this.windowScrollY
+      const top = Math.max(offset, this.touchY) + (this.isBodyScroll ? 0 : this.windowScrollY)
       const maxTop = this.windowHeight - offset
       this.slideBackContainer.style.top = `${Math.min(top, maxTop) + "px"}`
     }
@@ -164,6 +166,7 @@ export class SlideBack {
 
   /** 滚动事件 */
   private scroll = () => {
+    this.isBodyScroll = document.body.scrollHeight > window.innerHeight + 1 // 1px 的误差
     this.windowScrollY = window.scrollY
   }
 
