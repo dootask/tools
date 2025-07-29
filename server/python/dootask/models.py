@@ -371,6 +371,16 @@ class MarkMessageDoneRequest:
     """标记消息完成请求"""
     msg_id: int
 
+@dataclass
+class ConvertWebhookMessageRequest:
+    """转换webhook消息请求"""
+    msg: str
+
+@dataclass
+class ConvertWebhookMessageResponse:
+    """转换webhook消息响应"""
+    msg: str
+
 # ------------------------------------------------------------------------------------------
 # 群组相关结构
 # ------------------------------------------------------------------------------------------

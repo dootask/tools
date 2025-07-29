@@ -199,6 +199,16 @@ type SendTemplateMessageRequest struct {
 	Source    string            `json:"source"`     // 可选：消息来源，默认 api
 }
 
+// ConvertWebhookMessageRequest 转换webhook消息请求
+type ConvertWebhookMessageRequest struct {
+	Msg string `json:"msg"` // 必填：消息内容
+}
+
+// ConvertWebhookMessageResponse 转换webhook消息响应
+type ConvertWebhookMessageResponse struct {
+	Msg string `json:"msg"` // 转换后的消息内容
+}
+
 // DialogMessage 对话消息
 type DialogMessage struct {
 	ID         int           `json:"id"`          // 消息ID

@@ -376,6 +376,10 @@ class DooTaskClient:
         """标记消息完成"""
         self._get_request('/api/dialog/msg/done', params)
     
+    def convert_webhook_message_to_ai(self, params: ConvertWebhookMessageRequest) -> ConvertWebhookMessageResponse:
+        """转换webhook消息为AI对话格式"""
+        return self._post_request('/api/dialog/msg/webhookmsg2ai', params, ConvertWebhookMessageResponse)
+    
     # ------------------------------------------------------------------------------------------
     # 对话相关接口
     # ------------------------------------------------------------------------------------------

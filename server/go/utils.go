@@ -590,6 +590,17 @@ func (c *Client) MarkMessageDone(params MarkMessageDoneRequest) error {
 	return c.NewGetRequest("/api/dialog/msg/done", params, nil)
 }
 
+// ConvertWebhookMessageToAI 转换webhook消息为AI对话格式
+func (c *Client) ConvertWebhookMessageToAI(params ConvertWebhookMessageRequest) (*ConvertWebhookMessageResponse, error) {
+	var response ConvertWebhookMessageResponse
+	err := c.NewPostRequest("/api/dialog/msg/webhookmsg2ai", params, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	return &response, nil
+}
+
 // ------------------------------------------------------------------------------------------
 // 对话相关接口
 // ------------------------------------------------------------------------------------------

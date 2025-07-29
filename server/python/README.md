@@ -145,6 +145,7 @@ client.add_group_user(AddGroupUserRequest(
 | `toggle_message_todo` | 切换消息待办状态 | `ToggleMessageTodoRequest` | `None` |
 | `get_message_todo_list` | 获取消息待办列表 | `GetMessageRequest` | `TodoListResponse` |
 | `mark_message_done` | 标记消息完成 | `MarkMessageDoneRequest` | `None` |
+| `convert_webhook_message_to_ai` | 转换webhook消息为AI对话格式 | `ConvertWebhookMessageRequest` | `ConvertWebhookMessageResponse` |
 
 ### 对话相关接口
 

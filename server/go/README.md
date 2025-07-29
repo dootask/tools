@@ -150,6 +150,7 @@ err := client.AddGroupUser(dootask.AddGroupUserRequest{
 | `ToggleMessageTodo` | 切换消息待办状态 | `ToggleMessageTodoRequest` | `error` |
 | `GetMessageTodoList` | 获取消息待办列表 | `GetMessageRequest` | `*TodoListResponse, error` |
 | `MarkMessageDone` | 标记消息完成 | `MarkMessageDoneRequest` | `error` |
+| `ConvertWebhookMessageToAI` | 转换webhook消息为AI对话格式 | `ConvertWebhookMessageRequest` | `*ConvertWebhookMessageResponse, error` |
 
 ### 对话相关接口
 
