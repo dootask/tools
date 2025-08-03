@@ -8,21 +8,20 @@ import {
   PopoutWindowParams,
   SelectUsersParams,
   requestParams,
-  responseSuccess,
-  responseError,
+  ApiSuccess,
+  ApiError,
+  ApiErrorData,
   ModalParams,
   DooTaskUserInfo,
   DooTaskSystemInfo,
   DooTaskLanguage,
   DooTaskUserBasicInfo,
   DooTaskSafeArea,
+  UnsupportedError,
 } from "./types"
 
 /** 存储微应用数据 */
 let microAppData: MicroAppData | null = null
-
-/** 微应用是否已准备好 */
-let microAppReady = false
 
 /** 备用z-index值，当无法从主应用获取nextZIndex时使用 */
 let zIndexMissing = 1000
@@ -68,12 +67,63 @@ const executeFunction = (funcId: string, args: Any[]): Any => {
   return func(...args)
 }
 
-/** 调用主应用方法，如果主应用没有该方法，则向主应用发送消息 */
-const methodTryParent = async (method: string, ...args: Any[]): Promise<Any | null> => {
-  if (typeof window === "undefined") {
-    return null
-  }
+/**
+ * 检查当前应用是否为微前端应用
+ * @returns {Promise<void>} 返回微应用数据
+ * @throws {UnsupportedError} 环境不支持
+ */
+export const appReady = (): Promise<void> => {
+  return new Promise<void>(async (resolve, reject) => {
+    if (typeof window === "undefined") {
+      reject(new UnsupportedError("window is undefined"))
+      return
+    }
+    if (microAppData !== null) {
+      resolve()
+      return
+    }
+    let count = 0
+    while (typeof window.microApp === "undefined" || typeof window.microApp.getData !== "function") {
+      await new Promise(resolve => setTimeout(resolve, 100))
+      count++
+      if (window === window.parent || count > 30) {
+        reject(new UnsupportedError("environment not supported, possibly not running in micro app mode."))
+        return
+      }
+    }
+    microAppData = window.microApp.getData()
+    resolve()
+  })
+}
 
+/**
+ * 获取应用数据
+ * @param {string | null} key - 可选参数，指定要获取的数据键名
+ * @returns {Promise<Any>} 返回应用数据
+ * @throws {UnsupportedError} 环境不支持
+ */
+const getAppData = async (key: string | null = null): Promise<Any> => {
+  await appReady()
+
+  if (!key) return microAppData
+
+  return key.split(".").reduce((obj, k) => {
+    if (obj && typeof obj === "object") {
+      const arrayIndex = /^\d+$/.test(k) ? parseInt(k) : k
+      return (obj as Record<string | number, Any>)[arrayIndex]
+    }
+    return null
+  }, microAppData)
+}
+
+/**
+ * 调用主应用方法，如果主应用没有该方法，则向主应用发送消息
+ * @param {string} method - 方法名
+ * @param {...Any[]} args - 参数列表
+ * @returns {Promise<Any | null>} 返回方法返回值或null
+ * @throws {UnsupportedError} 环境不支持
+ */
+const methodTryParent = async (method: string, ...args: Any[]): Promise<Any | null> => {
   const methodFunc = await getAppData("methods." + method)
   if (typeof methodFunc === "function") {
     return methodFunc(...args)
@@ -105,56 +155,6 @@ const methodTryParent = async (method: string, ...args: Any[]): Promise<Any | nu
   })
 }
 
-/**
- * 检查当前应用是否为微前端应用
- * @returns {Promise<MicroAppData | null>} 返回微应用数据或null
- */
-export const appReady = (): Promise<MicroAppData | null> => {
-  return new Promise<MicroAppData | null>(async resolve => {
-    if (typeof window === "undefined") {
-      resolve(null)
-      return
-    }
-    if (microAppReady) {
-      resolve(microAppData)
-      return
-    }
-    let count = 0
-    while (typeof window.microApp === "undefined" || typeof window.microApp.getData !== "function") {
-      await new Promise(resolve => setTimeout(resolve, 100))
-      count++
-      if (count > 30) {
-        resolve(null)
-        return
-      }
-    }
-    microAppReady = true
-    microAppData = window.microApp.getData()
-    resolve(microAppData)
-  })
-}
-
-/**
- * 获取应用数据
- * @param {string | null} key - 可选参数，指定要获取的数据键名
- * @returns {Promise<Any>} 返回应用数据
- */
-const getAppData = async (key: string | null = null): Promise<Any> => {
-  if ((await appReady()) === null) {
-    return null
-  }
-
-  if (!key) return microAppData
-
-  return key.split(".").reduce((obj, k) => {
-    if (obj && typeof obj === "object") {
-      const arrayIndex = /^\d+$/.test(k) ? parseInt(k) : k
-      return (obj as Record<string | number, Any>)[arrayIndex]
-    }
-    return null
-  }, microAppData)
-}
-
 // **************************************************************************************
 // **************************************************************************************
 // **************************************************************************************
@@ -164,7 +164,12 @@ const getAppData = async (key: string | null = null): Promise<Any> => {
  * @returns {Promise<boolean>} 返回是否为微前端应用
  */
 export const isMicroApp = async (): Promise<boolean> => {
-  return (await appReady()) !== null
+  try {
+    await appReady()
+    return true
+  } catch {
+    return false
+  }
 }
 
 /**
@@ -172,7 +177,11 @@ export const isMicroApp = async (): Promise<boolean> => {
  * @returns {Promise<boolean>} 返回是否为EEUI应用
  */
 export const isEEUIApp = async (): Promise<boolean> => {
-  return await getAppData("props.isEEUIApp")
+  try {
+    return !!(await getAppData("props.isEEUIApp"))
+  } catch {
+    return false
+  }
 }
 
 /**
@@ -180,7 +189,11 @@ export const isEEUIApp = async (): Promise<boolean> => {
  * @returns {Promise<boolean>} 返回是否为Electron应用
  */
 export const isElectron = async (): Promise<boolean> => {
-  return await getAppData("props.isElectron")
+  try {
+    return !!(await getAppData("props.isElectron"))
+  } catch {
+    return false
+  }
 }
 
 /**
@@ -188,7 +201,11 @@ export const isElectron = async (): Promise<boolean> => {
  * @returns {Promise<boolean>} 返回是否为主Electron窗口
  */
 export const isMainElectron = async (): Promise<boolean> => {
-  return await getAppData("props.isMainElectron")
+  try {
+    return !!(await getAppData("props.isMainElectron"))
+  } catch {
+    return false
+  }
 }
 
 /**
@@ -196,15 +213,23 @@ export const isMainElectron = async (): Promise<boolean> => {
  * @returns {Promise<boolean>} 返回是否为子Electron窗口
  */
 export const isSubElectron = async (): Promise<boolean> => {
-  return await getAppData("props.isSubElectron")
+  try {
+    return !!(await getAppData("props.isSubElectron"))
+  } catch {
+    return false
+  }
 }
 
 /**
  * 检查当前是否满屏
- * @returns Promise 返回是否为满屏
+ * @returns {Promise<boolean>} 返回是否为满屏
  */
 export const isFullScreen = async (): Promise<boolean> => {
-  return await methodTryParent("isFullScreen")
+  try {
+    return !!(await methodTryParent("isFullScreen"))
+  } catch {
+    return false
+  }
 }
 
 /**
@@ -212,7 +237,11 @@ export const isFullScreen = async (): Promise<boolean> => {
  * @returns {Promise<boolean>} 返回是否为iframe
  */
 export const isIframe = async (): Promise<boolean> => {
-  return /^iframe/i.test(await getAppData("props.urlType"))
+  try {
+    return /^iframe/i.test(await getAppData("props.urlType"))
+  } catch {
+    return false
+  }
 }
 
 // **************************************************************************************
@@ -222,6 +251,7 @@ export const isIframe = async (): Promise<boolean> => {
 /**
  * 获取当前主题名称
  * @returns {Promise<string>} 返回当前主题名称
+ * @throws {UnsupportedError} 环境不支持
  */
 export const getThemeName = async (): Promise<string> => {
   return await getAppData("props.themeName")
@@ -230,14 +260,16 @@ export const getThemeName = async (): Promise<string> => {
 /**
  * 获取当前用户ID
  * @returns {Promise<number>} 返回当前用户ID
+ * @throws {UnsupportedError} 环境不支持
  */
 export const getUserId = async (): Promise<number> => {
-  return await getAppData("props.userId")
+  return parseInt(await getAppData("props.userId")) || 0
 }
 
 /**
  * 获取当前用户Token
  * @returns {Promise<string>} 返回当前用户Token
+ * @throws {UnsupportedError} 环境不支持
  */
 export const getUserToken = async (): Promise<string> => {
   return await getAppData("props.userToken")
@@ -246,6 +278,7 @@ export const getUserToken = async (): Promise<string> => {
 /**
  * 获取当前用户信息
  * @returns {Promise<DooTaskUserInfo>} 返回当前用户信息对象
+ * @throws {UnsupportedError} 环境不支持
  */
 export const getUserInfo = async (): Promise<DooTaskUserInfo> => {
   return (await getAppData("props.userInfo")) as DooTaskUserInfo
@@ -254,6 +287,7 @@ export const getUserInfo = async (): Promise<DooTaskUserInfo> => {
 /**
  * 获取基础URL
  * @returns {Promise<string>} 返回基础URL
+ * @throws {UnsupportedError} 环境不支持
  */
 export const getBaseUrl = async (): Promise<string> => {
   return await getAppData("props.baseUrl")
@@ -262,6 +296,7 @@ export const getBaseUrl = async (): Promise<string> => {
 /**
  * 获取系统信息
  * @returns {Promise<DooTaskSystemInfo>} 返回系统信息对象
+ * @throws {UnsupportedError} 环境不支持
  */
 export const getSystemInfo = async (): Promise<DooTaskSystemInfo> => {
   return (await getAppData("props.systemInfo")) as DooTaskSystemInfo
@@ -270,6 +305,7 @@ export const getSystemInfo = async (): Promise<DooTaskSystemInfo> => {
 /**
  * 获取页面类型
  * @returns {Promise<string>} 返回页面类型，可能的值为 'popout' 或 'embed'
+ * @throws {UnsupportedError} 环境不支持
  */
 export const getWindowType = async (): Promise<string> => {
   return await getAppData("props.windowType")
@@ -278,6 +314,7 @@ export const getWindowType = async (): Promise<string> => {
 /**
  * 获取语言列表
  * @returns {Promise<{ [key: DooTaskLanguage]: string }>} 返回语言列表
+ * @throws {UnsupportedError} 环境不支持
  */
 export const getLanguageList = async (): Promise<{ [key in DooTaskLanguage]: string }> => {
   return (await getAppData("props.languageList")) as { [key in DooTaskLanguage]: string }
@@ -286,6 +323,7 @@ export const getLanguageList = async (): Promise<{ [key in DooTaskLanguage]: str
 /**
  * 获取当前语言名称
  * @returns {Promise<DooTaskLanguage>} 返回当前语言名称
+ * @throws {UnsupportedError} 环境不支持
  */
 export const getLanguageName = async (): Promise<DooTaskLanguage> => {
   return (await getAppData("props.languageName")) as DooTaskLanguage
@@ -293,7 +331,8 @@ export const getLanguageName = async (): Promise<DooTaskLanguage> => {
 
 /**
  * 获取移动端安全距离
- * @returns {Promise<number>} 返回安全距离
+ * @returns {Promise<DooTaskSafeArea>} 返回安全距离
+ * @throws {UnsupportedError} 环境不支持
  */
 export const getSafeArea = async (): Promise<DooTaskSafeArea> => {
   return (await getAppData("props.safeArea")) as DooTaskSafeArea
@@ -306,6 +345,7 @@ export const getSafeArea = async (): Promise<DooTaskSafeArea> => {
 /**
  * 关闭微前端应用
  * @param destroy - 可选参数，布尔值，表示是否销毁应用。默认为false。
+ * @throws {UnsupportedError} 环境不支持
  */
 export const closeApp = async (destroy = false): Promise<void> => {
   await methodTryParent("close", destroy)
@@ -314,6 +354,7 @@ export const closeApp = async (destroy = false): Promise<void> => {
 /**
  * 逐步返回上一个页面
  * @description 类似于浏览器的后退按钮，返回到最后一个页面时会关闭应用。
+ * @throws {UnsupportedError} 环境不支持
  */
 export const backApp = async (): Promise<void> => {
   await methodTryParent("back")
@@ -322,6 +363,7 @@ export const backApp = async (): Promise<void> => {
 /**
  * 应用窗口独立显示
  * @param params - 窗口参数
+ * @throws {UnsupportedError} 环境不支持
  */
 export const popoutWindow = async (params?: PopoutWindowParams): Promise<void> => {
   await methodTryParent("popoutWindow", params)
@@ -331,6 +373,7 @@ export const popoutWindow = async (params?: PopoutWindowParams): Promise<void> =
  * 打开新窗口
  * @param params - 窗口参数
  * @description 只在 isElectron 环境有效
+ * @throws {UnsupportedError} 环境不支持
  */
 export const openWindow = async (params: OpenWindowParams): Promise<void> => {
   await methodTryParent("openWindow", params)
@@ -340,6 +383,7 @@ export const openWindow = async (params: OpenWindowParams): Promise<void> => {
  * 在新标签页打开URL
  * @param url - 要打开的URL
  * @description 只在 isElectron 环境有效
+ * @throws {UnsupportedError} 环境不支持
  */
 export const openTabWindow = async (url: string): Promise<void> => {
   await methodTryParent("openTabWindow", url)
@@ -349,6 +393,7 @@ export const openTabWindow = async (url: string): Promise<void> => {
  * 打开应用页面
  * @param params - 应用页面参数
  * @description 只在 isEEUIApp 环境有效
+ * @throws {UnsupportedError} 环境不支持
  */
 export const openAppPage = async (params: OpenAppPageParams): Promise<void> => {
   await methodTryParent("openAppPage", params)
@@ -357,16 +402,27 @@ export const openAppPage = async (params: OpenAppPageParams): Promise<void> => {
 /**
  * 请求服务器API
  * @param params - API请求参数
- * @returns Promise 返回API请求结果
+ * @returns Promise<ApiSuccess> 返回API请求结果
+ * @throws {UnsupportedError} 环境不支持
+ * @throws {ApiError} 请求失败
  */
-export const requestAPI = async (params: requestParams): Promise<responseSuccess | responseError> => {
-  return await methodTryParent("requestAPI", params)
+export const requestAPI = async (params: requestParams): Promise<ApiSuccess> => {
+  try {
+    return await methodTryParent("requestAPI", params)
+  } catch (error) {
+    if (error instanceof UnsupportedError) {
+      throw error
+    }
+    throw new ApiError(error as ApiErrorData)
+  }
 }
 
 /**
  * 选择用户
  * @param params - 可以是值或配置对象
  * @returns Promise 返回选择的用户结果
+ * @throws {UnsupportedError} 环境不支持
+ * @throws {Error} 取消选择
  */
 export const selectUsers = async (params: SelectUsersParams): Promise<number[]> => {
   return await methodTryParent("selectUsers", params)
@@ -377,6 +433,7 @@ export const selectUsers = async (params: SelectUsersParams): Promise<number[]> 
  * @param methodName - 方法名
  * @param args - 参数列表
  * @returns 方法返回值
+ * @throws {UnsupportedError} 环境不支持
  */
 export const callExtraA = async (methodName: string, ...args: Any[]): Promise<Any> => {
   return await methodTryParent("extraCallA", methodName, ...args)
@@ -387,6 +444,7 @@ export const callExtraA = async (methodName: string, ...args: Any[]): Promise<An
  * @param actionName - 方法名
  * @param payload - 参数列表
  * @returns 方法返回值
+ * @throws {UnsupportedError} 环境不支持
  */
 export const callExtraStore = async (actionName: string, ...payload: Any[]): Promise<Any> => {
   return await methodTryParent("extraCallStore", actionName, ...payload)
@@ -400,6 +458,8 @@ export const callExtraStore = async (actionName: string, ...payload: Any[]): Pro
  * 查询用户基本信息
  * @param userid - 用户ID或用户ID数组
  * @returns Promise 返回用户基本信息数组
+ * @throws {UnsupportedError} 环境不支持
+ * @throws {ApiError} 请求失败
  */
 export const fetchUserBasic = async (userid: number | number[]): Promise<DooTaskUserBasicInfo[]> => {
   const { data } = await requestAPI({
@@ -418,46 +478,46 @@ export const fetchUserBasic = async (userid: number | number[]): Promise<DooTask
 /**
  * 打开对话框
  * @param dialogId - 对话框ID
- * @returns Promise 返回对话框结果
+ * @throws {UnsupportedError} 环境不支持
  */
 export const openDialog = async (dialogId: number): Promise<void> => {
-  return await methodTryParent("extraCallStore", "openDialog", dialogId)
+  await methodTryParent("extraCallStore", "openDialog", dialogId)
 }
 
 /**
  * 打开对话框（新窗口，仅支持Electron环境）
  * @param dialogId - 对话框ID
- * @returns Promise 返回对话框结果
+ * @throws {UnsupportedError} 环境不支持
  */
 export const openDialogNewWindow = async (dialogId: number): Promise<void> => {
-  return await methodTryParent("extraCallStore", "openDialogNewWindow", dialogId)
+  await methodTryParent("extraCallStore", "openDialogNewWindow", dialogId)
 }
 
 /**
  * 打开对话框（指定用户）
  * @param userid - 用户ID
- * @returns Promise 返回对话框结果
+ * @throws {UnsupportedError} 环境不支持
  */
 export const openDialogUserid = async (userid: number): Promise<void> => {
-  return await methodTryParent("extraCallStore", "openDialogUserid", userid)
+  await methodTryParent("extraCallStore", "openDialogUserid", userid)
 }
 
 /**
  * 打开任务
  * @param taskId - 任务ID
- * @returns Promise 返回任务结果
+ * @throws {UnsupportedError} 环境不支持
  */
 export const openTask = async (taskId: number): Promise<void> => {
-  return await methodTryParent("extraCallStore", "openTask", taskId)
+  await methodTryParent("extraCallStore", "openTask", taskId)
 }
 
 /**
  * 下载文件
  * @param url - 文件URL，会自动添加 token，如果不需要 token，请传参数 url={url:xxx,token:false}
- * @returns Promise 返回调用结果
+ * @throws {UnsupportedError} 环境不支持
  */
 export const downloadUrl = async (url: string | { url: string; token: boolean }): Promise<void> => {
-  return await methodTryParent("extraCallStore", "downUrl", url)
+  await methodTryParent("extraCallStore", "downUrl", url)
 }
 
 // **************************************************************************************
@@ -467,43 +527,48 @@ export const downloadUrl = async (url: string | { url: string; token: boolean })
 /**
  * 弹出成功提示框
  * @param message - 提示框内容
- * @returns Promise 返回提示框结果
+ * @returns Promise<void> 返回提示框结果
+ * @throws {UnsupportedError} 环境不支持
  */
-export const modalSuccess = async (message: string | ModalParams): Promise<Any> => {
-  return await methodTryParent("extraCallA", "modalSuccess", message)
+export const modalSuccess = async (message: string | ModalParams): Promise<void> => {
+  await methodTryParent("extraCallA", "modalSuccess", message)
 }
 
 /**
  * 弹出错误提示框
  * @param message - 提示框内容
- * @returns Promise 返回提示框结果
+ * @returns Promise<void> 返回提示框结果
+ * @throws {UnsupportedError} 环境不支持
  */
-export const modalError = async (message: string | ModalParams): Promise<Any> => {
-  return await methodTryParent("extraCallA", "modalError", message)
+export const modalError = async (message: string | ModalParams): Promise<void> => {
+  await methodTryParent("extraCallA", "modalError", message)
 }
 
 /**
  * 弹出警告提示框
  * @param message - 提示框内容
- * @returns Promise 返回提示框结果
+ * @returns Promise<void> 返回提示框结果
+ * @throws {UnsupportedError} 环境不支持
  */
-export const modalWarning = async (message: string | ModalParams): Promise<Any> => {
-  return await methodTryParent("extraCallA", "modalWarning", message)
+export const modalWarning = async (message: string | ModalParams): Promise<void> => {
+  await methodTryParent("extraCallA", "modalWarning", message)
 }
 
 /**
  * 弹出信息提示框
  * @param message - 提示框内容
- * @returns Promise 返回提示框结果
+ * @returns Promise<void> 返回提示框结果
+ * @throws {UnsupportedError} 环境不支持
  */
-export const modalInfo = async (message: string | ModalParams): Promise<Any> => {
-  return await methodTryParent("extraCallA", "modalInfo", message)
+export const modalInfo = async (message: string | ModalParams): Promise<void> => {
+  await methodTryParent("extraCallA", "modalInfo", message)
 }
 
 /**
  * 弹出确认提示框
  * @param message - 提示框内容
- * @returns Promise 返回提示框结果
+ * @returns Promise<boolean> 返回提示框结果
+ * @throws {UnsupportedError} 环境不支持
  */
 export const modalConfirm = async (message: string | ModalParams): Promise<boolean> => {
   return new Promise<boolean>(resolve => {
@@ -529,10 +594,11 @@ export const modalConfirm = async (message: string | ModalParams): Promise<boole
 /**
  * 弹出系统提示框
  * @param message - 提示框内容
- * @returns Promise 返回提示框结果
+ * @returns Promise<void> 返回提示框结果
+ * @throws {UnsupportedError} 环境不支持
  */
-export const modalAlert = async (message: string): Promise<Any> => {
-  return await methodTryParent("extraCallA", "modalAlert", message)
+export const modalAlert = async (message: string): Promise<void> => {
+  await methodTryParent("extraCallA", "modalAlert", message)
 }
 
 // **************************************************************************************
@@ -542,37 +608,41 @@ export const modalAlert = async (message: string): Promise<Any> => {
 /**
  * 弹出成功消息
  * @param message - 消息内容
- * @returns Promise 返回消息结果
+ * @returns Promise<void> 返回消息结果
+ * @throws {UnsupportedError} 环境不支持
  */
-export const messageSuccess = async (message: string): Promise<Any> => {
-  return await methodTryParent("extraCallA", "messageSuccess", message)
+export const messageSuccess = async (message: string): Promise<void> => {
+  await methodTryParent("extraCallA", "messageSuccess", message)
 }
 
 /**
  * 弹出错误消息
  * @param message - 消息内容
  * @returns Promise 返回消息结果
+ * @throws {UnsupportedError} 环境不支持
  */
-export const messageError = async (message: string): Promise<Any> => {
-  return await methodTryParent("extraCallA", "messageError", message)
+export const messageError = async (message: string): Promise<void> => {
+  await methodTryParent("extraCallA", "messageError", message)
 }
 
 /**
  * 弹出警告消息
  * @param message - 消息内容
- * @returns Promise 返回消息结果
+ * @returns Promise<void> 返回消息结果
+ * @throws {UnsupportedError} 环境不支持
  */
-export const messageWarning = async (message: string): Promise<Any> => {
-  return await methodTryParent("extraCallA", "messageWarning", message)
+export const messageWarning = async (message: string): Promise<void> => {
+  await methodTryParent("extraCallA", "messageWarning", message)
 }
 
 /**
  * 弹出信息消息
  * @param message - 消息内容
- * @returns Promise 返回消息结果
+ * @returns Promise<void> 返回消息结果
+ * @throws {UnsupportedError} 环境不支持
  */
-export const messageInfo = async (message: string): Promise<Any> => {
-  return await methodTryParent("extraCallA", "messageInfo", message)
+export const messageInfo = async (message: string): Promise<void> => {
+  await methodTryParent("extraCallA", "messageInfo", message)
 }
 
 // **************************************************************************************
@@ -584,9 +654,14 @@ export const messageInfo = async (message: string): Promise<Any> => {
  * @returns {number} 返回一个递增的 z-index 值
  */
 export const nextZIndex = async (): Promise<number> => {
-  const func = await getAppData("methods.nextZIndex")
-  if (typeof func === "function") {
-    return func()
+  try {
+    const func = await getAppData("methods.nextZIndex")
+    if (typeof func === "function") {
+      zIndexMissing = func()
+      return zIndexMissing
+    }
+  } catch (error) {
+    // 如果获取不到 nextZIndex 方法，则返回一个递增的 z-index 值
   }
   return zIndexMissing++
 }
@@ -596,6 +671,7 @@ export const nextZIndex = async (): Promise<number> => {
  * @param callback - 回调函数，返回true则阻止关闭，false则允许关闭
  * @description 用于在应用关闭前执行操作，可以通过返回true来阻止关闭
  * @returns {Promise<() => void>} 返回一个函数，执行该函数可以注销监听器
+ * @throws {UnsupportedError} 环境不支持
  */
 export const interceptBack = async (callback: () => boolean): Promise<() => void> => {
   // 如果当前是iframe应用，则添加beforeClose监听器

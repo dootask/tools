@@ -4,7 +4,6 @@
 [![npm downloads](https://img.shields.io/npm/dm/@dootask/tools.svg?style=flat-square)](https://www.npmjs.com/package/@dootask/tools)
 [![license](https://img.shields.io/npm/l/@dootask/tools.svg?style=flat-square)](https://github.com/dootask/tools/blob/main/LICENSE)
 
-
 这是一个为 DooTask 应用开发设计的工具库，提供了一系列实用的 API，用于与主应用进行交互。它封装了微前端通信、用户数据获取、页面交互等多种功能，让您的 DooTask 应用开发变得简单高效。
 
 ## 特点
@@ -33,131 +32,140 @@ import {
   getUserInfo,
   openWindow,
   closeApp,
+  UnsupportedError,
   // 更多API...
 } from "@dootask/tools"
 
 // 等待应用准备就绪
-appReady().then(() => {
+try {
+  await appReady()
   console.log("应用已准备就绪")
-})
+} catch (error) {
+  if (error instanceof UnsupportedError) {
+    console.log("当前环境不支持微前端模式")
+  }
+}
 
 // 检查是否在微前端环境中
-isMicroApp().then(isMicro => {
-  if (isMicro) {
-    console.log("当前在微前端环境中运行")
+const isMicro = await isMicroApp()
+if (isMicro) {
+  console.log("当前在微前端环境中运行")
+
+  try {
+    // 获取当前主题
+    const theme = await getThemeName()
+    console.log("当前主题：", theme)
+
+    // 获取用户信息
+    const user = await getUserInfo()
+    console.log("用户信息：", user)
+
+    // 打开新窗口（需要在 Electron 环境中）
+    await openWindow({
+      name: "my-window",
+      url: "https://example.com",
+    })
+
+    // 关闭当前应用
+    await closeApp()
+  } catch (error) {
+    if (error instanceof UnsupportedError) {
+      console.log("当前操作在此环境下不支持")
+    }
   }
-})
-
-// 获取当前主题
-getThemeName().then(theme => {
-  console.log("当前主题：", theme)
-})
-
-// 获取用户信息
-getUserInfo().then(user => {
-  console.log("用户信息：", user)
-})
-
-// 打开新窗口
-openWindow({
-  name: "my-window",
-  url: "https://example.com",
-})
-
-// 关闭当前应用
-closeApp()
+}
 ```
 
 ## API 文档
 
 ### 应用状态相关
 
-| 函数名             | 参数 | 返回值                          | 说明                                   |
-| ------------------ | ---- | ------------------------------- | -------------------------------------- |
-| `appReady()`       | -    | `Promise<MicroAppData \| null>` | 应用准备就绪的 Promise 对象            |
-| `isMicroApp()`     | -    | `Promise<boolean>`              | 检查当前是否在微前端环境中运行         |
-| `isEEUIApp()`      | -    | `Promise<boolean>`              | 检查是否为 EEUI 应用（App 客户端）     |
-| `isElectron()`     | -    | `Promise<boolean>`              | 检查是否为 Electron 应用（电脑客户端） |
-| `isMainElectron()` | -    | `Promise<boolean>`              | 检查是否为主 Electron 窗口             |
-| `isSubElectron()`  | -    | `Promise<boolean>`              | 检查是否为子 Electron 窗口             |
+| 函数名             | 参数 | 返回值             | 异常               | 说明                                   |
+| ------------------ | ---- | ------------------ | ------------------ | -------------------------------------- |
+| `appReady()`       | -    | `Promise<void>`    | `UnsupportedError` | 应用准备就绪的 Promise 对象            |
+| `isMicroApp()`     | -    | `Promise<boolean>` | -                  | 检查当前是否在微前端环境中运行         |
+| `isEEUIApp()`      | -    | `Promise<boolean>` | -                  | 检查是否为 EEUI 应用（App 客户端）     |
+| `isElectron()`     | -    | `Promise<boolean>` | -                  | 检查是否为 Electron 应用（电脑客户端） |
+| `isMainElectron()` | -    | `Promise<boolean>` | -                  | 检查是否为主 Electron 窗口             |
+| `isSubElectron()`  | -    | `Promise<boolean>` | -                  | 检查是否为子 Electron 窗口             |
 
 ### 用户和系统信息
 
-| 函数名              | 参数 | 返回值                                      | 说明                                         |
-| ------------------- | ---- | ------------------------------------------- | -------------------------------------------- |
-| `getThemeName()`    | -    | `Promise<string>`                           | 获取当前主题名称                             |
-| `getUserId()`       | -    | `Promise<number>`                           | 获取当前用户 ID，0 表示未登录                |
-| `getUserToken()`    | -    | `Promise<string>`                           | 获取当前用户 Token                           |
-| `getUserInfo()`     | -    | `Promise<DooTaskUserInfo>`                  | 获取当前用户信息对象                         |
-| `getBaseUrl()`      | -    | `Promise<string>`                           | 获取基础 URL                                 |
-| `getSystemInfo()`   | -    | `Promise<DooTaskSystemInfo>`                | 获取系统信息对象                             |
-| `getWindowType()`   | -    | `Promise<string>`                           | 获取页面类型，可能的值为 'popout' 或 'embed' |
-| `getLanguageList()` | -    | `Promise<{[key: DooTaskLanguage]: string}>` | 获取语言列表                                 |
-| `getLanguageName()` | -    | `Promise<DooTaskLanguage>`                  | 获取当前语言名称                             |
+| 函数名              | 参数 | 返回值                                      | 异常               | 说明                                         |
+| ------------------- | ---- | ------------------------------------------- | ------------------ | -------------------------------------------- |
+| `getThemeName()`    | -    | `Promise<string>`                           | `UnsupportedError` | 获取当前主题名称                             |
+| `getUserId()`       | -    | `Promise<number>`                           | `UnsupportedError` | 获取当前用户 ID，0 表示未登录                |
+| `getUserToken()`    | -    | `Promise<string>`                           | `UnsupportedError` | 获取当前用户 Token                           |
+| `getUserInfo()`     | -    | `Promise<DooTaskUserInfo>`                  | `UnsupportedError` | 获取当前用户信息对象                         |
+| `getBaseUrl()`      | -    | `Promise<string>`                           | `UnsupportedError` | 获取基础 URL                                 |
+| `getSystemInfo()`   | -    | `Promise<DooTaskSystemInfo>`                | `UnsupportedError` | 获取系统信息对象                             |
+| `getWindowType()`   | -    | `Promise<string>`                           | `UnsupportedError` | 获取页面类型，可能的值为 'popout' 或 'embed' |
+| `getLanguageList()` | -    | `Promise<{[key: DooTaskLanguage]: string}>` | `UnsupportedError` | 获取语言列表                                 |
+| `getLanguageName()` | -    | `Promise<DooTaskLanguage>`                  | `UnsupportedError` | 获取当前语言名称                             |
+| `getSafeArea()`     | -    | `Promise<DooTaskSafeArea>`                  | `UnsupportedError` | 获取移动端安全距离                           |
 
 ### 应用控制
 
-| 函数名                        | 参数                      | 返回值                | 说明                                                                 |
-| ----------------------------- | ------------------------- | --------------------- | -------------------------------------------------------------------- |
-| `backApp()`                   | -                         | `Promise<void>`       | 返回上一页，返回到最后一个页面时会关闭应用                           |
-| `closeApp(destroy?: boolean)` | `destroy?: boolean`       | `Promise<void>`       | 关闭当前应用，destroy 为 true 时销毁应用                             |
-| `interceptBack(callback)`     | `callback: () => boolean` | `Promise<() => void>` | 设置应用关闭前的回调，返回 true 可阻止关闭。返回一个可注销监听的函数 |
-| `nextZIndex()`                | -                         | `Promise<number>`     | 获取下一个可用的模态框 z-index                                       |
+| 函数名                        | 参数                      | 返回值                | 异常               | 说明                                                                 |
+| ----------------------------- | ------------------------- | --------------------- | ------------------ | -------------------------------------------------------------------- |
+| `backApp()`                   | -                         | `Promise<void>`       | `UnsupportedError` | 返回上一页，返回到最后一个页面时会关闭应用                           |
+| `closeApp(destroy?: boolean)` | `destroy?: boolean`       | `Promise<void>`       | `UnsupportedError` | 关闭当前应用，destroy 为 true 时销毁应用                             |
+| `interceptBack(callback)`     | `callback: () => boolean` | `Promise<() => void>` | `UnsupportedError` | 设置应用关闭前的回调，返回 true 可阻止关闭。返回一个可注销监听的函数 |
+| `nextZIndex()`                | -                         | `Promise<number>`     | -                  | 获取下一个可用的模态框 z-index                                       |
 
 ### 窗口操作
 
-| 函数名                  | 参数                          | 返回值          | 说明                                           |
-| ----------------------- | ----------------------------- | --------------- | ---------------------------------------------- |
-| `popoutWindow(params?)` | `params?: PopoutWindowParams` | `Promise<void>` | 应用窗口独立显示                               |
-| `openWindow(params)`    | `params: OpenWindowParams`    | `Promise<void>` | 打开新窗口（只在 isElectron 环境有效）         |
-| `openTabWindow(url)`    | `url: string`                 | `Promise<void>` | 在新标签页打开 URL（只在 isElectron 环境有效） |
-| `openAppPage(params)`   | `params: OpenAppPageParams`   | `Promise<void>` | 打开应用页面（只在 isEEUIApp 环境有效）        |
+| 函数名                  | 参数                          | 返回值          | 异常               | 说明                                           |
+| ----------------------- | ----------------------------- | --------------- | ------------------ | ---------------------------------------------- |
+| `popoutWindow(params?)` | `params?: PopoutWindowParams` | `Promise<void>` | `UnsupportedError` | 应用窗口独立显示                               |
+| `openWindow(params)`    | `params: OpenWindowParams`    | `Promise<void>` | `UnsupportedError` | 打开新窗口（只在 isElectron 环境有效）         |
+| `openTabWindow(url)`    | `url: string`                 | `Promise<void>` | `UnsupportedError` | 在新标签页打开 URL（只在 isElectron 环境有效） |
+| `openAppPage(params)`   | `params: OpenAppPageParams`   | `Promise<void>` | `UnsupportedError` | 打开应用页面（只在 isEEUIApp 环境有效）        |
 
 ### 用户交互
 
-| 函数名                   | 参数                         | 返回值                                      | 说明                                     |
-| ------------------------ | ---------------------------- | ------------------------------------------- | ---------------------------------------- |
-| `selectUsers(params)`    | `params: SelectUsersParams`  | `Promise<number[]>`                         | 选择用户，可以传入多种配置来自定义选择器 |
-| `fetchUserBasic(userid)` | `userid: number \| number[]` | `Promise<DooTaskUserBasicInfo[]>`           | 查询用户基本信息                         |
-| `requestAPI(params)`     | `params: requestParams`      | `Promise<responseSuccess \| responseError>` | 请求服务器 API                           |
+| 函数名                   | 参数                         | 返回值                            | 异常                           | 说明                                     |
+| ------------------------ | ---------------------------- | --------------------------------- | ------------------------------ | ---------------------------------------- |
+| `selectUsers(params)`    | `params: SelectUsersParams`  | `Promise<number[]>`               | `UnsupportedError`             | 选择用户，可以传入多种配置来自定义选择器 |
+| `requestAPI(params)`     | `params: requestParams`      | `Promise<ApiSuccess>`             | `UnsupportedError \| ApiError` | 请求服务器 API                           |
+| `fetchUserBasic(userid)` | `userid: number \| number[]` | `Promise<DooTaskUserBasicInfo[]>` | `UnsupportedError \| ApiError` | 查询用户基本信息                         |
 
 ### 提示框
 
-| 函数名                  | 参数                             | 返回值         | 说明           |
-| ----------------------- | -------------------------------- | -------------- | -------------- |
-| `modalSuccess(message)` | `message: string \| ModalParams` | `Promise<any>` | 弹出成功提示框 |
-| `modalError(message)`   | `message: string \| ModalParams` | `Promise<any>` | 弹出错误提示框 |
-| `modalWarning(message)` | `message: string \| ModalParams` | `Promise<any>` | 弹出警告提示框 |
-| `modalInfo(message)`    | `message: string \| ModalParams` | `Promise<any>` | 弹出信息提示框 |
-| `modalAlert(message)`   | `message: string`                | `Promise<any>` | 弹出系统提示框 |
-
-### 打开特定窗口
-
-| 函数名                          | 参数               | 返回值         | 说明                                       |
-| ------------------------------- | ------------------ | -------------- | ------------------------------------------ |
-| `openDialog(dialogId)`          | `dialogId: number` | `Promise<any>` | 打开对话框                                 |
-| `openDialogNewWindow(dialogId)` | `dialogId: number` | `Promise<any>` | 打开对话框（新窗口，仅支持 Electron 环境） |
-| `openDialogUserid(userid)`      | `userid: number`   | `Promise<any>` | 打开对话框（指定用户）                     |
-| `openTask(taskId)`              | `taskId: number`   | `Promise<any>` | 打开任务                                   |
-| `downloadUrl(url)`              | `url: string`     | `Promise<any>` | 下载文件                                   |
+| 函数名                  | 参数                             | 返回值             | 异常               | 说明           |
+| ----------------------- | -------------------------------- | ------------------ | ------------------ | -------------- |
+| `modalSuccess(message)` | `message: string \| ModalParams` | `Promise<void>`    | `UnsupportedError` | 弹出成功提示框 |
+| `modalError(message)`   | `message: string \| ModalParams` | `Promise<void>`    | `UnsupportedError` | 弹出错误提示框 |
+| `modalWarning(message)` | `message: string \| ModalParams` | `Promise<void>`    | `UnsupportedError` | 弹出警告提示框 |
+| `modalInfo(message)`    | `message: string \| ModalParams` | `Promise<void>`    | `UnsupportedError` | 弹出信息提示框 |
+| `modalConfirm(message)` | `message: string \| ModalParams` | `Promise<boolean>` | `UnsupportedError` | 弹出确认提示框 |
+| `modalAlert(message)`   | `message: string`                | `Promise<void>`    | `UnsupportedError` | 弹出系统提示框 |
 
 ### 消息框
 
-| 函数名                    | 参数              | 返回值         | 说明         |
-| ------------------------- | ----------------- | -------------- | ------------ |
-| `messageSuccess(message)` | `message: string` | `Promise<any>` | 弹出成功消息 |
-| `messageError(message)`   | `message: string` | `Promise<any>` | 弹出错误消息 |
-| `messageWarning(message)` | `message: string` | `Promise<any>` | 弹出警告消息 |
-| `messageInfo(message)`    | `message: string` | `Promise<any>` | 弹出信息消息 |
+| 函数名                    | 参数              | 返回值          | 异常               | 说明         |
+| ------------------------- | ----------------- | --------------- | ------------------ | ------------ |
+| `messageSuccess(message)` | `message: string` | `Promise<void>` | `UnsupportedError` | 弹出成功消息 |
+| `messageError(message)`   | `message: string` | `Promise<void>` | `UnsupportedError` | 弹出错误消息 |
+| `messageWarning(message)` | `message: string` | `Promise<void>` | `UnsupportedError` | 弹出警告消息 |
+| `messageInfo(message)`    | `message: string` | `Promise<void>` | `UnsupportedError` | 弹出信息消息 |
+
+### 打开特定窗口
+
+| 函数名                          | 参数               | 返回值         | 异常               | 说明                                       |
+| ------------------------------- | ------------------ | -------------- | ------------------ | ------------------------------------------ |
+| `openDialog(dialogId)`          | `dialogId: number` | `Promise<any>` | `UnsupportedError` | 打开对话框                                 |
+| `openDialogNewWindow(dialogId)` | `dialogId: number` | `Promise<any>` | `UnsupportedError` | 打开对话框（新窗口，仅支持 Electron 环境） |
+| `openDialogUserid(userid)`      | `userid: number`   | `Promise<any>` | `UnsupportedError` | 打开对话框（指定用户）                     |
+| `openTask(taskId)`              | `taskId: number`   | `Promise<any>` | `UnsupportedError` | 打开任务                                   |
+| `downloadUrl(url)`              | `url: string`      | `Promise<any>` | `UnsupportedError` | 下载文件                                   |
 
 ### 扩展功能
 
-| 函数名                                   | 参数                                    | 返回值         | 说明                              |
-| ---------------------------------------- | --------------------------------------- | -------------- | --------------------------------- |
-| `callExtraA(methodName, ...args)`        | `methodName: string, ...args: any[]`    | `Promise<any>` | 调用 $A 上的额外方法              |
-| `callExtraStore(actionName, ...payload)` | `actionName: string, ...payload: any[]` | `Promise<any>` | 调用 $store.dispatch 上的额外方法 |
-
-## 类型定义
+| 函数名                                   | 参数                                    | 返回值         | 异常               | 说明                              |
+| ---------------------------------------- | --------------------------------------- | -------------- | ------------------ | --------------------------------- |
+| `callExtraA(methodName, ...args)`        | `methodName: string, ...args: any[]`    | `Promise<any>` | `UnsupportedError` | 调用 $A 上的额外方法              |
+| `callExtraStore(actionName, ...payload)` | `actionName: string, ...payload: any[]` | `Promise<any>` | `UnsupportedError` | 调用 $store.dispatch 上的额外方法 |
 
 ### PopoutWindowParams
 
@@ -246,45 +254,49 @@ interface ModalParams {
 ### 检测运行环境
 
 ```typescript
-import { appReady, isMicroApp, isElectron, isEEUIApp } from "@dootask/tools"
+import { appReady, isMicroApp, isElectron, isEEUIApp, UnsupportedError } from "@dootask/tools"
 
-appReady().then(() => {
+// 使用 try-catch 处理异常
+try {
+  await appReady()
   console.log("应用已准备就绪")
-})
-
-isMicroApp().then(isMicro => {
-  if (isMicro) {
-    console.log("在微前端环境中运行")
-
-    isElectron().then(isElectron => {
-      if (isElectron) {
-        console.log("在Electron环境中运行")
-      }
-    })
-
-    isEEUIApp().then(isEEUI => {
-      if (isEEUI) {
-        console.log("在EEUI应用环境中运行")
-      }
-    })
-  } else {
-    console.log("不在微前端环境中运行")
+} catch (error) {
+  if (error instanceof UnsupportedError) {
+    console.log("当前环境不支持微前端模式")
   }
-})
+}
+
+// 环境检测方法不会抛出异常，而是返回 boolean
+const isMicro = await isMicroApp()
+if (isMicro) {
+  console.log("在微前端环境中运行")
+
+  const isElectronEnv = await isElectron()
+  if (isElectronEnv) {
+    console.log("在Electron环境中运行")
+  }
+
+  const isEEUI = await isEEUIApp()
+  if (isEEUI) {
+    console.log("在EEUI应用环境中运行")
+  }
+} else {
+  console.log("不在微前端环境中运行")
+}
 ```
 
 ### 应用关闭拦截
 
 ```typescript
-import { interceptBack } from "@dootask/tools"
+import { interceptBack, modalConfirm } from "@dootask/tools"
 
 let hasUnsavedChanges = true
 
 // 设置应用关闭前的回调
-const unsubscribe = interceptBack(data => {
+const unsubscribe = interceptBack(async data => {
   if (hasUnsavedChanges) {
     // 如果有未保存的数据，则阻止关闭
-    if (confirm("有未保存的数据，确定要关闭吗？")) {
+    if (await modalConfirm("有未保存的数据，确定要关闭吗？")) {
       // 用户确认关闭，可以执行保存操作
       saveData()
       return false // 允许关闭
@@ -458,17 +470,17 @@ npm run dev
 
 ## 注意事项
 
-1. 这个库会自动检测是否在微前端环境中运行。如果不在微前端环境中，大部分方法将返回空值或抛出错误。
+1. **环境检测与异常处理**: 这个库会自动检测是否在微前端环境中运行。如果不在微前端环境中，标注了 `UnsupportedError` 的方法将抛出 `UnsupportedError` 异常，而环境检测方法（如 `isMicroApp`、`isElectron` 等）会返回 `false`。
 
-2. 所有方法都是异步的，返回 Promise 对象，需要使用 `await` 或 `.then()` 来处理结果。
+2. **异步操作**: 所有方法都是异步的，返回 Promise 对象，需要使用 `await` 或 `.then()` 来处理结果。建议使用 try-catch 语句捕获 `UnsupportedError` 异常。
 
-3. 在使用任何方法之前，建议先调用 `appReady()` 确保应用已准备就绪。
+3. **应用初始化**: 在使用任何方法之前，建议先调用 `appReady()` 确保应用已准备就绪。
 
-4. 某些方法只在特定环境中有效（如 `openWindow` 只在 Electron 环境中有效），使用前请检查运行环境。
+4. **环境限制**: 某些方法只在特定环境中有效（如 `openWindow` 只在 Electron 环境中有效），使用前请检查运行环境。
 
-5. 如果你希望调用 `$A` 上的方法，可以使用 `callExtraA` 方法。
+5. **扩展调用**: 如果你希望调用 `$A` 上的方法，可以使用 `callExtraA` 方法。
 
-6. 建议先运行示例项目了解各种功能的使用方法。
+6. **示例学习**: 建议先运行示例项目了解各种功能的使用方法。
 
 ## 贡献和反馈
 

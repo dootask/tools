@@ -22,6 +22,14 @@ declare global {
   }
 }
 
+/** 环境不支持错误 */
+export class UnsupportedError extends Error {
+  constructor(message?: string) {
+    super(message ?? "environment not supported")
+    Object.setPrototypeOf(this, UnsupportedError.prototype)
+  }
+}
+
 /** 微应用属性接口 */
 export interface MicroAppProps {
   name: string
@@ -55,7 +63,7 @@ export interface MicroAppMethods {
   openWindow: (params: OpenWindowParams) => void
   openTabWindow: (url: string) => void
   openAppPage: (params: OpenAppPageParams) => void
-  requestAPI: (params: requestParams) => Promise<responseSuccess | responseError>
+  requestAPI: (params: requestParams) => Promise<ApiSuccess>
   selectUsers: (params: SelectUsersParams) => Promise<number[]>
   nextZIndex: () => number
   extraCallA: (...args: Any[]) => Any
@@ -195,8 +203,8 @@ export interface requestParams {
   [key: string]: Any
 }
 
-/** 请求服务器API返回接口（成功） */
-export interface responseSuccess {
+/** API响应成功数据 */
+export interface ApiSuccess {
   /** 返回消息 */
   msg: string
   /** 返回数据 */
@@ -206,8 +214,8 @@ export interface responseSuccess {
   [key: string]: Any
 }
 
-/** 请求服务器API返回接口（错误） */
-export interface responseError {
+/** API响应错误数据 */
+export interface ApiErrorData {
   /** 返回状态 */
   ret: number
   /** 返回消息 */
@@ -215,6 +223,22 @@ export interface responseError {
   /** 返回数据 */
   data: Any
   [key: string]: Any
+}
+
+/** API响应错误 */
+export class ApiError extends Error {
+  ret: number
+  msg: string
+  data: Any
+  [key: string]: Any
+
+  constructor(data?: ApiErrorData) {
+    super(data?.msg || "API Error")
+    this.name = "ApiError"
+    this.ret = data?.ret || 0
+    this.msg = data?.msg || "API Error"
+    this.data = data?.data || {}
+  }
 }
 
 /** 用户信息接口 */

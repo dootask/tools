@@ -27,8 +27,24 @@
           <div class="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
             <div class="flex justify-between items-center">
               <span class="text-sm text-gray-600 dark:text-gray-400">是否为微应用</span>
-              <span class="font-medium" :class="isMicroAppRef ? 'text-green-600' : 'text-gray-500'">
+              <span class="font-medium" :class="isMicroAppRef ? 'text-green-600' : 'text-red-500'">
                 {{ isMicroAppRef ? '是' : '否' }}
+              </span>
+            </div>
+          </div>
+          <div class="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+            <div class="flex justify-between items-center">
+              <span class="text-sm text-gray-600 dark:text-gray-400">是否为Electron</span>
+              <span class="font-medium" :class="isElectronRef ? 'text-green-600' : 'text-red-500'">
+                {{ isElectronRef ? '是' : '否' }}
+              </span>
+            </div>
+          </div>
+          <div class="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+            <div class="flex justify-between items-center">
+              <span class="text-sm text-gray-600 dark:text-gray-400">是否为EEUI应用</span>
+              <span class="font-medium" :class="isEEUIAppRef ? 'text-green-600' : 'text-red-500'">
+                {{ isEEUIAppRef ? '是' : '否' }}
               </span>
             </div>
           </div>
@@ -48,22 +64,6 @@
             <div class="flex justify-between items-center">
               <span class="text-sm text-gray-600 dark:text-gray-400">语言</span>
               <span class="font-medium text-orange-600">{{ languageName || '--' }}</span>
-            </div>
-          </div>
-          <div class="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-            <div class="flex justify-between items-center">
-              <span class="text-sm text-gray-600 dark:text-gray-400">是否为Electron</span>
-              <span class="font-medium" :class="isElectronRef ? 'text-green-600' : 'text-gray-500'">
-                {{ isElectronRef ? '是' : '否' }}
-              </span>
-            </div>
-          </div>
-          <div class="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-            <div class="flex justify-between items-center">
-              <span class="text-sm text-gray-600 dark:text-gray-400">是否为EEUI应用</span>
-              <span class="font-medium" :class="isEEUIAppRef ? 'text-green-600' : 'text-gray-500'">
-                {{ isEEUIAppRef ? '是' : '否' }}
-              </span>
             </div>
           </div>
         </div>
@@ -219,7 +219,7 @@ const languageName = ref('')
 const isElectronRef = ref(false)
 const isEEUIAppRef = ref(false)
 const showNav = ref(false)
-const preventCloseApp = ref(true)
+const preventCloseApp = ref(false)
 const userInfo = ref<DooTaskUserInfo | null>(null)
 const systemInfo = ref<DooTaskSystemInfo | null>(null)
 
@@ -227,8 +227,8 @@ const systemInfo = ref<DooTaskSystemInfo | null>(null)
 onMounted(async () => {
   try {
     // 等待应用准备就绪
-    const appData = await appReady()
-    console.log('应用已准备就绪:', appData)
+    await appReady()
+    console.log('应用已准备就绪')
 
     // 更新状态
     isMicroAppRef.value = await isMicroApp()
@@ -239,23 +239,23 @@ onMounted(async () => {
     isEEUIAppRef.value = await isEEUIApp()
     userInfo.value = await getUserInfo()
     systemInfo.value = await getSystemInfo()
+
+    // 阻止返回
+    interceptBack(() => {
+      if (preventCloseApp.value) {
+        modalInfo("阻止返回")
+        return true
+      } else {
+        return false
+      }
+    })
+
+    // 检查尺寸发生变化
+    handleResize()
+    window.addEventListener('resize', handleResize)
   } catch (error) {
     console.error('应用初始化失败:', error)
   }
-
-  // 阻止返回
-  interceptBack(() => {
-    if (preventCloseApp.value) {
-      modalInfo("阻止返回")
-      return true
-    } else {
-      return false
-    }
-  })
-
-  // 检查尺寸发生变化
-  handleResize()
-  window.addEventListener('resize', handleResize)
 })
 
 // 卸载时移除事件监听
@@ -277,6 +277,11 @@ const handleResize = async () => {
 
 // 处理函数
 const handlePopoutWindow = () => {
+  if (!isMicroAppRef.value) {
+    alert('环境不支持')
+    return
+  }
+  
   popoutWindow({
     title: '独立窗口示例',
     width: 800,
@@ -286,6 +291,11 @@ const handlePopoutWindow = () => {
 }
 
 const handleOpenWindow = () => {
+  if (!isMicroAppRef.value) {
+    alert('环境不支持')
+    return
+  }
+
   openWindow({
     name: 'example-window',
     url: 'https://example.com',
@@ -298,6 +308,11 @@ const handleOpenWindow = () => {
 }
 
 const handleSelectUsers = async () => {
+  if (!isMicroAppRef.value) {
+    alert('环境不支持')
+    return
+  }
+
   try {
     const result = await selectUsers({
       title: '选择用户',
@@ -312,6 +327,11 @@ const handleSelectUsers = async () => {
 }
 
 const handleRequestAPI = async () => {
+  if (!isMicroAppRef.value) {
+    alert('环境不支持')
+    return
+  }
+
   try {
     const result = await requestAPI({
       url: 'users/info',
@@ -329,14 +349,29 @@ const handleRequestAPI = async () => {
 }
 
 const handleCloseApp = () => {
+  if (!isMicroAppRef.value) {
+    alert('环境不支持')
+    return
+  }
+
   closeApp()
 }
 
 const handleBackApp = () => {
+  if (!isMicroAppRef.value) {
+    alert('环境不支持')
+    return
+  }
+
   backApp()
 }
 
 const handleOpenModal = (type: string) => {
+  if (!isMicroAppRef.value) {
+    alert('环境不支持')
+    return
+  }
+
   switch (type) {
     case 'info':
       modalInfo('info')
@@ -369,6 +404,11 @@ const handleOpenModal = (type: string) => {
 }
 
 const handleOpenMessage = (type: string) => {
+  if (!isMicroAppRef.value) {
+    alert('环境不支持')
+    return
+  }
+
   switch (type) {
     case 'info':
       messageInfo('info')
