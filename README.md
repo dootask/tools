@@ -80,14 +80,15 @@ if (isMicro) {
 
 ### 应用状态相关
 
-| 函数名             | 参数 | 返回值             | 异常               | 说明                                   |
-| ------------------ | ---- | ------------------ | ------------------ | -------------------------------------- |
-| `appReady()`       | -    | `Promise<void>`    | `UnsupportedError` | 应用准备就绪的 Promise 对象            |
-| `isMicroApp()`     | -    | `Promise<boolean>` | -                  | 检查当前是否在微前端环境中运行         |
-| `isEEUIApp()`      | -    | `Promise<boolean>` | -                  | 检查是否为 EEUI 应用（App 客户端）     |
-| `isElectron()`     | -    | `Promise<boolean>` | -                  | 检查是否为 Electron 应用（电脑客户端） |
-| `isMainElectron()` | -    | `Promise<boolean>` | -                  | 检查是否为主 Electron 窗口             |
-| `isSubElectron()`  | -    | `Promise<boolean>` | -                  | 检查是否为子 Electron 窗口             |
+| 函数名               | 参数 | 返回值             | 异常               | 说明                                                         |
+|----------------------|------|--------------------|--------------------|--------------------------------------------------------------|
+| `appReady()`         | -    | `Promise<void>`    | `UnsupportedError` | 应用准备就绪的 Promise 对象                                  |
+| `isMicroApp()`       | -    | `Promise<boolean>` | -                  | 检查当前是否在微前端环境中运行                               |
+| `isEEUIApp()`        | -    | `Promise<boolean>` | -                  | 检查是否为 EEUI 应用（App 客户端）                           |
+| `isElectron()`       | -    | `Promise<boolean>` | -                  | 检查是否为 Electron 应用（电脑客户端）                       |
+| `isMainElectron()`   | -    | `Promise<boolean>` | -                  | 检查是否为主 Electron 窗口                                   |
+| `isSubElectron()`    | -    | `Promise<boolean>` | -                  | 检查是否为子 Electron 窗口                                   |
+| `isMobileLayout()`   | -    | `Promise<boolean>` | -                  | 判断是否为移动端布局。为 true 时显示胶囊菜单在右上角，需预留右上角区域 |
 
 ### 用户和系统信息
 
@@ -254,7 +255,7 @@ interface ModalParams {
 ### 检测运行环境
 
 ```typescript
-import { appReady, isMicroApp, isElectron, isEEUIApp, UnsupportedError } from "@dootask/tools"
+import { appReady, isMicroApp, isMobileLayout, isElectron, isEEUIApp, UnsupportedError } from "@dootask/tools"
 
 // 使用 try-catch 处理异常
 try {
@@ -271,15 +272,28 @@ const isMicro = await isMicroApp()
 if (isMicro) {
   console.log("在微前端环境中运行")
 
+  // 检测是否为Electron应用
   const isElectronEnv = await isElectron()
   if (isElectronEnv) {
     console.log("在Electron环境中运行")
   }
 
+  // 检测是否为EEUI应用
   const isEEUI = await isEEUIApp()
   if (isEEUI) {
     console.log("在EEUI应用环境中运行")
   }
+
+  // 检测移动端布局
+  const isMobile = await isMobileLayout()
+  if (isMobile) {
+    console.log("当前为移动端布局，胶囊菜单将显示在右上角")
+  }
+
+  // 监听布局变化
+  isMobileLayout((mobile) => {
+    console.log("布局变化：", mobile ? "移动端" : "桌面端")
+  })
 } else {
   console.log("不在微前端环境中运行")
 }

@@ -233,6 +233,33 @@ export const isFullScreen = async (): Promise<boolean> => {
 }
 
 /**
+ * 判断当前是否为移动端布局。
+ * @param listener 可选，监听布局变化的回调函数。当窗口尺寸变化时会自动触发回调，参数为当前是否为移动端布局。
+ * @returns {Promise<boolean>} 返回一个 Promise，解析为是否为移动端布局。
+ */
+export const isMobileLayout = async (listener?: (isMobile: boolean) => void): Promise<boolean> => {
+  const isMobile = async () => {
+    try {
+      return !!(await methodTryParent("isMobileLayout"))
+    } catch {
+      if (typeof window === "undefined") {
+        return false
+      }
+      return window.innerWidth < 768 || "ontouchend" in document
+    }
+  }
+
+  if (listener && typeof window !== "undefined") {
+    window.addEventListener("resize", async () => {
+      listener(await isMobile())
+    })
+    listener(await isMobile())
+  }
+
+  return await isMobile()
+}
+
+/**
  * 检查当前是否为iframe
  * @returns {Promise<boolean>} 返回是否为iframe
  */
