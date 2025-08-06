@@ -259,7 +259,12 @@ onMounted(async () => {
 
 // 监听主题变化
 watch(themeName, (newTheme: string) => {
-  document.documentElement.classList.toggle('dark', newTheme === 'dark')
+  if (newTheme === 'dark') {
+    document.documentElement.classList.remove('light')
+  } else {
+    document.documentElement.classList.remove('dark')
+  }
+  document.documentElement.classList.add(newTheme)
   localStorage.setItem('theme', newTheme)
 })
 
