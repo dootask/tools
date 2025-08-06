@@ -35,6 +35,9 @@ const callableFunctions: Record<string, Function> = {}
 /** 存储iframe应用的beforeClose监听器 */
 const iframeBeforeClose: Record<string, () => boolean> = {}
 
+/** 存储菜单点击监听器 */
+const menuClickListeners: Record<string, (message: Any) => boolean> = {}
+
 /** 序列化参数中的函数（递归处理） */
 const serializeFunctions = (value: Any): Any => {
   if (typeof value === "function") {
@@ -732,6 +735,44 @@ export const interceptBack = async (callback: () => boolean): Promise<() => void
   return () => {}
 }
 
+/**
+ * 添加菜单点击监听器
+ * @param callback - 回调函数，当菜单点击时调用
+ * @returns {Promise<() => void>} 返回一个函数，执行该函数可以注销监听器
+ * @throws {UnsupportedError} 环境不支持
+ */
+export const addMenuClickListener = async (callback: (message: Any) => boolean): Promise<() => void> => {
+  // 如果当前是iframe应用，则添加menuClick监听器
+  if (await isIframe()) {
+    const id = Math.random().toString(36).substring(2, 15)
+    menuClickListeners[id] = callback
+    return () => {
+      delete menuClickListeners[id]
+    }
+  }
+
+  // 如果当前是微前端应用，则添加数据监听器
+  if (window.microApp?.addDataListener) {
+    const interceptListener = (data: Any) => {
+      if (data && data.type === "menuClick") {
+        return callback(data.message)
+      }
+      return false
+    }
+    window.microApp.addDataListener(interceptListener, false)
+
+    // 返回注销监听的函数
+    return () => {
+      if (window.microApp?.removeDataListener) {
+        window.microApp.removeDataListener(interceptListener)
+      }
+    }
+  }
+
+  // 如果没有添加监听，返回空函数
+  return () => {}
+}
+
 // **************************************************************************************
 // **************************************************************************************
 // **************************************************************************************
@@ -844,10 +885,16 @@ export const removeDataListener = (callback: Func): void => {
         }
         break
 
+      case "MICRO_APP_MENU_CLICK":
+        for (const id in menuClickListeners) {
+          menuClickListeners[id](message)
+        }
+        break
+
       case "MICRO_APP_BEFORE_CLOSE":
         let isBeforeClose = false
-        for (const iframeId in iframeBeforeClose) {
-          if (iframeBeforeClose[iframeId]()) {
+        for (const id in iframeBeforeClose) {
+          if (iframeBeforeClose[id]()) {
             isBeforeClose = true
           }
         }
