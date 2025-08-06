@@ -36,7 +36,7 @@ const callableFunctions: Record<string, Function> = {}
 const iframeBeforeClose: Record<string, () => boolean> = {}
 
 /** 存储菜单点击监听器 */
-const menuClickListeners: Record<string, (message: Any) => boolean> = {}
+const menuClickListeners: Record<string, (message: Any) => void> = {}
 
 /** 序列化参数中的函数（递归处理） */
 const serializeFunctions = (value: Any): Any => {
@@ -741,7 +741,7 @@ export const interceptBack = async (callback: () => boolean): Promise<() => void
  * @returns {Promise<() => void>} 返回一个函数，执行该函数可以注销监听器
  * @throws {UnsupportedError} 环境不支持
  */
-export const addMenuClickListener = async (callback: (message: Any) => boolean): Promise<() => void> => {
+export const addMenuClickListener = async (callback: (message: Any) => void): Promise<() => void> => {
   // 如果当前是iframe应用，则添加menuClick监听器
   if (await isIframe()) {
     const id = Math.random().toString(36).substring(2, 15)
@@ -755,9 +755,8 @@ export const addMenuClickListener = async (callback: (message: Any) => boolean):
   if (window.microApp?.addDataListener) {
     const interceptListener = (data: Any) => {
       if (data && data.type === "menuClick") {
-        return callback(data.message)
+        callback(data.message)
       }
-      return false
     }
     window.microApp.addDataListener(interceptListener, false)
 

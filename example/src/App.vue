@@ -1,22 +1,15 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+  <div class="h-screen overflow-hidden flex flex-col max-w-7xl mx-auto bg-gray-50 dark:bg-gray-900">
     <!-- 导航栏 -->
-    <nav v-if="showNav" class="sticky top-0 z-50 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
-      <div class="flex items-center justify-between max-w-7xl mx-auto">
-        <button @click="handleCloseApp" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-          </svg>
-        </button>
-        <h1 class="text-lg font-semibold text-gray-900 dark:text-white">DooTask Tools</h1>
-        <div class="w-9"></div>
-      </div>
+    <nav v-if="showNav" class="sticky top-0 z-50 bg-white dark:bg-gray-800 px-4 h-13 shadow-xs flex items-center transition-all duration-300">
+      <h1 class="text-lg font-semibold text-gray-900 dark:text-white">DooTask Tools</h1>
     </nav>
 
-    <div class="max-w-7xl mx-auto px-4 py-6">
+    <!-- 页面内容 -->
+    <div class="flex-1 px-4 py-6 overflow-y-auto">
       <!-- 页面标题 -->
       <header class="text-center mb-8">
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">DooTask Tools</h1>
+        <h1 v-if="!showNav" class="text-3xl font-bold text-gray-900 dark:text-white mb-2">DooTask Tools</h1>
         <p class="text-gray-600 dark:text-gray-400">现代化的 Vite 开发工具集成示例</p>
       </header>
 
@@ -177,7 +170,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, watch } from "vue"
+import { ref, onMounted, watch } from "vue"
 import {
   isMicroApp,
   getUserId,
@@ -206,9 +199,9 @@ import {
   messageSuccess,
   DooTaskUserInfo,
   DooTaskSystemInfo,
-  isFullScreen,
-  getWindowType,
-  interceptBack
+  interceptBack,
+  isMobileLayout,
+  addMenuClickListener
 } from '../../src/index'
 
 // 响应式数据
@@ -240,6 +233,16 @@ onMounted(async () => {
     userInfo.value = await getUserInfo()
     systemInfo.value = await getSystemInfo()
 
+    // 监听胶囊显示
+    showNav.value = await isMobileLayout((isMobile: boolean) => {
+      showNav.value = isMobile
+    })
+
+    // 添加菜单点击监听器
+    addMenuClickListener((message: string) => {
+      modalAlert('菜单点击:' + message)
+    })
+
     // 阻止返回
     interceptBack(() => {
       if (preventCloseApp.value) {
@@ -249,18 +252,9 @@ onMounted(async () => {
         return false
       }
     })
-
-    // 检查尺寸发生变化
-    handleResize()
-    window.addEventListener('resize', handleResize)
   } catch (error) {
     console.error('应用初始化失败:', error)
   }
-})
-
-// 卸载时移除事件监听
-onBeforeUnmount(() => {
-  window.removeEventListener('resize', handleResize)
 })
 
 // 监听主题变化
@@ -268,12 +262,6 @@ watch(themeName, (newTheme: string) => {
   document.documentElement.classList.toggle('dark', newTheme === 'dark')
   localStorage.setItem('theme', newTheme)
 })
-
-// 检查尺寸发生变化
-const handleResize = async () => {
-  // 如果当前是嵌入式窗口，并且是满屏，则显示导航栏
-  showNav.value = (await getWindowType()) === 'embed' && (await isFullScreen())
-}
 
 // 处理函数
 const handlePopoutWindow = () => {
