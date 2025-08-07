@@ -1,12 +1,7 @@
 <template>
-  <div class="h-screen overflow-hidden flex flex-col max-w-7xl mx-auto bg-gray-50 dark:bg-gray-900">
-    <!-- 导航栏 -->
-    <nav class="sticky top-0 z-50 bg-white dark:bg-gray-800 px-4 h-13 shadow-xs flex items-center transition-all duration-300">
-      <h1 class="text-lg font-semibold text-gray-900 dark:text-white">DooTask Tools</h1>
-    </nav>
-
+  <div class="h-screen flex flex-col max-w-7xl mx-auto bg-gray-50 dark:bg-gray-900">
     <!-- 页面内容 -->
-    <div class="flex-1 px-4 py-6 overflow-y-auto">
+    <div class="flex-1 px-4 py-6">
       <!-- 页面标题 -->
       <header class="text-center mb-8">
         <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">DooTask Tools</h1>
