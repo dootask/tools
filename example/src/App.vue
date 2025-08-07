@@ -1,7 +1,7 @@
 <template>
   <div class="h-screen overflow-hidden flex flex-col max-w-7xl mx-auto bg-gray-50 dark:bg-gray-900">
     <!-- 导航栏 -->
-    <nav v-if="showNav" class="sticky top-0 z-50 bg-white dark:bg-gray-800 px-4 h-13 shadow-xs flex items-center transition-all duration-300">
+    <nav class="sticky top-0 z-50 bg-white dark:bg-gray-800 px-4 h-13 shadow-xs flex items-center transition-all duration-300">
       <h1 class="text-lg font-semibold text-gray-900 dark:text-white">DooTask Tools</h1>
     </nav>
 
@@ -9,7 +9,7 @@
     <div class="flex-1 px-4 py-6 overflow-y-auto">
       <!-- 页面标题 -->
       <header class="text-center mb-8">
-        <h1 v-if="!showNav" class="text-3xl font-bold text-gray-900 dark:text-white mb-2">DooTask Tools</h1>
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">DooTask Tools</h1>
         <p class="text-gray-600 dark:text-gray-400">现代化的 Vite 开发工具集成示例</p>
       </header>
 
@@ -200,7 +200,6 @@ import {
   DooTaskUserInfo,
   DooTaskSystemInfo,
   interceptBack,
-  isMobileLayout,
   addMenuClickListener
 } from '../../src/index'
 
@@ -211,7 +210,6 @@ const themeName = ref('')
 const languageName = ref('')
 const isElectronRef = ref(false)
 const isEEUIAppRef = ref(false)
-const showNav = ref(false)
 const preventCloseApp = ref(false)
 const userInfo = ref<DooTaskUserInfo | null>(null)
 const systemInfo = ref<DooTaskSystemInfo | null>(null)
@@ -232,11 +230,6 @@ onMounted(async () => {
     isEEUIAppRef.value = await isEEUIApp()
     userInfo.value = await getUserInfo()
     systemInfo.value = await getSystemInfo()
-
-    // 监听胶囊显示
-    showNav.value = await isMobileLayout((isMobile: boolean) => {
-      showNav.value = isMobile
-    })
 
     // 添加菜单点击监听器
     addMenuClickListener((message: string) => {
