@@ -174,6 +174,25 @@ export interface SelectUsersParams {
   [key: string]: Any
 }
 
+/** 胶囊配置接口 */
+export interface CapsuleConfig {
+  /** 胶囊是否显示（默认：true） */
+  visible?: boolean
+  /** 胶囊按钮距离顶部的像素值（默认：10） */
+  top?: number
+  /** 胶囊按钮距离右侧的像素值（默认：10） */
+  right?: number
+  /** 胶囊按钮"更多"菜单项配置 */
+  more_menus?: Array<{
+    /** 菜单项显示文本 */
+    label: string
+    /** 菜单项值 */
+    value: string | number
+    [key: string]: Any
+  }>
+  [key: string]: Any
+}
+
 /** 弹出提示框参数接口 */
 export interface ModalParams {
   title: string

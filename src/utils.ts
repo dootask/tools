@@ -18,6 +18,7 @@ import {
   DooTaskUserBasicInfo,
   DooTaskSafeArea,
   UnsupportedError,
+  CapsuleConfig,
 } from "./types"
 
 /** 存储微应用数据 */
@@ -472,6 +473,15 @@ export const fetchUserBasic = async (userid: number | number[]): Promise<DooTask
     },
   })
   return data || []
+}
+
+/**
+ * 设置胶囊配置
+ * @param config - 胶囊配置
+ * @throws {UnsupportedError} 环境不支持
+ */
+export const setCapsuleConfig = async (config: CapsuleConfig): Promise<void> => {
+  await methodTryParent("setCapsuleConfig", config)
 }
 
 // **************************************************************************************

@@ -124,11 +124,12 @@ if (isMicro) {
 
 ### 用户交互
 
-| 函数名                   | 参数                         | 返回值                            | 异常                           | 说明                                     |
-| ------------------------ | ---------------------------- | --------------------------------- | ------------------------------ | ---------------------------------------- |
-| `selectUsers(params)`    | `params: SelectUsersParams`  | `Promise<number[]>`               | `UnsupportedError`             | 选择用户，可以传入多种配置来自定义选择器 |
-| `requestAPI(params)`     | `params: requestParams`      | `Promise<ApiSuccess>`             | `UnsupportedError \| ApiError` | 请求服务器 API                           |
-| `fetchUserBasic(userid)` | `userid: number \| number[]` | `Promise<DooTaskUserBasicInfo[]>` | `UnsupportedError \| ApiError` | 查询用户基本信息                         |
+| 函数名                    | 参数                          | 返回值                              | 异常                             | 说明                                         |
+|---------------------------|-------------------------------|-------------------------------------|----------------------------------|----------------------------------------------|
+| `selectUsers(params)`     | `params: SelectUsersParams`   | `Promise<number[]>`                 | `UnsupportedError`               | 选择用户，可通过多种配置自定义选择器         |
+| `requestAPI(params)`      | `params: requestParams`       | `Promise<ApiSuccess>`               | `UnsupportedError` \| `ApiError` | 请求服务器 API                              |
+| `fetchUserBasic(userid)`  | `userid: number \| number[]`  | `Promise<DooTaskUserBasicInfo[]>`   | `UnsupportedError` \| `ApiError` | 查询用户基本信息                            |
+| `setCapsuleConfig(config)`| `config: CapsuleConfig`       | `Promise<void>`                     | `UnsupportedError`               | 设置胶囊配置                                 |
 
 ### 提示框
 
