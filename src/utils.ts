@@ -159,6 +159,20 @@ const methodTryParent = async (method: string, ...args: Any[]): Promise<Any | nu
   })
 }
 
+/** 如果当前在iframe中，则尝试聚焦父窗口 */
+const focusParentWindowIfIframe = (): void => {
+  try {
+    if (typeof window === "undefined") return
+    const { parent } = window
+    if (!parent || parent === window) return
+    if (typeof parent.focus === "function") {
+      parent.focus()
+    }
+  } catch {
+    // Ignore focus errors (e.g. cross-origin restrictions)
+  }
+}
+
 // **************************************************************************************
 // **************************************************************************************
 // **************************************************************************************
@@ -494,6 +508,7 @@ export const setCapsuleConfig = async (config: CapsuleConfig): Promise<void> => 
  * @throws {UnsupportedError} 环境不支持
  */
 export const openDialog = async (dialogId: number): Promise<void> => {
+  focusParentWindowIfIframe()
   await methodTryParent("extraCallStore", "openDialog", dialogId)
 }
 
@@ -503,6 +518,7 @@ export const openDialog = async (dialogId: number): Promise<void> => {
  * @throws {UnsupportedError} 环境不支持
  */
 export const openDialogNewWindow = async (dialogId: number): Promise<void> => {
+  focusParentWindowIfIframe()
   await methodTryParent("extraCallStore", "openDialogNewWindow", dialogId)
 }
 
@@ -512,6 +528,7 @@ export const openDialogNewWindow = async (dialogId: number): Promise<void> => {
  * @throws {UnsupportedError} 环境不支持
  */
 export const openDialogUserid = async (userid: number): Promise<void> => {
+  focusParentWindowIfIframe()
   await methodTryParent("extraCallStore", "openDialogUserid", userid)
 }
 
@@ -521,6 +538,7 @@ export const openDialogUserid = async (userid: number): Promise<void> => {
  * @throws {UnsupportedError} 环境不支持
  */
 export const openTask = async (taskId: number): Promise<void> => {
+  focusParentWindowIfIframe()
   await methodTryParent("extraCallStore", "openTask", taskId)
 }
 
@@ -544,6 +562,7 @@ export const downloadUrl = async (url: string | { url: string; token: boolean })
  * @throws {UnsupportedError} 环境不支持
  */
 export const modalSuccess = async (message: string | ModalParams): Promise<void> => {
+  focusParentWindowIfIframe()
   await methodTryParent("extraCallA", "modalSuccess", message)
 }
 
@@ -554,6 +573,7 @@ export const modalSuccess = async (message: string | ModalParams): Promise<void>
  * @throws {UnsupportedError} 环境不支持
  */
 export const modalError = async (message: string | ModalParams): Promise<void> => {
+  focusParentWindowIfIframe()
   await methodTryParent("extraCallA", "modalError", message)
 }
 
@@ -564,6 +584,7 @@ export const modalError = async (message: string | ModalParams): Promise<void> =
  * @throws {UnsupportedError} 环境不支持
  */
 export const modalWarning = async (message: string | ModalParams): Promise<void> => {
+  focusParentWindowIfIframe()
   await methodTryParent("extraCallA", "modalWarning", message)
 }
 
@@ -574,6 +595,7 @@ export const modalWarning = async (message: string | ModalParams): Promise<void>
  * @throws {UnsupportedError} 环境不支持
  */
 export const modalInfo = async (message: string | ModalParams): Promise<void> => {
+  focusParentWindowIfIframe()
   await methodTryParent("extraCallA", "modalInfo", message)
 }
 
@@ -584,6 +606,7 @@ export const modalInfo = async (message: string | ModalParams): Promise<void> =>
  * @throws {UnsupportedError} 环境不支持
  */
 export const modalConfirm = async (message: string | ModalParams): Promise<boolean> => {
+  focusParentWindowIfIframe()
   return new Promise<boolean>(resolve => {
     if (typeof message === "string") {
       message = {
@@ -611,6 +634,7 @@ export const modalConfirm = async (message: string | ModalParams): Promise<boole
  * @throws {UnsupportedError} 环境不支持
  */
 export const modalAlert = async (message: string): Promise<void> => {
+  focusParentWindowIfIframe()
   await methodTryParent("extraCallA", "modalAlert", message)
 }
 
