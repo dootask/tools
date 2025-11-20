@@ -443,6 +443,7 @@ export const requestAPI = async (params: requestParams): Promise<ApiSuccess> => 
  * @throws {Error} 取消选择
  */
 export const selectUsers = async (params: SelectUsersParams): Promise<number[]> => {
+  focusParentWindowIfIframe()
   return await methodTryParent("selectUsers", params)
 }
 
