@@ -18,7 +18,7 @@ import { DooTaskClient } from "@dootask/tools"
 // 创建客户端
 const client = new DooTaskClient({
   token: "your-token-here",
-  server: "https://your-dootask-server.com",
+  // server: "https://your-dootask-server.com", // 不传时默认 http://nginx
   timeoutMs: 10_000,
   // fetch: customFetch, // 旧版 Node 可自定义 fetch
 })
@@ -44,7 +44,6 @@ import { DooTaskClient } from "@dootask/tools"
 
 const client = new DooTaskClient({
   token: "YOUR_TOKEN",
-  server: "https://your-dootask-server.com",
 })
 
 // 发送消息到指定对话
@@ -69,7 +68,6 @@ import { DooTaskClient } from "@dootask/tools"
 
 const client = new DooTaskClient({
   token: "YOUR_TOKEN",
-  server: "https://your-dootask-server.com",
 })
 
 // 创建项目
@@ -126,6 +124,8 @@ await client.addGroupUser({
 |------|------|------|--------|
 | `DooTaskClient` | 创建客户端实例 | `options: { token, server?, timeoutMs?, fetch? }` | `DooTaskClient` |
 
+> 说明：`server` 默认值为 `http://nginx`，适用于在 Docker / K8s 等环境中通过服务名 `nginx` 访问 DooTask 主程序；在这种部署方式下生产环境通常只需传入 `token`。
+>
 > 所有方法返回 `Promise`。请求失败或业务 `ret != 1` 时，会抛出 `DooTaskApiError`。
 
 ### 用户相关接口
@@ -232,4 +232,3 @@ await client.addGroupUser({
 |------|------|------|--------|
 | `getSystemSettings` | 获取系统设置 | - | `Promise<SystemSettings>` |
 | `getVersion` | 获取版本信息 | - | `Promise<VersionInfo>` |
-

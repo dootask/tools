@@ -38,6 +38,8 @@ func main() {
 }
 ```
 
+> 说明：如果不调用 `WithServer`，客户端默认使用 `http://nginx` 作为服务地址，适用于在 Docker / K8s 等环境中通过服务名 `nginx` 访问 DooTask 主程序。
+
 ## 主要功能示例
 
 ### 发送消息

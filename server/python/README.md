@@ -20,14 +20,16 @@ from dootask import DooTaskClient
 # 创建客户端
 client = DooTaskClient(
     token="your_token_here",
-    server="https://your-dootask-server.com",
-    timeout=30
+    # server="https://your-dootask-server.com",  # 不传时默认 http://nginx
+    timeout=30,
 )
 
 # 获取用户信息
 user = client.get_user_info()
 print(f"用户: {user.nickname}")
 ```
+
+> 说明：`server` 参数默认值为 `http://nginx`，一般用于在 Docker / K8s 等环境中通过服务名 `nginx` 访问 DooTask 主程序，在这种部署方式下生产环境可以不显式传入 `server`。
 
 ## 主要功能示例
 
