@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../../dist/server/node/src",
+    "rootDir": "src",
+    "target": "es2019",
+    "lib": ["es2021", "dom"],
+    "module": "commonjs"
+  },
+  "include": ["src"]
+}

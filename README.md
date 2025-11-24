@@ -491,8 +491,11 @@ npm run dev
 
 ## 后端服务
 
+DooTask 提供多语言后端 SDK，方便在服务端调用同一套 API：
+
 - [Go](server/go)
 - [Python](server/python)
+- [Node](server/node)
 
 ## 许可证
 
