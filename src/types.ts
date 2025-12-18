@@ -34,7 +34,7 @@ export class UnsupportedError extends Error {
 export interface MicroAppProps {
   name: string
   url: string
-  urlType: string
+  type: string
 
   userId: number
   userToken: string

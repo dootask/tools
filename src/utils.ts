@@ -256,7 +256,8 @@ export const isFullScreen = async (): Promise<boolean> => {
  */
 export const isIframe = async (): Promise<boolean> => {
   try {
-    return /^iframe/i.test(await getAppData("props.urlType"))
+    const value = (await getAppData("props.type")) || (await getAppData("props.urlType"))
+    return /^iframe/i.test(value)
   } catch {
     return false
   }
