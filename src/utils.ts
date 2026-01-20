@@ -470,6 +470,17 @@ export const callExtraStore = async (actionName: string, ...payload: Any[]): Pro
   return await methodTryParent("extraCallStore", actionName, ...payload)
 }
 
+/**
+ * 调用emitter.emit上的额外方法
+ * @param eventName - 事件名
+ * @param args - 参数列表
+ * @returns 方法返回值
+ * @throws {UnsupportedError} 环境不支持
+ */
+export const callExtraEmitter = async (eventName: string, ...args: Any[]): Promise<Any> => {
+  return await methodTryParent("extraCallEmitter", eventName, ...args)
+}
+
 // **************************************************************************************
 // **************************************************************************************
 // **************************************************************************************

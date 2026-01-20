@@ -167,6 +167,7 @@ if (isMicro) {
 | ---------------------------------------- | --------------------------------------- | -------------- | ------------------ | --------------------------------- |
 | `callExtraA(methodName, ...args)`        | `methodName: string, ...args: any[]`    | `Promise<any>` | `UnsupportedError` | 调用 $A 上的额外方法              |
 | `callExtraStore(actionName, ...payload)` | `actionName: string, ...payload: any[]` | `Promise<any>` | `UnsupportedError` | 调用 $store.dispatch 上的额外方法 |
+| `callExtraEmitter(eventName, ...args)`   | `eventName: string, ...args: any[]`     | `Promise<any>` | `UnsupportedError` | 调用 emitter.emit 上的额外方法    |
 
 ### PopoutWindowParams
 
