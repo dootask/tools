@@ -16,6 +16,26 @@ import (
 // 故不能复用 SDK 的 NewGetRequest/NewPostRequest，这里单独走原始 HTTP。
 const appStoreTimeout = 300 * time.Second // 安装/卸载会跑 docker compose，留足时间
 
+// AppStore 用 Version 头判定主程序版本（缺省按 1.0.0，会让 require_version 校验失败）。
+// 缓存一次主程序版本，避免每条 app 命令重复请求。
+var cachedMainVersion string
+
+func mainAppVersion() string {
+	if cachedMainVersion != "" {
+		return cachedMainVersion
+	}
+	c, err := Opts.Client()
+	if err != nil {
+		return ""
+	}
+	v, err := c.GetVersion()
+	if err != nil || v == nil {
+		return ""
+	}
+	cachedMainVersion = v.Version
+	return cachedMainVersion
+}
+
 // AppStoreRequest 调用 AppStore 接口。path 以 / 开头、相对 /appstore/api/v1。
 // body 非 nil 时以 JSON POST；out 非 nil 时把 data 反序列化进去。
 func AppStoreRequest(method, path string, query map[string]string, body any, out any) error {
@@ -50,6 +70,9 @@ func AppStoreRequest(method, path string, query map[string]string, body any, out
 	}
 	req.Header.Set("Token", Opts.Token)
 	req.Header.Set("User-Agent", "doo-cli")
+	if v := mainAppVersion(); v != "" {
+		req.Header.Set("Version", v) // 供 AppStore 校验 require_version，缺省会被当 1.0.0
+	}
 	if body != nil {
 		req.Header.Set("Content-Type", "application/json")
 	}
