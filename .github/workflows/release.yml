@@ -65,7 +65,8 @@ jobs:
         run: go vet ./...
       - name: go test
         working-directory: server/go
-        run: go test ./...
+        # 排除 server/go/test —— 那是连真实 DooTask 服务的集成测试，CI 跑不了
+        run: go test $(go list ./... | grep -v '/test$')
 
   # ---- 3. 发布 5 个平台子包 @dootask/cli-{plat} ----
   publish-npm-platforms:
