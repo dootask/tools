@@ -48,6 +48,7 @@ func NewRootCmd() *cobra.Command {
 		newReportCmd(),
 		newSearchCmd(),
 		newPageCmd(),
+		newAppCmd(),
 		newSystemCmd(),
 	)
 	return root

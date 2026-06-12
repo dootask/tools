@@ -58,6 +58,7 @@ doo file      list | search | view | fetch          (实验性)
 doo report    received | my | view | template | submit | mark   (实验性)
 doo search    <关键词> [--types ...]                 (实验性)
 doo page      context | action | element             (需 --session <fd>)
+doo app       list | catalog | install | update | reinstall | uninstall | remove | logs | containers | container-logs | refresh
 doo system    version | settings
 ```
 
@@ -79,4 +80,5 @@ doo search 财务 --types task,project
 
 - 危险/不可逆操作（删除、解散群、撤回消息等）默认需要确认；非交互环境请显式加 `--yes`。
 - `file` / `report` / `search` 暂走通用端点（SDK 尚无对应类型），标记为实验性，输出字段以 `--json` 为准。
+- `app`（应用插件）走 AppStore 微服务（主程序反代 `/appstore/api/v1`，响应 `{code,message,data}`）：`install`/`update`/`reinstall`/`uninstall`/`remove`/`refresh` 需**管理员**权限，安装/卸载会触发 docker compose、可能耗时；`list`/`catalog`/`logs`/`containers` 普通用户即可。
 - `doo page`（获取页面上下文 / 执行业务操作 / 操作页面元素）经主程序常驻 WebSocket（`/ws`）派发到用户浏览器执行：CLI 调 `assistant/operation/dispatch` 派发后轮询 `assistant/operation/result` 取结果，对调用者表现为同步命令。需用 `--session <fd>`（或环境变量 `DOO_SESSION`）指定目标会话；fd 为用户当前在线的 WebSocket 连接，归属与在线由主程序校验。
