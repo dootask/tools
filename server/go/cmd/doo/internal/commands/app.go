@@ -157,17 +157,53 @@ func newAppListCmd() *cobra.Command {
 }
 
 func newAppCatalogCmd() *cobra.Command {
-	return &cobra.Command{
+	var search string
+	cmd := &cobra.Command{
 		Use:   "catalog",
-		Short: "列出应用市场可安装的应用",
+		Short: "列出应用市场可安装的应用（--search 关键词模糊匹配 id/name/description/tags）",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			var out any
-			if err := cli.AppStoreRequest("GET", "/list", nil, nil, &out); err != nil {
+			var raw []map[string]any
+			if err := cli.AppStoreRequest("GET", "/list", nil, nil, &raw); err != nil {
 				return err
 			}
-			return cli.Output(out, []string{"id", "name", "version", "tags"})
+			items := raw
+			if kw := strings.TrimSpace(search); kw != "" {
+				kwLower := strings.ToLower(kw)
+				matched := make([]map[string]any, 0, len(raw))
+				for _, it := range raw {
+					if catalogMatch(it, kw, kwLower) {
+						matched = append(matched, it)
+					}
+				}
+				items = matched
+			}
+			return cli.Output(items, []string{"id", "name", "version", "tags"})
 		},
 	}
+	cmd.Flags().StringVar(&search, "search", "", "按关键词模糊匹配 id/name/description/tags（含中文）")
+	return cmd
+}
+
+// catalogMatch 按关键词在 id/name/description/tags 中做大小写不敏感的子串匹配；
+// tags 任一项命中即视为匹配，便于覆盖中文标签如「客户管理」。
+func catalogMatch(item map[string]any, kw, kwLower string) bool {
+	for _, k := range []string{"id", "name", "description"} {
+		if v, ok := item[k].(string); ok && v != "" {
+			if strings.Contains(strings.ToLower(v), kwLower) || strings.Contains(v, kw) {
+				return true
+			}
+		}
+	}
+	if tags, ok := item["tags"].([]any); ok {
+		for _, t := range tags {
+			if s, ok := t.(string); ok {
+				if strings.Contains(strings.ToLower(s), kwLower) || strings.Contains(s, kw) {
+					return true
+				}
+			}
+		}
+	}
+	return false
 }
 
 // install / update 共用：对已安装应用再 install 即为升级（后端自动判定）。
