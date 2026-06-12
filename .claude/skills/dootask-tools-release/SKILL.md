@@ -1,5 +1,5 @@
 ---
-name: release
+name: dootask-tools-release
 description: 从 main 分支发布 dootask-tools 新版本：版本号 → CHANGELOG → commit → tag → push，Action 自动出三包（npm @dootask/tools + @dootask/cli + PyPI dootask-tools）与 doo 五平台二进制。刚性顺序、每步确认、失败即停。
 ---
 
