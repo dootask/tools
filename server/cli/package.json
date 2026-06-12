@@ -1,6 +1,6 @@
 {
     "name": "@dootask/cli",
-    "version": "0.0.0-dev",
+    "version": "1.3.0",
     "description": "DooTask 命令行工具 doo（gh 式 CLI，覆盖任务/项目/对话/消息/页面操作/应用插件等）",
     "bin": {
         "doo": "bin/doo.js"
@@ -16,11 +16,11 @@
         "access": "public"
     },
     "optionalDependencies": {
-        "@dootask/cli-linux-x64": "0.0.0-dev",
-        "@dootask/cli-linux-arm64": "0.0.0-dev",
-        "@dootask/cli-darwin-x64": "0.0.0-dev",
-        "@dootask/cli-darwin-arm64": "0.0.0-dev",
-        "@dootask/cli-win32-x64": "0.0.0-dev"
+        "@dootask/cli-linux-x64": "1.3.0",
+        "@dootask/cli-linux-arm64": "1.3.0",
+        "@dootask/cli-darwin-x64": "1.3.0",
+        "@dootask/cli-darwin-arm64": "1.3.0",
+        "@dootask/cli-win32-x64": "1.3.0"
     },
     "keywords": [
         "dootask",
