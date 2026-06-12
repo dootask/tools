@@ -9,6 +9,100 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// 字段定义来自 GET /one/:appId 顶层 fields（已按当前语种摊平 label/description）。
+type appField struct {
+	Name        string `json:"name"`
+	Label       string `json:"label"`
+	Type        string `json:"type"` // input/select/password/textarea/...
+	Required    bool   `json:"required"`
+	Default     any    `json:"default"`
+	Description string `json:"description"`
+	Options     []struct {
+		Label string `json:"label"`
+		Value any    `json:"value"`
+	} `json:"options"`
+}
+
+type appOne struct {
+	ID     string     `json:"id"`
+	Name   string     `json:"name"`
+	Fields []appField `json:"fields"`
+	Config struct {
+		Params         map[string]any `json:"params"`
+		Resources      map[string]any `json:"resources"`
+		InstallVersion string         `json:"install_version"`
+		Status         string         `json:"status"`
+	} `json:"config"`
+}
+
+func fetchAppOne(appid string) (*appOne, error) {
+	var o appOne
+	if err := cli.AppStoreRequest("GET", "/one/"+url.PathEscape(appid), nil, nil, &o); err != nil {
+		return nil, err
+	}
+	return &o, nil
+}
+
+// parseParamPairs 把 ["K=V","K2=V2"] 解析成 map；非法的 K=V 报错。
+func parseParamPairs(pairs []string) (map[string]any, error) {
+	m := map[string]any{}
+	for _, p := range pairs {
+		kv := strings.SplitN(p, "=", 2)
+		if len(kv) != 2 || kv[0] == "" {
+			return nil, fmt.Errorf("非法 --param %q（需 K=V 形式）", p)
+		}
+		m[kv[0]] = kv[1]
+	}
+	return m, nil
+}
+
+// validateRequiredFields 检查 required 字段：若用户未提供，且字段无 default，则报错。
+// 同时拒绝 fields 里不存在的多余 key，提示用户拼错。
+func validateRequiredFields(fields []appField, given map[string]any) error {
+	defined := map[string]appField{}
+	for _, f := range fields {
+		defined[f.Name] = f
+	}
+	for k := range given {
+		if _, ok := defined[k]; !ok {
+			return fmt.Errorf("未知参数 %q（应用 fields 中不存在，可用 doo app fields <appid> 查看）", k)
+		}
+	}
+	var missing []string
+	for _, f := range fields {
+		if !f.Required {
+			continue
+		}
+		if _, ok := given[f.Name]; ok {
+			continue
+		}
+		if f.Default != nil && fmt.Sprintf("%v", f.Default) != "" {
+			continue // 有默认值，后端会兜底
+		}
+		missing = append(missing, f.Name)
+	}
+	if len(missing) > 0 {
+		return fmt.Errorf("缺少必填参数：%s（用 --param K=V 提供，详见 doo app fields <appid>）", strings.Join(missing, ", "))
+	}
+	return nil
+}
+
+// buildResources 把 --cpu-limit/--memory-limit 拼成 AppStore 期望的形态；
+// 任一为空就不覆盖已装值（reinstall 场景下保留 sticky）。
+func buildResources(cpu, mem string, fallback map[string]any) map[string]any {
+	r := map[string]any{}
+	for k, v := range fallback {
+		r[k] = v
+	}
+	if cpu != "" {
+		r["cpu_limit"] = cpu
+	}
+	if mem != "" {
+		r["memory_limit"] = mem
+	}
+	return r
+}
+
 // 应用插件（AppStore）管理。安装/卸载/删除/更新列表需管理员；列表/日志/容器普通用户即可。
 func newAppCmd() *cobra.Command {
 	cmd := &cobra.Command{
@@ -19,6 +113,7 @@ func newAppCmd() *cobra.Command {
 	cmd.AddCommand(
 		newAppListCmd(),
 		newAppCatalogCmd(),
+		newAppFieldsCmd(),
 		newAppInstallCmd("install"),
 		newAppInstallCmd("update"),
 		newAppReinstallCmd(),
@@ -30,6 +125,21 @@ func newAppCmd() *cobra.Command {
 		newAppRefreshCmd(),
 	)
 	return cmd
+}
+
+func newAppFieldsCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "fields <应用ID>",
+		Short: "列出应用的安装参数定义（字段名/类型/是否必填/默认值/可选项）",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			one, err := fetchAppOne(args[0])
+			if err != nil {
+				return err
+			}
+			return cli.Output(one.Fields, []string{"name", "type", "required", "default", "label", "description"})
+		},
+	}
 }
 
 func newAppListCmd() *cobra.Command {
@@ -61,12 +171,12 @@ func newAppCatalogCmd() *cobra.Command {
 }
 
 // install / update 共用：对已安装应用再 install 即为升级（后端自动判定）。
+// 校验 fields（拒未知 key、缺必填字段在没默认值时报错），暴露 cpu/memory/pull。
 func newAppInstallCmd(verb string) *cobra.Command {
-	var version string
+	var version, cpuLimit, memLimit string
 	var params []string
 	var pull bool
 	short := "安装应用（已安装则升级）"
-	defVersion := "latest"
 	if verb == "update" {
 		short = "更新应用到指定/最新版本"
 	}
@@ -75,58 +185,99 @@ func newAppInstallCmd(verb string) *cobra.Command {
 		Short: short,
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			appid := args[0]
+			one, err := fetchAppOne(appid)
+			if err != nil {
+				return err
+			}
+			given, err := parseParamPairs(params)
+			if err != nil {
+				return err
+			}
+			// 已安装则 sticky：以当前已装 params 为底叠加用户传入，避免不传 --param 时
+			// 误把令牌/选项清空（与网页表单"初值即当前值"的行为对齐）。
+			merged := map[string]any{}
+			if one.Config.Status == "installed" {
+				for k, v := range one.Config.Params {
+					merged[k] = v
+				}
+			}
+			for k, v := range given {
+				merged[k] = v
+			}
+			if err := validateRequiredFields(one.Fields, merged); err != nil {
+				return err
+			}
 			body := map[string]any{
-				"appid":      args[0],
+				"appid":      appid,
 				"version":    version,
 				"pull_image": pull,
 			}
-			if len(params) > 0 {
-				pm := map[string]any{}
-				for _, p := range params {
-					kv := strings.SplitN(p, "=", 2)
-					if len(kv) == 2 {
-						pm[kv[0]] = kv[1]
-					}
-				}
-				body["params"] = pm
+			if len(merged) > 0 {
+				body["params"] = merged
+			}
+			if cpuLimit != "" || memLimit != "" {
+				body["resources"] = buildResources(cpuLimit, memLimit, one.Config.Resources)
+			} else if one.Config.Status == "installed" && len(one.Config.Resources) > 0 {
+				body["resources"] = one.Config.Resources
 			}
 			if err := cli.AppStoreRequest("POST", "/internal/install", nil, body, nil); err != nil {
 				return err
 			}
-			cli.OK("✓ 已触发%s：%s@%s", map[string]string{"install": "安装", "update": "更新"}[verb], args[0], version)
+			cli.OK("✓ 已触发%s：%s@%s", map[string]string{"install": "安装", "update": "更新"}[verb], appid, version)
 			return nil
 		},
 	}
 	f := cmd.Flags()
-	f.StringVar(&version, "version", defVersion, "版本号（默认 latest）")
-	f.StringArrayVar(&params, "param", nil, "应用参数 k=v（可重复）")
+	f.StringVar(&version, "version", "latest", "版本号（默认 latest）")
+	f.StringArrayVar(&params, "param", nil, "应用参数 K=V（可重复，详见 doo app fields <appid>；已安装应用未传则沿用当前值）")
+	f.StringVar(&cpuLimit, "cpu-limit", "", "CPU 限额（如 1.0；空则沿用当前或应用默认）")
+	f.StringVar(&memLimit, "memory-limit", "", "内存限额（如 512M / 2G；空则沿用当前或应用默认）")
 	f.BoolVar(&pull, "pull", false, "操作前先拉取镜像")
 	return cmd
 }
 
+// reinstall：按当前已装版本重部署；sticky 复用当前 params/resources，允许 --param/--cpu-limit 覆盖。
 func newAppReinstallCmd() *cobra.Command {
 	var pull bool
+	var cpuLimit, memLimit string
+	var params []string
 	cmd := &cobra.Command{
 		Use:   "reinstall <应用ID>",
-		Short: "重新安装应用（按当前已装版本重部署）",
+		Short: "重新安装应用（按当前已装版本与参数重部署，可用 --param 覆盖）",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			appid := args[0]
-			var installed []map[string]any
-			if err := cli.AppStoreRequest("GET", "/internal/installed", nil, nil, &installed); err != nil {
+			one, err := fetchAppOne(appid)
+			if err != nil {
 				return err
 			}
-			version := ""
-			for _, a := range installed {
-				if fmt.Sprintf("%v", a["id"]) == appid {
-					version = fmt.Sprintf("%v", a["version"])
-					break
-				}
-			}
-			if version == "" {
+			version := one.Config.InstallVersion
+			if version == "" || one.Config.Status != "installed" {
 				return fmt.Errorf("应用 %s 未安装，无法重装", appid)
 			}
-			body := map[string]any{"appid": appid, "version": version, "pull_image": pull}
+			given, err := parseParamPairs(params)
+			if err != nil {
+				return err
+			}
+			// sticky：以当前已装 params 为底，再叠加用户传入的覆盖
+			merged := map[string]any{}
+			for k, v := range one.Config.Params {
+				merged[k] = v
+			}
+			for k, v := range given {
+				merged[k] = v
+			}
+			if err := validateRequiredFields(one.Fields, merged); err != nil {
+				return err
+			}
+			body := map[string]any{
+				"appid":      appid,
+				"version":    version,
+				"pull_image": pull,
+				"params":     merged,
+				"resources":  buildResources(cpuLimit, memLimit, one.Config.Resources),
+			}
 			if err := cli.AppStoreRequest("POST", "/internal/install", nil, body, nil); err != nil {
 				return err
 			}
@@ -134,7 +285,11 @@ func newAppReinstallCmd() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().BoolVar(&pull, "pull", false, "重装前先拉取镜像")
+	f := cmd.Flags()
+	f.StringArrayVar(&params, "param", nil, "覆盖参数 K=V（可重复；未传则沿用当前已装值）")
+	f.StringVar(&cpuLimit, "cpu-limit", "", "CPU 限额（空则沿用当前已装值）")
+	f.StringVar(&memLimit, "memory-limit", "", "内存限额（空则沿用当前已装值）")
+	f.BoolVar(&pull, "pull", false, "重装前先拉取镜像")
 	return cmd
 }
 
