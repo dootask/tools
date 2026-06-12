@@ -1,0 +1,17 @@
+{
+    "name": "@dootask/cli-darwin-arm64",
+    "version": "0.0.0-dev",
+    "description": "doo CLI binary for darwin/arm64 (Apple Silicon)",
+    "os": ["darwin"],
+    "cpu": ["arm64"],
+    "files": ["bin"],
+    "publishConfig": {
+        "access": "public"
+    },
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/dootask/tools.git",
+        "directory": "server/cli/platforms/darwin-arm64"
+    }
+}

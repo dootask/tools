@@ -1,0 +1,17 @@
+{
+    "name": "@dootask/cli-linux-x64",
+    "version": "0.0.0-dev",
+    "description": "doo CLI binary for linux/x64",
+    "os": ["linux"],
+    "cpu": ["x64"],
+    "files": ["bin"],
+    "publishConfig": {
+        "access": "public"
+    },
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/dootask/tools.git",
+        "directory": "server/cli/platforms/linux-x64"
+    }
+}

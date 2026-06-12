@@ -1,0 +1,217 @@
+name: Release
+
+# 触发：推任意 v 开头语义版本 tag（例如 v1.3.0），自动发布三包 + doo 五平台二进制。
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write   # 创建 Release
+  id-token: write   # npm provenance（OIDC）
+
+jobs:
+  # ---- 0. 解析版本号（去掉 v 前缀），后续所有 job 共用 ----
+  meta:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+    steps:
+      - id: v
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          VER="${TAG#v}"
+          echo "version=${VER}" >> "$GITHUB_OUTPUT"
+          echo "解析版本号: ${VER}"
+
+  # ---- 1. 构建 doo 五平台二进制 ----
+  build-doo:
+    needs: meta
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+          cache-dependency-path: |
+            server/go/go.sum
+            server/go/cmd/doo/go.sum
+      - name: Build all platforms
+        working-directory: server/go/cmd/doo
+        run: make build-all VERSION=${{ needs.meta.outputs.version }}
+      - name: Smoke test linux/amd64 binary
+        working-directory: server/go/cmd/doo
+        run: |
+          ./dist/doo-linux-amd64 --version
+          ./dist/doo-linux-amd64 --help > /dev/null
+      - uses: actions/upload-artifact@v4
+        with:
+          name: doo-binaries
+          path: server/go/cmd/doo/dist/*
+          retention-days: 1
+
+  # ---- 2. 跑 Go vet/test 保 tag 质量（go 包靠 git tag 被 proxy.golang.org 索引，无需"发布"）----
+  test-go:
+    needs: meta
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+          cache-dependency-path: server/go/go.sum
+      - name: go vet
+        working-directory: server/go
+        run: go vet ./...
+      - name: go test
+        working-directory: server/go
+        run: go test ./...
+
+  # ---- 3. 发布 5 个平台子包 @dootask/cli-{plat} ----
+  publish-npm-platforms:
+    needs: [meta, build-doo]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - pkg: linux-x64
+            bin: doo-linux-amd64
+            ext: ''
+          - pkg: linux-arm64
+            bin: doo-linux-arm64
+            ext: ''
+          - pkg: darwin-x64
+            bin: doo-darwin-amd64
+            ext: ''
+          - pkg: darwin-arm64
+            bin: doo-darwin-arm64
+            ext: ''
+          - pkg: win32-x64
+            bin: doo-windows-amd64.exe
+            ext: '.exe'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+      - uses: actions/download-artifact@v4
+        with:
+          name: doo-binaries
+          path: doo-binaries
+      - name: Stage platform package
+        working-directory: server/cli/platforms/${{ matrix.pkg }}
+        run: |
+          mkdir -p bin
+          cp "$GITHUB_WORKSPACE/doo-binaries/${{ matrix.bin }}" "bin/doo${{ matrix.ext }}"
+          chmod +x "bin/doo${{ matrix.ext }}"
+          npm version --no-git-tag-version --allow-same-version ${{ needs.meta.outputs.version }}
+          ls -la bin
+      - name: Publish
+        working-directory: server/cli/platforms/${{ matrix.pkg }}
+        run: npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  # ---- 4. 发布 @dootask/cli 主包（同步 optionalDependencies 到刚发的版本）----
+  publish-npm-cli:
+    needs: [meta, publish-npm-platforms]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Sync version & optionalDependencies
+        working-directory: server/cli
+        run: |
+          VER="${{ needs.meta.outputs.version }}"
+          npm version --no-git-tag-version --allow-same-version "$VER"
+          node -e '
+            const fs = require("fs");
+            const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
+            const v = process.env.VER;
+            for (const k of Object.keys(pkg.optionalDependencies || {})) {
+              pkg.optionalDependencies[k] = v;
+            }
+            fs.writeFileSync("package.json", JSON.stringify(pkg, null, 4) + "\n");
+          '
+          cat package.json
+        env:
+          VER: ${{ needs.meta.outputs.version }}
+      - name: Publish
+        working-directory: server/cli
+        run: npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  # ---- 5. 发布 @dootask/tools（独立于 doo，可并行）----
+  publish-npm-tools:
+    needs: meta
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Set version
+        run: npm version --no-git-tag-version --allow-same-version ${{ needs.meta.outputs.version }}
+      - name: Build (prepare 已是 npm run build，publish 会自动跑；这里显式跑一次便于排错)
+        run: |
+          npm install --ignore-scripts
+          npm run build
+      - name: Publish
+        run: npm publish --access public --provenance --ignore-scripts
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  # ---- 6. 发布 PyPI（独立于 doo，可并行）----
+  publish-pypi:
+    needs: meta
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install build tools
+        run: pip install --upgrade build twine
+      - name: Inject version
+        working-directory: server/python
+        run: |
+          VER="${{ needs.meta.outputs.version }}"
+          sed -i "s/^    version=\".*\",/    version=\"${VER}\",/" setup.py
+          sed -i "s/^__version__ = \".*\"/__version__ = \"${VER}\"/" dootask/__init__.py
+          grep -E "version=|__version__" setup.py dootask/__init__.py || true
+      - name: Build
+        working-directory: server/python
+        run: |
+          rm -rf build dist *.egg-info
+          python -m build
+          ls -la dist
+      - name: Upload to PyPI
+        working-directory: server/python
+        run: twine upload --non-interactive dist/*
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+
+  # ---- 7. GitHub Release（附 5 个 doo 二进制供直接下）----
+  github-release:
+    needs: [meta, build-doo]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: doo-binaries
+          path: doo-binaries
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: v${{ needs.meta.outputs.version }}
+          tag_name: ${{ github.ref_name }}
+          generate_release_notes: true
+          files: doo-binaries/*

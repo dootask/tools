@@ -1,0 +1,17 @@
+{
+    "name": "@dootask/cli-darwin-x64",
+    "version": "0.0.0-dev",
+    "description": "doo CLI binary for darwin/x64 (Intel Mac)",
+    "os": ["darwin"],
+    "cpu": ["x64"],
+    "files": ["bin"],
+    "publishConfig": {
+        "access": "public"
+    },
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/dootask/tools.git",
+        "directory": "server/cli/platforms/darwin-x64"
+    }
+}
