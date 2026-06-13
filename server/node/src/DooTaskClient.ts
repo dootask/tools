@@ -20,7 +20,7 @@ import type {
   DialogMember,
   DialogMessage,
   DialogMessageListResponse,
-  DialogMessageSearchResponse,
+  MessageSearchItem,
   DialogOpenUserResponse,
   DialogUserResponse,
   DisbandGroupRequest,
@@ -62,7 +62,7 @@ import type {
   TimeRangeRequest,
   TransferGroupRequest,
   ToggleMessageTodoRequest,
-  TodoListResponse,
+  TodoItem,
   UpdateColumnRequest,
   UpdateProjectRequest,
   UpdateTaskRequest,
@@ -92,6 +92,8 @@ export interface DooTaskClientOptions {
   server?: string
   timeoutMs?: number
   fetch?: typeof fetch
+  /** 客户端版本，作为 Version 头随每个请求发送，供后端 checkClientVersion 判定接口兼容性（缺省不发，后端按 0.0.1 处理） */
+  version?: string
 }
 
 interface UserCache {
@@ -102,6 +104,7 @@ interface UserCache {
 export class DooTaskClient {
   private readonly token: string
   private readonly server: string
+  private readonly version: string
   private readonly timeoutMs: number
   private readonly fetchFn: typeof fetch
   private userCache?: UserCache
@@ -110,6 +113,7 @@ export class DooTaskClient {
   constructor(options: DooTaskClientOptions) {
     this.token = options.token
     this.server = options.server ?? "http://nginx"
+    this.version = options.version ?? ""
     this.timeoutMs = options.timeoutMs ?? 10_000
     this.fetchFn = options.fetch ?? (globalThis.fetch as typeof fetch)
     if (!this.fetchFn) {
@@ -154,6 +158,7 @@ export class DooTaskClient {
       Token: this.token,
       "User-Agent": "DooTask-Node-Client/1.0",
     }
+    if (this.version) headers.Version = this.version
 
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), this.timeoutMs)
@@ -309,8 +314,8 @@ export class DooTaskClient {
     return this.get<DialogMessageListResponse>("/api/dialog/msg/list", params)
   }
 
-  async searchMessage(params: SearchMessageRequest): Promise<DialogMessageSearchResponse> {
-    return this.get<DialogMessageSearchResponse>("/api/dialog/msg/search", params)
+  async searchMessage(params: SearchMessageRequest): Promise<MessageSearchItem[]> {
+    return this.get<MessageSearchItem[]>("/api/search/message", params)
   }
 
   async getMessage(params: GetMessageRequest): Promise<DialogMessage> {
@@ -334,8 +339,8 @@ export class DooTaskClient {
     await this.get<void>("/api/dialog/msg/todo", params)
   }
 
-  async getMessageTodoList(params: GetMessageRequest): Promise<TodoListResponse> {
-    return this.get<TodoListResponse>("/api/dialog/msg/todolist", params)
+  async getMessageTodoList(params: GetMessageRequest): Promise<TodoItem[]> {
+    return this.get<TodoItem[]>("/api/dialog/msg/todolist", params)
   }
 
   async markMessageDone(params: MarkMessageDoneRequest): Promise<void> {

@@ -116,6 +116,41 @@ await client.addGroupUser({
 })
 ```
 
+### 消息搜索与待办
+
+```typescript
+import { DooTaskClient } from "@dootask/tools"
+
+const client = new DooTaskClient({
+  token: "YOUR_TOKEN",
+  // version 作为 Version 头随请求发送，供后端 checkClientVersion 判定接口兼容性；
+  // 消息待办（msg/todo）等接口有最低版本要求，需传当前适配的主程序版本。
+  version: "1.7.91",
+})
+
+// 搜索消息（走 /api/search/message；不传 dialog_id 为全局搜索）
+const results = await client.searchMessage({ key: "测试", take: 5 })
+console.log(`搜索到 ${results.length} 条消息`)
+
+if (results.length) {
+  const msgId = results[0].msg_id
+
+  // 把消息设为待办（type=all 表示对话内全体成员）
+  await client.toggleMessageTodo({ msg_id: msgId })
+
+  // 取该消息的待办记录，每条记录的 id 即“待办数据ID”
+  const todos = await client.getMessageTodoList({ msg_id: msgId })
+
+  // 完成属于自己的那条待办（注意：传待办数据ID，不是消息ID）
+  const me = await client.getUserInfo()
+  const mine = todos.find(t => t.userid === me.userid)
+  if (mine) {
+    await client.markMessageDone({ id: mine.id })
+    console.log(`已完成待办 #${mine.id}`)
+  }
+}
+```
+
 ## API 方法列表
 
 ### 基础方法
@@ -160,14 +195,14 @@ await client.addGroupUser({
 | `sendNoticeMessage` | 发送通知 | `message: SendNoticeMessageRequest` | `Promise<any>` |
 | `sendTemplateMessage` | 发送模板消息 | `message: SendTemplateMessageRequest` | `Promise<any>` |
 | `getMessageList` | 获取消息列表 | `params: GetMessageListRequest` | `Promise<DialogMessageListResponse>` |
-| `searchMessage` | 搜索消息 | `params: SearchMessageRequest` | `Promise<DialogMessageSearchResponse>` |
+| `searchMessage` | 搜索消息（走 /api/search/message，可选 dialog_id） | `params: SearchMessageRequest` | `Promise<MessageSearchItem[]>` |
 | `getMessage` | 获取单个消息详情 | `params: GetMessageRequest` | `Promise<DialogMessage>` |
 | `getMessageDetail` | 获取消息详情（兼容性） | `params: GetMessageRequest` | `Promise<DialogMessage>` |
 | `withdrawMessage` | 撤回消息 | `params: WithdrawMessageRequest` | `Promise<void>` |
 | `forwardMessage` | 转发消息 | `params: ForwardMessageRequest` | `Promise<void>` |
 | `toggleMessageTodo` | 切换消息待办状态 | `params: ToggleMessageTodoRequest` | `Promise<void>` |
-| `getMessageTodoList` | 获取消息待办列表 | `params: GetMessageRequest` | `Promise<TodoListResponse>` |
-| `markMessageDone` | 标记消息完成 | `params: MarkMessageDoneRequest` | `Promise<void>` |
+| `getMessageTodoList` | 获取消息待办列表 | `params: GetMessageRequest` | `Promise<TodoItem[]>` |
+| `markMessageDone` | 完成待办（id 为待办数据ID，非消息ID） | `params: MarkMessageDoneRequest` | `Promise<void>` |
 | `convertWebhookMessageToAi` | 转换 webhook 消息为 AI 对话格式 | `params: ConvertWebhookMessageRequest` | `Promise<ConvertWebhookMessageResponse>` |
 
 ### 对话相关接口

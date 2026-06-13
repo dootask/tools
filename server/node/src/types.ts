@@ -187,20 +187,28 @@ export interface DialogMessageListResponse {
   top?: any
 }
 
-export interface DialogMessageSearchResponse {
-  data: number[]
-}
-
-export interface TodoUser {
+// 消息搜索结果项（/api/search/message 默认 message 模式返回的单条消息）
+export interface MessageSearchItem {
+  id: number
+  msg_id: number
+  dialog_id: number
   userid: number
-  nickname: string
-  userimg: string
-  done: boolean
-  done_at: string
+  type: string
+  msg: any
+  created_at: string
+  relevance?: any
+  content_preview?: any
 }
 
-export interface TodoListResponse {
-  users: TodoUser[]
+// 消息待办记录（/api/dialog/msg/todolist 返回的单条记录）
+export interface TodoItem {
+  id: number // 待办数据ID（用于 markMessageDone）
+  dialog_id: number
+  msg_id: number
+  userid: number
+  done_at: string // 完成时间（空表示未完成）
+  remind_at?: string
+  created_at?: string
 }
 
 export interface GetMessageListRequest {
@@ -214,8 +222,9 @@ export interface GetMessageListRequest {
 }
 
 export interface SearchMessageRequest {
-  dialog_id: number
-  key: string
+  key: string // 必填：搜索关键词
+  dialog_id?: number // 可选：限定对话ID（0/省略表示全局搜索）
+  take?: number // 可选：返回数量，默认20，最大50
 }
 
 export interface GetMessageRequest {
@@ -241,7 +250,7 @@ export interface ToggleMessageTodoRequest {
 }
 
 export interface MarkMessageDoneRequest {
-  msg_id: number
+  id: number // 必填：待办数据ID（来自 getMessageTodoList 的 id，非消息ID）
 }
 
 // 对话
