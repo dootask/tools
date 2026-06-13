@@ -39,6 +39,8 @@ func NewRootCmd() *cobra.Command {
 		newTaskCmd(),
 		newProjectCmd(),
 		newColumnCmd(),
+		newFlowCmd(),
+		newTagCmd(),
 		newDialogCmd(),
 		newMessageCmd(),
 		newGroupCmd(),

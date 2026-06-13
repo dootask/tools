@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	dootask "github.com/dootask/tools/server/go"
@@ -21,6 +22,7 @@ func newTaskCmd() *cobra.Command {
 		newTaskCreateCmd(),
 		newTaskSubtaskCmd(),
 		newTaskUpdateCmd(),
+		newTaskMoveCmd(),
 		newTaskDoneCmd(false),
 		newTaskDoneCmd(true),
 		newTaskDialogCmd(),
@@ -262,7 +264,8 @@ func newTaskSubtaskCmd() *cobra.Command {
 }
 
 func newTaskUpdateCmd() *cobra.Command {
-	var name, content, start, end, owner, assist, color string
+	var name, content, start, end, owner, assist, color, tag, visibility string
+	var flow int
 	cmd := &cobra.Command{
 		Use:   "update <任务ID>",
 		Short: "更新任务（仅提交指定字段）",
@@ -305,6 +308,26 @@ func newTaskUpdateCmd() *cobra.Command {
 			if f.Changed("color") {
 				params["color"] = color
 			}
+			if f.Changed("tag") {
+				// 后端 task_tag 收 [{name,color}] 对象数组（每任务自由标签），非 palette tag id。
+				// 入参形如 "紧急:#FF0000,重要"；空串表示清空全部标签。
+				var tags []map[string]string
+				for _, tok := range strings.Split(tag, ",") {
+					tok = strings.TrimSpace(tok)
+					if tok == "" {
+						continue
+					}
+					name, color, _ := strings.Cut(tok, ":")
+					tags = append(tags, map[string]string{"name": strings.TrimSpace(name), "color": strings.TrimSpace(color)})
+				}
+				params["task_tag"] = tags
+			}
+			if f.Changed("flow") {
+				params["flow_item_id"] = flow
+			}
+			if f.Changed("visibility") {
+				params["visibility"] = visibility
+			}
 			if len(params) == 1 {
 				return fmt.Errorf("没有要更新的字段")
 			}
@@ -327,6 +350,77 @@ func newTaskUpdateCmd() *cobra.Command {
 	f.StringVar(&owner, "owner", "", "负责人 ID 列表")
 	f.StringVar(&assist, "assist", "", "协助者 ID 列表")
 	f.StringVar(&color, "color", "", "颜色")
+	f.StringVar(&tag, "tag", "", "任务标签，逗号分隔 name[:color]（如 紧急:#FF0000,重要；空串清空）")
+	f.IntVar(&flow, "flow", 0, "工作流状态 ID（来自 flow list）")
+	f.StringVar(&visibility, "visibility", "", "可见性")
+	return cmd
+}
+
+func newTaskMoveCmd() *cobra.Command {
+	var project, column, flow int
+	var owner, assist string
+	var completed bool
+	cmd := &cobra.Command{
+		Use:   "move <任务ID>",
+		Short: "移动任务（跨项目/看板列，或推进工作流状态）",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			id, err := cli.ParseInt(args[0], "任务ID")
+			if err != nil {
+				return err
+			}
+			c, err := cli.Opts.Client()
+			if err != nil {
+				return err
+			}
+			f := cmd.Flags()
+			// 后端 move 需要 project_id + column_id 定位目标列；未指定 --project 时
+			// 自动取任务当前所在项目（支持同项目内跨列移动只传 --column）。
+			if !f.Changed("project") {
+				one, err := c.GetTask(dootask.GetTaskRequest{TaskID: id})
+				if err != nil {
+					return err
+				}
+				project = one.ProjectID
+			}
+			params := map[string]any{"task_id": id, "project_id": project}
+			if f.Changed("column") {
+				params["column_id"] = column
+			}
+			if f.Changed("flow") {
+				params["flow_item_id"] = flow
+			}
+			if f.Changed("owner") {
+				ids, err := cli.ParseIDList(owner)
+				if err != nil {
+					return err
+				}
+				params["owner"] = ids
+			}
+			if f.Changed("assist") {
+				ids, err := cli.ParseIDList(assist)
+				if err != nil {
+					return err
+				}
+				params["assist"] = ids
+			}
+			if f.Changed("completed") {
+				params["completed"] = completed
+			}
+			if err := c.NewGetRequest("/api/project/task/move", params, nil); err != nil {
+				return err
+			}
+			cli.OK("✓ 已移动任务 #%d", id)
+			return nil
+		},
+	}
+	f := cmd.Flags()
+	f.IntVar(&project, "project", 0, "目标项目 ID")
+	f.IntVar(&column, "column", 0, "目标看板列 ID")
+	f.IntVar(&flow, "flow", 0, "目标工作流状态 ID（来自 flow list）")
+	f.StringVar(&owner, "owner", "", "负责人 ID 列表")
+	f.StringVar(&assist, "assist", "", "协助者 ID 列表")
+	f.BoolVar(&completed, "completed", false, "同时标记完成/未完成")
 	return cmd
 }
 
