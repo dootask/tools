@@ -139,14 +139,14 @@ client.add_group_user(AddGroupUserRequest(
 | `send_notice_message` | 发送通知 | `SendNoticeMessageRequest` | `Optional[dict]` |
 | `send_template_message` | 发送模板消息 | `SendTemplateMessageRequest` | `Optional[dict]` |
 | `get_message_list` | 获取消息列表 | `GetMessageListRequest` | `DialogMessageListResponse` |
-| `search_message` | 搜索消息 | `SearchMessageRequest` | `DialogMessageSearchResponse` |
+| `search_message` | 搜索消息（走 /api/search/message，可选 dialog_id） | `SearchMessageRequest` | `List[MessageSearchItem]` |
 | `get_message` | 获取单个消息详情 | `GetMessageRequest` | `DialogMessage` |
 | `get_message_detail` | 获取消息详情（兼容性） | `GetMessageRequest` | `DialogMessage` |
 | `withdraw_message` | 撤回消息 | `WithdrawMessageRequest` | `None` |
 | `forward_message` | 转发消息 | `ForwardMessageRequest` | `None` |
 | `toggle_message_todo` | 切换消息待办状态 | `ToggleMessageTodoRequest` | `None` |
-| `get_message_todo_list` | 获取消息待办列表 | `GetMessageRequest` | `TodoListResponse` |
-| `mark_message_done` | 标记消息完成 | `MarkMessageDoneRequest` | `None` |
+| `get_message_todo_list` | 获取消息待办列表 | `GetMessageRequest` | `List[TodoItem]` |
+| `mark_message_done` | 完成待办（id 为待办数据ID，非消息ID） | `MarkMessageDoneRequest` | `None` |
 | `convert_webhook_message_to_ai` | 转换webhook消息为AI对话格式 | `ConvertWebhookMessageRequest` | `ConvertWebhookMessageResponse` |
 
 ### 对话相关接口
@@ -227,7 +227,8 @@ client.add_group_user(AddGroupUserRequest(
 - `SendMessageRequest` - 发送消息请求
 - `DialogMessage` - 对话消息
 - `DialogMessageListResponse` - 消息列表响应
-- `TodoListResponse` - 待办列表响应
+- `MessageSearchItem` - 消息搜索结果项
+- `TodoItem` - 消息待办记录
 
 ### 对话相关
 - `DialogInfo` - 对话信息

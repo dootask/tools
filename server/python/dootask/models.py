@@ -305,23 +305,28 @@ class DialogMessageListResponse:
     top: Any = None
 
 @dataclass
-class DialogMessageSearchResponse:
-    """搜索消息响应"""
-    data: List[int] = field(default_factory=list)
+class MessageSearchItem:
+    """消息搜索结果项（/api/search/message 默认 message 模式返回的单条消息）"""
+    id: int = 0
+    msg_id: int = 0
+    dialog_id: int = 0
+    userid: int = 0
+    type: str = ""
+    msg: Any = None
+    created_at: str = ""
+    relevance: Any = None
+    content_preview: Any = None
 
 @dataclass
-class TodoUser:
-    """待办用户"""
-    userid: int
-    nickname: str = ""
-    userimg: str = ""
-    done: bool = False
-    done_at: str = ""
-
-@dataclass
-class TodoListResponse:
-    """待办列表响应"""
-    users: List[TodoUser] = field(default_factory=list)
+class TodoItem:
+    """消息待办记录（/api/dialog/msg/todolist 返回的单条记录）"""
+    id: int = 0  # 待办数据ID（用于 mark_message_done）
+    dialog_id: int = 0
+    msg_id: int = 0
+    userid: int = 0
+    done_at: str = ""  # 完成时间（空表示未完成）
+    remind_at: str = ""
+    created_at: str = ""
 
 @dataclass
 class GetMessageListRequest:
@@ -336,9 +341,10 @@ class GetMessageListRequest:
 
 @dataclass
 class SearchMessageRequest:
-    """搜索消息请求"""
-    dialog_id: int
-    key: str
+    """搜索消息请求（/api/search/message）"""
+    key: str  # 必填：搜索关键词
+    dialog_id: int = 0  # 可选：限定对话ID（0 表示全局搜索）
+    take: int = 0  # 可选：返回数量，默认20，最大50
 
 @dataclass
 class GetMessageRequest:
@@ -369,7 +375,7 @@ class ToggleMessageTodoRequest:
 @dataclass
 class MarkMessageDoneRequest:
     """标记消息完成请求"""
-    msg_id: int
+    id: int  # 必填：待办数据ID（来自 get_message_todo_list 的 id，非消息ID）
 
 @dataclass
 class ConvertWebhookMessageRequest:

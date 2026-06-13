@@ -19,21 +19,23 @@ T = TypeVar('T')
 class DooTaskClient:
     """DooTask 客户端"""
     
-    def __init__(self, token: str, server: str = "http://nginx", timeout: int = 10):
+    def __init__(self, token: str, server: str = "http://nginx", timeout: int = 10, version: str = ""):
         """
         初始化客户端
-        
+
         Args:
             token: 认证令牌
             server: 服务器地址
             timeout: 请求超时时间（秒）
+            version: 客户端版本，作为 Version 头随每个请求发送，供后端 checkClientVersion
+                     判定接口兼容性（缺省不发，后端按 0.0.1 处理）
         """
         self.token = token
         self.server = server.rstrip('/')
         self.timeout = timeout
         self._cache: Dict[str, Dict[str, Any]] = {}
         self._cache_time = 600  # 10分钟缓存
-        
+
         # 创建会话
         self.session = requests.Session()
         self.session.headers.update({
@@ -41,6 +43,8 @@ class DooTaskClient:
             'User-Agent': 'DooTask-Tools/1.0',
             'Content-Type': 'application/json'
         })
+        if version:
+            self.session.headers['Version'] = version
     
     # ------------------------------------------------------------------------------------------
     # 基础方法
@@ -342,9 +346,9 @@ class DooTaskClient:
         """获取消息列表"""
         return self._get_request('/api/dialog/msg/list', params, DialogMessageListResponse)
     
-    def search_message(self, params: SearchMessageRequest) -> DialogMessageSearchResponse:
-        """搜索消息"""
-        return self._get_request('/api/dialog/msg/search', params, DialogMessageSearchResponse)
+    def search_message(self, params: SearchMessageRequest) -> List[MessageSearchItem]:
+        """搜索消息（走 /api/search/message，可选 dialog_id 限定对话）"""
+        return self._get_request('/api/search/message', params, MessageSearchItem) or []
     
     def get_message(self, params: GetMessageRequest) -> DialogMessage:
         """获取单个消息详情"""
@@ -368,9 +372,9 @@ class DooTaskClient:
             params.type = "all"
         self._get_request('/api/dialog/msg/todo', params)
     
-    def get_message_todo_list(self, params: GetMessageRequest) -> TodoListResponse:
-        """获取消息待办列表"""
-        return self._get_request('/api/dialog/msg/todolist', params, TodoListResponse)
+    def get_message_todo_list(self, params: GetMessageRequest) -> List[TodoItem]:
+        """获取消息待办列表（返回待办记录数组，其 id 用于 mark_message_done）"""
+        return self._get_request('/api/dialog/msg/todolist', params, TodoItem) or []
     
     def mark_message_done(self, params: MarkMessageDoneRequest) -> None:
         """标记消息完成"""
