@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/dootask/tools/server/go/cmd/doo/internal/cli"
 	"github.com/spf13/cobra"
@@ -18,7 +19,128 @@ func newReportCmd() *cobra.Command {
 		newReportTemplateCmd(),
 		newReportSubmitCmd(),
 		newReportMarkCmd(),
+		newReportUnreadCmd(),
+		newReportAnalyzeCmd(),
+		newReportShareCmd(),
 	)
+	return cmd
+}
+
+func newReportUnreadCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "unread",
+		Short: "我收到的未读报告总数",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			c, err := cli.Opts.Client()
+			if err != nil {
+				return err
+			}
+			var out any
+			if err := c.NewGetRequest("/api/report/unread", nil, &out); err != nil {
+				return err
+			}
+			return cli.Output(out, nil)
+		},
+	}
+}
+
+func newReportAnalyzeCmd() *cobra.Command {
+	var text, model, focus string
+	cmd := &cobra.Command{
+		Use:   "analyze <报告ID>",
+		Short: "写回报告的 AI 分析结果（Markdown）",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			id, err := cli.ParseInt(args[0], "报告ID")
+			if err != nil {
+				return err
+			}
+			if text == "" {
+				return fmt.Errorf("--text 必填（分析内容，Markdown）")
+			}
+			c, err := cli.Opts.Client()
+			if err != nil {
+				return err
+			}
+			body := map[string]any{"id": id, "text": text}
+			if model != "" {
+				body["model"] = model
+			}
+			if focus != "" {
+				var fs []string
+				for _, s := range strings.Split(focus, ",") {
+					if s = strings.TrimSpace(s); s != "" {
+						fs = append(fs, s)
+					}
+				}
+				body["focus"] = fs
+			}
+			var out any
+			if err := c.NewPostRequest("/api/report/analysave", body, &out); err != nil {
+				return err
+			}
+			cli.OK("✓ 已保存报告 #%d 的 AI 分析", id)
+			return nil
+		},
+	}
+	f := cmd.Flags()
+	f.StringVar(&text, "text", "", "分析内容（Markdown，必填）")
+	f.StringVar(&model, "model", "", "使用的模型标识")
+	f.StringVar(&focus, "focus", "", "关注点，逗号分隔")
+	return cmd
+}
+
+func newReportShareCmd() *cobra.Command {
+	var dialogs, users, message string
+	cmd := &cobra.Command{
+		Use:   "share <报告ID> [报告ID...]",
+		Short: "把报告以分享链接发送到对话/成员（最多 20 条）",
+		Args:  cobra.MinimumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			ids := make([]int, 0, len(args))
+			for _, a := range args {
+				id, err := cli.ParseInt(a, "报告ID")
+				if err != nil {
+					return err
+				}
+				ids = append(ids, id)
+			}
+			dialogIDs, err := cli.ParseIDList(dialogs)
+			if err != nil {
+				return err
+			}
+			userIDs, err := cli.ParseIDList(users)
+			if err != nil {
+				return err
+			}
+			if len(dialogIDs) == 0 && len(userIDs) == 0 {
+				return fmt.Errorf("需指定 --dialogs 或 --users 至少其一")
+			}
+			c, err := cli.Opts.Client()
+			if err != nil {
+				return err
+			}
+			params := map[string]any{"id": ids}
+			if len(dialogIDs) > 0 {
+				params["dialogids"] = dialogIDs
+			}
+			if len(userIDs) > 0 {
+				params["userids"] = userIDs
+			}
+			if message != "" {
+				params["leave_message"] = message
+			}
+			if err := c.NewGetRequest("/api/report/share", params, nil); err != nil {
+				return err
+			}
+			cli.OK("✓ 已分享 %d 份报告", len(ids))
+			return nil
+		},
+	}
+	f := cmd.Flags()
+	f.StringVar(&dialogs, "dialogs", "", "目标对话 ID 列表")
+	f.StringVar(&users, "users", "", "目标用户 ID 列表")
+	f.StringVar(&message, "message", "", "附带留言")
 	return cmd
 }
 
