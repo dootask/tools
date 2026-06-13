@@ -20,6 +20,7 @@ func newMessageCmd() *cobra.Command {
 		newMessageForwardCmd(),
 		newMessageTodoCmd(),
 		newMessageTodoListCmd(),
+		newMessageTodoRemindCmd(),
 		newMessageDoneCmd(),
 	)
 	return cmd
@@ -287,6 +288,46 @@ func newMessageTodoListCmd() *cobra.Command {
 			return cli.Output(res, []string{"id", "userid", "done_at", "remind_at"})
 		},
 	}
+}
+
+func newMessageTodoRemindCmd() *cobra.Command {
+	var users, at string
+	cmd := &cobra.Command{
+		Use:   "todo-remind <消息ID>",
+		Short: "设置/取消待办提醒时间（--at 为空表示取消提醒）",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			id, err := cli.ParseInt(args[0], "消息ID")
+			if err != nil {
+				return err
+			}
+			userIDs, err := cli.ParseIDList(users)
+			if err != nil {
+				return err
+			}
+			if len(userIDs) == 0 {
+				return fmt.Errorf("--users 必填（指定要设提醒的成员）")
+			}
+			c, err := cli.Opts.Client()
+			if err != nil {
+				return err
+			}
+			params := map[string]any{"msg_id": id, "userids": userIDs, "remind_at": at}
+			if err := c.NewGetRequest("/api/dialog/msg/todoremind", params, nil); err != nil {
+				return err
+			}
+			if at == "" {
+				cli.OK("✓ 已取消消息 #%d 的待办提醒", id)
+			} else {
+				cli.OK("✓ 已设置消息 #%d 的待办提醒：%s", id, at)
+			}
+			return nil
+		},
+	}
+	f := cmd.Flags()
+	f.StringVar(&users, "users", "", "目标成员 ID 列表（必填）")
+	f.StringVar(&at, "at", "", "提醒时间（如 2026-06-20 09:00:00，空=取消）")
+	return cmd
 }
 
 func newMessageDoneCmd() *cobra.Command {
