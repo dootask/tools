@@ -8,7 +8,7 @@ from .client import DooTaskClient
 from .models import *
 from .exceptions import *
 
-__version__ = "1.3.0"
+__version__ = "1.3.1"
 __author__ = "DooTask Team"
 __email__ = "support@dootask.com"
 
