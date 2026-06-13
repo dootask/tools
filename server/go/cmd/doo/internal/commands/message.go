@@ -19,6 +19,7 @@ func newMessageCmd() *cobra.Command {
 		newMessageWithdrawCmd(),
 		newMessageForwardCmd(),
 		newMessageTodoCmd(),
+		newMessageTodoListCmd(),
 		newMessageDoneCmd(),
 	)
 	return cmd
@@ -125,28 +126,29 @@ func newMessageListCmd() *cobra.Command {
 }
 
 func newMessageSearchCmd() *cobra.Command {
-	var dialog int
+	var dialog, take int
 	var key string
 	cmd := &cobra.Command{
 		Use:   "search",
-		Short: "在对话内搜索消息",
+		Short: "搜索消息（可选 --dialog 限定对话）",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if dialog <= 0 || key == "" {
-				return fmt.Errorf("--dialog 与 --key 必填")
+			if key == "" {
+				return fmt.Errorf("--key 必填")
 			}
 			c, err := cli.Opts.Client()
 			if err != nil {
 				return err
 			}
-			res, err := c.SearchMessage(dootask.SearchMessageRequest{DialogID: dialog, Key: key})
+			res, err := c.SearchMessage(dootask.SearchMessageRequest{Key: key, DialogID: dialog, Take: take})
 			if err != nil {
 				return err
 			}
-			return cli.Output(res, nil)
+			return cli.Output(res, []string{"msg_id", "dialog_id", "userid", "type", "created_at"})
 		},
 	}
-	cmd.Flags().IntVar(&dialog, "dialog", 0, "对话 ID（必填）")
+	cmd.Flags().IntVar(&dialog, "dialog", 0, "限定对话 ID（默认全局搜索）")
 	cmd.Flags().StringVar(&key, "key", "", "关键词（必填）")
+	cmd.Flags().IntVar(&take, "take", 0, "返回数量（默认 20，最大 50）")
 	return cmd
 }
 
@@ -264,10 +266,10 @@ func newMessageTodoCmd() *cobra.Command {
 	return cmd
 }
 
-func newMessageDoneCmd() *cobra.Command {
+func newMessageTodoListCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "done <消息ID>",
-		Short: "完成消息待办",
+		Use:   "todolist <消息ID>",
+		Short: "列出消息的待办记录（其 id 用于 done）",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := cli.ParseInt(args[0], "消息ID")
@@ -278,7 +280,30 @@ func newMessageDoneCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if err := c.MarkMessageDone(dootask.MarkMessageDoneRequest{MsgID: id}); err != nil {
+			res, err := c.GetMessageTodoList(dootask.GetMessageRequest{MsgID: id})
+			if err != nil {
+				return err
+			}
+			return cli.Output(res, []string{"id", "userid", "done_at", "remind_at"})
+		},
+	}
+}
+
+func newMessageDoneCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "done <待办ID>",
+		Short: "完成待办（待办ID 来自 message todolist，非消息ID）",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			id, err := cli.ParseInt(args[0], "待办ID")
+			if err != nil {
+				return err
+			}
+			c, err := cli.Opts.Client()
+			if err != nil {
+				return err
+			}
+			if err := c.MarkMessageDone(dootask.MarkMessageDoneRequest{ID: id}); err != nil {
 				return err
 			}
 			cli.OK("✓ 已完成待办 #%d", id)

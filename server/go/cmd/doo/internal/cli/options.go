@@ -14,6 +14,10 @@ import (
 // ErrNoAuth 表示未提供 token（未登录）。
 var ErrNoAuth = errors.New("未登录：请先执行 `doo auth login`，或设置环境变量 DOO_TOKEN")
 
+// CompatVersion 是 doo 当前适配到的 DooTask 主程序版本，作为 Version 头随请求发送，
+// 供后端 checkClientVersion 判定接口兼容性。当 doo 适配更新的主程序 API 时，同步上调。
+const CompatVersion = "1.7.91"
+
 // Options 是合并后的全局运行参数。
 type Options struct {
 	Server string
@@ -43,7 +47,7 @@ func (o Options) Client() (*dootask.Client, error) {
 	if o.Token == "" {
 		return nil, ErrNoAuth
 	}
-	return dootask.NewClient(o.Token, dootask.WithServer(o.Server), dootask.WithTimeout(30*time.Second)), nil
+	return dootask.NewClient(o.Token, dootask.WithServer(o.Server), dootask.WithTimeout(30*time.Second), dootask.WithVersion(CompatVersion)), nil
 }
 
 // AnonClient 构造无 token 的客户端（仅用于登录换 token）。

@@ -144,14 +144,14 @@ err := client.AddGroupUser(dootask.AddGroupUserRequest{
 | `SendNoticeMessage` | 发送通知 | `SendNoticeMessageRequest` | `error` |
 | `SendTemplateMessage` | 发送模板消息 | `SendTemplateMessageRequest` | `error` |
 | `GetMessageList` | 获取消息列表 | `GetMessageListRequest` | `*DialogMessageListResponse, error` |
-| `SearchMessage` | 搜索消息 | `SearchMessageRequest` | `*DialogMessageSearchResponse, error` |
+| `SearchMessage` | 搜索消息（走 /api/search/message，可选 dialog_id） | `SearchMessageRequest` | `[]MessageSearchItem, error` |
 | `GetMessage` | 获取单个消息详情 | `GetMessageRequest` | `*DialogMessage, error` |
 | `GetMessageDetail` | 获取消息详情（兼容性） | `GetMessageRequest` | `*DialogMessage, error` |
 | `WithdrawMessage` | 撤回消息 | `WithdrawMessageRequest` | `error` |
 | `ForwardMessage` | 转发消息 | `ForwardMessageRequest` | `error` |
 | `ToggleMessageTodo` | 切换消息待办状态 | `ToggleMessageTodoRequest` | `error` |
-| `GetMessageTodoList` | 获取消息待办列表 | `GetMessageRequest` | `*TodoListResponse, error` |
-| `MarkMessageDone` | 标记消息完成 | `MarkMessageDoneRequest` | `error` |
+| `GetMessageTodoList` | 获取消息待办列表 | `GetMessageRequest` | `[]TodoItem, error` |
+| `MarkMessageDone` | 完成待办（ID 为待办数据ID，非消息ID） | `MarkMessageDoneRequest` | `error` |
 | `ConvertWebhookMessageToAI` | 转换webhook消息为AI对话格式 | `ConvertWebhookMessageRequest` | `*ConvertWebhookMessageResponse, error` |
 
 ### 对话相关接口
@@ -233,7 +233,8 @@ err := client.AddGroupUser(dootask.AddGroupUserRequest{
 - `SendMessageRequest` - 发送消息请求
 - `DialogMessage` - 对话消息
 - `DialogMessageListResponse` - 消息列表响应
-- `TodoListResponse` - 待办列表响应
+- `MessageSearchItem` - 消息搜索结果项
+- `TodoItem` - 消息待办记录
 
 ### 对话相关
 - `DialogInfo` - 对话信息

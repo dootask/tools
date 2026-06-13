@@ -78,7 +78,7 @@ func newUserSearchCmd() *cobra.Command {
 				return err
 			}
 			var out any
-			if err := c.NewGetRequest("/api/users/search", map[string]any{"keyword": args[0]}, &out); err != nil {
+			if err := c.NewGetRequest("/api/users/search", map[string]any{"keys[key]": args[0]}, &out); err != nil {
 				return err
 			}
 			return cli.Output(out, []string{"userid", "nickname", "email"})

@@ -53,7 +53,7 @@ func newFileSearchCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			params := map[string]any{"keyword": args[0]}
+			params := map[string]any{"key": args[0]}
 			if take > 0 {
 				params["take"] = take
 			}
@@ -79,9 +79,9 @@ func newFileViewCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			params := map[string]any{"file_id": args[0]}
+			params := map[string]any{"id": args[0]}
 			if content {
-				params["with_content"] = true
+				params["with_text"] = "yes"
 			}
 			var out any
 			if err := c.NewGetRequest("/api/file/one", params, &out); err != nil {

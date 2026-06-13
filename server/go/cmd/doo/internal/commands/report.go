@@ -36,13 +36,13 @@ func newReportReceivedCmd() *cobra.Command {
 			}
 			params := map[string]any{}
 			if typ != "" {
-				params["type"] = typ
+				params["keys[type]"] = typ
 			}
 			if status != "" {
-				params["status"] = status
+				params["keys[status]"] = status
 			}
 			if search != "" {
-				params["key"] = search
+				params["keys[key]"] = search
 			}
 			var out any
 			if err := c.NewGetRequest("/api/report/receive", params, &out); err != nil {
@@ -70,10 +70,10 @@ func newReportMyCmd() *cobra.Command {
 			}
 			params := map[string]any{}
 			if typ != "" {
-				params["type"] = typ
+				params["keys[type]"] = typ
 			}
 			if search != "" {
-				params["key"] = search
+				params["keys[key]"] = search
 			}
 			var out any
 			if err := c.NewGetRequest("/api/report/my", params, &out); err != nil {

@@ -10,6 +10,7 @@ import "time"
 type Client struct {
 	token     string
 	server    string
+	version   string
 	cache     map[string]UserCache
 	cacheTime time.Duration
 	timeout   time.Duration
@@ -245,23 +246,28 @@ type DialogMessageListResponse struct {
 	Top    *interface{}    `json:"top"`    // 置顶消息ID
 }
 
-// DialogMessageSearchResponse 搜索消息响应
-type DialogMessageSearchResponse struct {
-	Data []int `json:"data"`
+// MessageSearchItem 消息搜索结果项（/api/search/message 默认 message 模式返回的单条消息）
+type MessageSearchItem struct {
+	ID             int    `json:"id"`              // 消息ID
+	MsgID          int    `json:"msg_id"`          // 消息ID
+	DialogID       int    `json:"dialog_id"`       // 对话ID
+	UserID         int    `json:"userid"`          // 发送者ID
+	Type           string `json:"type"`            // 消息类型
+	Msg            any    `json:"msg"`             // 消息内容
+	CreatedAt      string `json:"created_at"`      // 创建时间
+	Relevance      any    `json:"relevance"`       // 相关度
+	ContentPreview string `json:"content_preview"` // 内容预览
 }
 
-// TodoUser 待办用户
-type TodoUser struct {
-	UserID   int    `json:"userid"`   // 用户ID
-	Nickname string `json:"nickname"` // 昵称
-	UserImg  string `json:"userimg"`  // 头像
-	Done     bool   `json:"done"`     // 是否完成
-	DoneAt   string `json:"done_at"`  // 完成时间
-}
-
-// TodoListResponse 待办列表响应
-type TodoListResponse struct {
-	Users []TodoUser `json:"users"`
+// TodoItem 消息待办记录（/api/dialog/msg/todolist 返回的单条记录）
+type TodoItem struct {
+	ID        int    `json:"id"`         // 待办数据ID（用于 msg done）
+	DialogID  int    `json:"dialog_id"`  // 对话ID
+	MsgID     int    `json:"msg_id"`     // 消息ID
+	UserID    int    `json:"userid"`     // 接收会员ID
+	DoneAt    string `json:"done_at"`    // 完成时间（空表示未完成）
+	RemindAt  string `json:"remind_at"`  // 提醒时间
+	CreatedAt string `json:"created_at"` // 创建时间
 }
 
 // GetMessageListRequest 获取消息列表请求
@@ -275,10 +281,11 @@ type GetMessageListRequest struct {
 	Take       int    `json:"take"`        // 可选：获取数量，默认50，最大100
 }
 
-// SearchMessageRequest 搜索消息请求
+// SearchMessageRequest 搜索消息请求（/api/search/message）
 type SearchMessageRequest struct {
-	DialogID int    `json:"dialog_id"` // 必填：对话ID
 	Key      string `json:"key"`       // 必填：搜索关键词
+	DialogID int    `json:"dialog_id"` // 可选：限定对话ID（0 表示全局搜索）
+	Take     int    `json:"take"`      // 可选：返回数量，默认20，最大50
 }
 
 // GetMessageRequest 获取单个消息请求
@@ -309,7 +316,7 @@ type ToggleMessageTodoRequest struct {
 
 // MarkMessageDoneRequest 标记消息完成请求
 type MarkMessageDoneRequest struct {
-	MsgID int `json:"msg_id"` // 必填：消息ID
+	ID int `json:"id"` // 必填：待办数据ID（来自 msg/todolist 的 id，非消息ID）
 }
 
 // ------------------------------------------------------------------------------------------

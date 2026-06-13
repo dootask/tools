@@ -33,6 +33,14 @@ func WithTimeout(timeout time.Duration) ClientOption {
 	}
 }
 
+// WithVersion 设置客户端版本，作为 Version 请求头随每个请求发送，
+// 供后端 checkClientVersion 做接口兼容性判定（缺省不发，后端按 0.0.1 处理）。
+func WithVersion(version string) ClientOption {
+	return func(c *Client) {
+		c.version = version
+	}
+}
+
 // NewClient 创建客户端实例
 func NewClient(token string, opts ...ClientOption) *Client {
 	client := &Client{
@@ -203,8 +211,11 @@ func (c *Client) NewRequest(method, api string, requestData any, responseData an
 	// 设置通用请求头
 	req.Header.Set("Token", c.token)
 	req.Header.Set("User-Agent", "DooTask-Go-Client/1.0")
+	if c.version != "" {
+		req.Header.Set("Version", c.version)
+	}
 
-	// 设置请求头
+	// 设置请求头（可覆盖上面的默认头）
 	for _, header := range headers {
 		for key, value := range header {
 			req.Header.Set(key, fmt.Sprintf("%v", value))
@@ -523,15 +534,15 @@ func (c *Client) GetMessageList(params GetMessageListRequest) (*DialogMessageLis
 	return &response, nil
 }
 
-// SearchMessage 搜索消息
-func (c *Client) SearchMessage(params SearchMessageRequest) (*DialogMessageSearchResponse, error) {
-	var response DialogMessageSearchResponse
-	err := c.NewGetRequest("/api/dialog/msg/search", params, &response)
+// SearchMessage 搜索消息（走 /api/search/message，可选 dialog_id 限定对话）
+func (c *Client) SearchMessage(params SearchMessageRequest) ([]MessageSearchItem, error) {
+	var response []MessageSearchItem
+	err := c.NewGetRequest("/api/search/message", params, &response)
 	if err != nil {
 		return nil, err
 	}
 
-	return &response, nil
+	return response, nil
 }
 
 // GetMessage 获取单个消息详情
@@ -574,15 +585,15 @@ func (c *Client) ToggleMessageTodo(params ToggleMessageTodoRequest) error {
 	return c.NewGetRequest("/api/dialog/msg/todo", params, nil)
 }
 
-// GetMessageTodoList 获取消息待办列表
-func (c *Client) GetMessageTodoList(params GetMessageRequest) (*TodoListResponse, error) {
-	var response TodoListResponse
+// GetMessageTodoList 获取消息待办列表（返回待办记录数组，其 id 用于 MarkMessageDone）
+func (c *Client) GetMessageTodoList(params GetMessageRequest) ([]TodoItem, error) {
+	var response []TodoItem
 	err := c.NewGetRequest("/api/dialog/msg/todolist", params, &response)
 	if err != nil {
 		return nil, err
 	}
 
-	return &response, nil
+	return response, nil
 }
 
 // MarkMessageDone 标记消息完成
