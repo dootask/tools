@@ -572,6 +572,16 @@ class ProjectTask:
     # 关联数据
     project_name: str = ""
     column_name: str = ""
+    task_tag: List['TaskTag'] = field(default_factory=list)
+
+@dataclass
+class TaskTag:
+    """任务标签（ProjectTaskTag）"""
+    id: int = 0
+    project_id: int = 0
+    task_id: int = 0
+    name: str = ""
+    color: str = ""
 
 @dataclass
 class TaskFile:

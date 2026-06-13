@@ -473,6 +473,16 @@ export interface ProjectTask {
   percent: number
   project_name: string
   column_name: string
+  task_tag?: TaskTag[]
+}
+
+// 任务标签（ProjectTaskTag）
+export interface TaskTag {
+  id: number
+  project_id: number
+  task_id: number
+  name: string
+  color: string
 }
 
 export interface TaskFile {

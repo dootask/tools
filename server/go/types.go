@@ -581,8 +581,18 @@ type ProjectTask struct {
 	SubComplete int `json:"sub_complete"` // 子任务完成数量
 	Percent     int `json:"percent"`      // 完成百分比
 	// 关联数据
-	ProjectName string `json:"project_name"` // 项目名称
-	ColumnName  string `json:"column_name"`  // 列表名称
+	ProjectName string    `json:"project_name"` // 项目名称
+	ColumnName  string    `json:"column_name"`  // 列表名称
+	TaskTag     []TaskTag `json:"task_tag"`     // 任务标签
+}
+
+// TaskTag 任务标签（ProjectTaskTag）
+type TaskTag struct {
+	ID        int    `json:"id"`         // 标签ID
+	ProjectID int    `json:"project_id"` // 项目ID
+	TaskID    int    `json:"task_id"`    // 任务ID
+	Name      string `json:"name"`       // 名称
+	Color     string `json:"color"`      // 颜色
 }
 
 // TaskFile 任务文件
