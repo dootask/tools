@@ -112,6 +112,7 @@ func newAppCmd() *cobra.Command {
 	}
 	cmd.AddCommand(
 		newAppListCmd(),
+		newAppUpdatesCmd(),
 		newAppCatalogCmd(),
 		newAppFieldsCmd(),
 		newAppInstallCmd("install"),
@@ -152,6 +153,41 @@ func newAppListCmd() *cobra.Command {
 				return err
 			}
 			return cli.Output(out, []string{"id", "version", "status", "install_at"})
+		},
+	}
+}
+
+// updates 与网页「可升级」徽标同源：拉 /list?include=all 后筛 upgradeable=true。
+// 注意区别于 refresh（/internal/apps/update，刷新远程源/包），这里看的是已装应用能否升级。
+func newAppUpdatesCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "updates",
+		Short: "列出可升级的已安装应用（与网页「可升级」一致；含已装版本与最新版本）",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			var apps []map[string]any
+			if err := cli.AppStoreRequest("GET", "/list", map[string]string{"include": "all"}, nil, &apps); err != nil {
+				return err
+			}
+			rows := make([]map[string]any, 0)
+			for _, a := range apps {
+				if up, _ := a["upgradeable"].(bool); !up {
+					continue
+				}
+				row := map[string]any{"id": a["id"], "name": a["name"]}
+				if cfg, ok := a["config"].(map[string]any); ok {
+					row["installed"] = cfg["install_version"]
+				}
+				// versions 按版本降序，首个即可升级到的最新版本
+				if vs, ok := a["versions"].([]any); ok && len(vs) > 0 {
+					row["latest"] = vs[0]
+				}
+				rows = append(rows, row)
+			}
+			if len(rows) == 0 && !cli.Opts.JSON {
+				cli.OK("没有可升级的应用（所有已安装应用均为最新版本）")
+				return nil
+			}
+			return cli.Output(rows, []string{"id", "name", "installed", "latest"})
 		},
 	}
 }

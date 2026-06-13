@@ -58,7 +58,7 @@ doo file      list | search | view | fetch          (实验性)
 doo report    received | my | view | template | submit | mark   (实验性)
 doo search    <关键词> [--types ...]                 (实验性)
 doo page      context | action | element             (需 --session <fd>)
-doo app       list | catalog [--search 词] | fields <ID> | install <ID> [...] | update <ID> [...] | reinstall <ID> [...]
+doo app       list | updates | catalog [--search 词] | fields <ID> | install <ID> [...] | update <ID> [...] | reinstall <ID> [...]
               | uninstall <ID> [--delete-data] | remove <ID> | logs <ID> | containers <ID> | container-logs <ID> --service | refresh
 doo system    version | settings
 ```
@@ -91,6 +91,7 @@ doo app uninstall community_kuaifan_mcp --delete-data --yes
 - `file` / `report` / `search` 暂走通用端点（SDK 尚无对应类型），标记为实验性，输出字段以 `--json` 为准。
 - `app`（应用插件）走 AppStore 微服务（主程序反代 `/appstore/api/v1`，响应 `{code,message,data}`，与主程序 `{ret,msg,data}` 不同；请求自动带 `Version` 头供 AppStore 校验 `require_version`）：
   - `install`/`update`/`reinstall`/`uninstall`/`remove`/`refresh` 需**管理员**权限，安装/卸载会触发 docker compose、可能耗时；`list`/`catalog`/`fields`/`logs`/`containers` 普通用户即可。
+  - `updates`：列出**已安装且有新版可升级**的应用（取 `/list?include=all` 中 `upgradeable=true`，与网页「可升级」徽标同源，含 community 应用）。区别于 `refresh`——`refresh` 是刷新远程源/包，`updates` 看的是已装应用能否升级。
   - `catalog --search <kw>` 在 `id`/`name`/`description`/`tags` 上做大小写不敏感的子串匹配，覆盖中英文 tag（如「客户管理」）。
   - 装/升前先用 `doo app fields <ID>` 查参数定义；`--param K=V` 可重复；fields 中不存在的 key 直接报错，必填字段缺失且无默认值时拒绝提交。
   - **sticky**：已安装应用未传 `--param` 自动沿用当前 `params`、未传 `--cpu-limit`/`--memory-limit` 自动沿用当前 `resources`，与网页表单"初值即当前值"行为一致，避免 `KB_INGEST_TOKEN` 等令牌被误清。
