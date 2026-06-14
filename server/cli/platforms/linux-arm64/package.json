@@ -1,6 +1,6 @@
 {
     "name": "@dootask/cli-linux-arm64",
-    "version": "1.3.2",
+    "version": "1.3.3",
     "description": "doo CLI binary for linux/arm64",
     "os": ["linux"],
     "cpu": ["arm64"],

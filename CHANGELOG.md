@@ -2,6 +2,14 @@
 
 DooTask Tools 仓库的版本变更记录。包含前端工具库 `@dootask/tools`、命令行 `@dootask/cli`（含 doo 二进制）、Python SDK `dootask-tools`、Node SDK 与 Go SDK，统一版本号发布。
 
+## [1.3.3]
+
+`doo` 命令行支持上传本地应用压缩包。
+
+### Features
+
+- 新增 `doo app upload <压缩包路径>`：把本地应用压缩包（`.zip` / `.tar.gz`）上传导入应用市场，等同网页的「上传本地应用」。仅做导入与合规校验、不自动部署，导入成功后用 `doo app install <ID>` 安装；`--appid` 留空时按文件名自动识别应用 ID（去掉结尾版本段与扩展名，如 `myapp-1.0.0.tar.gz` → `myapp`），文件名与目标 ID 不一致时可显式指定
+
 ## [1.3.2]
 
 `doo` 命令行补齐「应用升级」查询能力。
