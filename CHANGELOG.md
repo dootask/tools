@@ -2,6 +2,14 @@
 
 DooTask Tools 仓库的版本变更记录。包含前端工具库 `@dootask/tools`、命令行 `@dootask/cli`（含 doo 二进制）、Python SDK `dootask-tools`、Node SDK 与 Go SDK，统一版本号发布。
 
+## [1.3.2]
+
+`doo` 命令行补齐「应用升级」查询能力。
+
+### Features
+
+- 新增 `doo app updates`：一条命令列出**已安装且有新版本可升级**的应用（含 community 应用），输出应用 ID、名称、当前已装版本与可升级到的最新版本。与网页应用市场的「可升级」标记同源——此前只有 `doo app list` 查看已装版本，无法判断哪些应用有新版可升，现在「有哪些应用可以更新」可直接得到答案
+
 ## [1.3.1]
 
 `doo` 命令行围绕「消息处理、任务看板流转、工作报告 AI」补齐三条完整操作闭环，并修复一批接口参数错配问题；Go / Node / Python 三端 SDK 同步更新。
