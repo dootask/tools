@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"net/url"
+	"os"
 	"strings"
 
 	"github.com/dootask/tools/server/go/cmd/doo/internal/cli"
@@ -115,6 +116,7 @@ func newAppCmd() *cobra.Command {
 		newAppUpdatesCmd(),
 		newAppCatalogCmd(),
 		newAppFieldsCmd(),
+		newAppUploadCmd(),
 		newAppInstallCmd("install"),
 		newAppInstallCmd("update"),
 		newAppReinstallCmd(),
@@ -240,6 +242,39 @@ func catalogMatch(item map[string]any, kw, kwLower string) bool {
 		}
 	}
 	return false
+}
+
+// upload：上传本地应用压缩包导入应用市场（仅导入 + 合规校验，不部署）。
+// 需管理员权限；导入成功后用 doo app install <id> 才真正安装。
+func newAppUploadCmd() *cobra.Command {
+	var appid string
+	cmd := &cobra.Command{
+		Use:   "upload <压缩包路径>",
+		Short: "上传本地应用压缩包导入应用市场（不自动安装，需后续 app install）",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			path := args[0]
+			if fi, err := os.Stat(path); err != nil {
+				return fmt.Errorf("读取文件失败: %w", err)
+			} else if fi.IsDir() {
+				return fmt.Errorf("%q 是目录，请指定应用压缩包文件", path)
+			}
+			fields := map[string]string{}
+			if appid != "" {
+				fields["appid"] = appid
+			}
+			var res struct {
+				ID string `json:"id"`
+			}
+			if err := cli.AppStoreUpload("/internal/apps/upload", "file", path, fields, &res); err != nil {
+				return err
+			}
+			cli.OK("✓ 已导入应用：%s\n  接下来用 `doo app install %s` 安装部署", res.ID, res.ID)
+			return nil
+		},
+	}
+	cmd.Flags().StringVar(&appid, "appid", "", "应用ID（留空则从文件名提取：去结尾版本段与扩展名，如 myapp-1.0.0.zip→myapp；文件名与目标 ID 不一致时请显式指定）")
+	return cmd
 }
 
 // install / update 共用：对已安装应用再 install 即为升级（后端自动判定）。

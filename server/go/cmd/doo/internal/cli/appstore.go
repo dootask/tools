@@ -5,8 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"net/url"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -82,8 +85,66 @@ func AppStoreRequest(method, path string, query map[string]string, body any, out
 		return fmt.Errorf("请求失败: %w", err)
 	}
 	defer resp.Body.Close()
-	data, _ := io.ReadAll(resp.Body)
+	return parseAppStoreResponse(resp, out)
+}
 
+// AppStoreUpload 以 multipart/form-data 上传一个文件到 AppStore（如上传本地应用压缩包）。
+// fileField 为文件表单字段名，filePath 为本地文件路径；fields 为附带的普通文本字段。
+// 鉴权、Version 头、响应解析与 AppStoreRequest 一致。
+func AppStoreUpload(path, fileField, filePath string, fields map[string]string, out any) error {
+	if Opts.Token == "" {
+		return ErrNoAuth
+	}
+	f, err := os.Open(filePath)
+	if err != nil {
+		return fmt.Errorf("打开文件失败: %w", err)
+	}
+	defer f.Close()
+
+	var buf bytes.Buffer
+	w := multipart.NewWriter(&buf)
+	for k, v := range fields {
+		if v != "" {
+			if err := w.WriteField(k, v); err != nil {
+				return fmt.Errorf("写入表单字段失败: %w", err)
+			}
+		}
+	}
+	fw, err := w.CreateFormFile(fileField, filepath.Base(filePath))
+	if err != nil {
+		return fmt.Errorf("创建上传字段失败: %w", err)
+	}
+	if _, err := io.Copy(fw, f); err != nil {
+		return fmt.Errorf("读取文件失败: %w", err)
+	}
+	if err := w.Close(); err != nil {
+		return fmt.Errorf("封装上传数据失败: %w", err)
+	}
+
+	u := strings.TrimRight(Opts.Server, "/") + "/appstore/api/v1" + path
+	req, err := http.NewRequest("POST", u, &buf)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Token", Opts.Token)
+	req.Header.Set("User-Agent", "doo-cli")
+	if v := mainAppVersion(); v != "" {
+		req.Header.Set("Version", v)
+	}
+	req.Header.Set("Content-Type", w.FormDataContentType())
+
+	resp, err := (&http.Client{Timeout: appStoreTimeout}).Do(req)
+	if err != nil {
+		return fmt.Errorf("请求失败: %w", err)
+	}
+	defer resp.Body.Close()
+	return parseAppStoreResponse(resp, out)
+}
+
+// parseAppStoreResponse 解析 AppStore 统一响应 {code,message,data}：code!=200 转为 error；
+// out 非 nil 时把 data 反序列化进去。
+func parseAppStoreResponse(resp *http.Response, out any) error {
+	data, _ := io.ReadAll(resp.Body)
 	var r struct {
 		Code    int             `json:"code"`
 		Message string          `json:"message"`
