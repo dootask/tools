@@ -126,6 +126,7 @@ func newAppCmd() *cobra.Command {
 		newAppContainersCmd(),
 		newAppContainerLogsCmd(),
 		newAppRefreshCmd(),
+		newAppCallCmd(),
 	)
 	return cmd
 }

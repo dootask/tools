@@ -60,6 +60,7 @@ doo search    <关键词> [--types ...]                 (实验性)
 doo page      context | action | element             (需 --session <fd>)
 doo app       list | updates | catalog [--search 词] | fields <ID> | upload <zip> [--appid] | install <ID> [...] | update <ID> [...] | reinstall <ID> [...]
               | uninstall <ID> [--delete-data] | remove <ID> | logs <ID> | containers <ID> | container-logs <ID> --service | refresh
+              | call <ID> [指令] [K=V ...]
 doo system    version | settings
 ```
 
@@ -83,6 +84,13 @@ doo app install ai --param EMBEDDING_MODEL=bge-m3  # 已装应用未传 --param 
 doo app install ai --cpu-limit 1.0 --memory-limit 2G --pull
 doo app reinstall ai                               # 按当前已装版本与参数重部署
 doo app uninstall community_kuaifan_mcp --delete-data --yes
+
+# 调用应用自定义指令（基于应用暴露的 OpenAPI/Swagger）
+doo app call approve                               # 列出该应用可用指令
+doo app call approve api-list --describe           # 查看某指令的参数
+doo app call approve api-list page=2               # 调用指令（也可 --arg page=2）
+doo app call approve create-item title=foo --data '{"score":9}'
+doo app call approve --raw GET /api/custom         # 直接调用未在规范中声明的端点
 ```
 
 ## 说明
@@ -96,4 +104,5 @@ doo app uninstall community_kuaifan_mcp --delete-data --yes
   - `catalog --search <kw>` 在 `id`/`name`/`description`/`tags` 上做大小写不敏感的子串匹配，覆盖中英文 tag（如「客户管理」）。
   - 装/升前先用 `doo app fields <ID>` 查参数定义；`--param K=V` 可重复；fields 中不存在的 key 直接报错，必填字段缺失且无默认值时拒绝提交。
   - **sticky**：已安装应用未传 `--param` 自动沿用当前 `params`、未传 `--cpu-limit`/`--memory-limit` 自动沿用当前 `resources`，与网页表单"初值即当前值"行为一致，避免 `KB_INGEST_TOKEN` 等令牌被误清。
+  - `call <ID> [指令]`：调用应用**自己的后端接口**。AppStore 读取应用暴露的 OpenAPI/Swagger 规范（`config.yml` 的 `openapi` 字段声明，或自动探测），归一化成指令目录;调用经 AppStore 内网代理到应用容器，自动透传当前用户 `Token` 与身份头（`X-Doo-User-*`），由应用后端自鉴权。无指令时列出目录,`--describe` 看参数,`--raw <METHOD> <path>` 调未声明端点,`--data` 传完整 JSON 体,`--refresh` 跳过规范缓存。详见插件开发文档「应用指令」章节。
 - `doo page`（获取页面上下文 / 执行业务操作 / 操作页面元素）经主程序常驻 WebSocket（`/ws`）派发到用户浏览器执行：CLI 调 `assistant/operation/dispatch` 派发后轮询 `assistant/operation/result` 取结果，对调用者表现为同步命令。需用 `--session <fd>`（或环境变量 `DOO_SESSION`）指定目标会话；fd 为用户当前在线的 WebSocket 连接，归属与在线由主程序校验。
