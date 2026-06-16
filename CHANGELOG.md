@@ -2,6 +2,18 @@
 
 DooTask Tools 仓库的版本变更记录。包含前端工具库 `@dootask/tools`、命令行 `@dootask/cli`（含 doo 二进制）、Python SDK `dootask-tools`、Node SDK 与 Go SDK，统一版本号发布。
 
+## [1.3.4]
+
+`doo` 命令行新增「调用应用自定义指令」能力。
+
+### Features
+
+- 新增 `doo app call <应用ID> [指令]`：基于应用暴露的 OpenAPI/Swagger 规范，直接调用插件自己的后端接口。无指令时列出该应用全部可用指令；`--describe` 查看某指令的参数；`K=V`（或 `--arg K=V`）传参、`--data '<json>'` 传完整请求体、`--raw <METHOD> <path>` 调用未在规范中声明的端点、`--refresh` 跳过规范缓存。调用经 AppStore 内网代理到应用容器，自动透传当前用户身份、由应用后端自鉴权，无需关心容器地址、端口与鉴权细节
+
+### Miscellaneous
+
+- 构建产物语法目标从 ES5 升级到 ES2017：`@dootask/tools` 不再向下转译为 ES5，贴合 Electron 与现代浏览器运行环境，同时规避 TypeScript 7.0 对 ES5 target 的弃用警告（如需兼容老旧引擎请自行转译）
+
 ## [1.3.3]
 
 `doo` 命令行支持上传本地应用压缩包。
