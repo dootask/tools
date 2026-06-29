@@ -2,6 +2,14 @@
 
 DooTask Tools 仓库的版本变更记录。包含前端工具库 `@dootask/tools`、命令行 `@dootask/cli`（含 doo 二进制）、Python SDK `dootask-tools`、Node SDK 与 Go SDK，统一版本号发布。
 
+## [1.3.5]
+
+Go / Node / Python 三端 SDK 新增设置应用菜单角标能力。
+
+### Features
+
+- 三端 SDK 新增 `setAppBadge`：通过 `POST /api/apps/badge/set` 设置应用在 DooTask 菜单上的角标。以 `appid + secret`（默认读取环境变量 `APP_ID` / `APP_SECRET`，也可在构造时覆盖）鉴权；`userid` 支持单个或数组、`count`（数字角标）/ `dot`（小红点）/ `menu_key`（指定菜单项）均为可选。每次调用为绝对覆盖、幂等，方便从插件后端主动提醒用户。三端 README 同步补充用法
+
 ## [1.3.4]
 
 `doo` 命令行新增「调用应用自定义指令」能力。
