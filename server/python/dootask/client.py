@@ -3,6 +3,7 @@ DooTask Tools 客户端
 """
 
 import json
+import os
 import time
 from typing import Optional, List, Dict, Any, Union, TypeVar, Type
 from datetime import datetime, timedelta
@@ -19,7 +20,8 @@ T = TypeVar('T')
 class DooTaskClient:
     """DooTask 客户端"""
     
-    def __init__(self, token: str, server: str = "http://nginx", timeout: int = 10, version: str = ""):
+    def __init__(self, token: str, server: str = "http://nginx", timeout: int = 10, version: str = "",
+                 appid: str = "", secret: str = ""):
         """
         初始化客户端
 
@@ -29,10 +31,14 @@ class DooTaskClient:
             timeout: 请求超时时间（秒）
             version: 客户端版本，作为 Version 头随每个请求发送，供后端 checkClientVersion
                      判定接口兼容性（缺省不发，后端按 0.0.1 处理）
+            appid: 应用 appid，缺省从环境变量 APP_ID 读取（用于 set_app_badge 等以应用身份调用的接口）
+            secret: 应用独立密钥，缺省从环境变量 APP_SECRET 读取
         """
         self.token = token
         self.server = server.rstrip('/')
         self.timeout = timeout
+        self.appid = appid or os.environ.get('APP_ID', '')
+        self.secret = secret or os.environ.get('APP_SECRET', '')
         self._cache: Dict[str, Dict[str, Any]] = {}
         self._cache_time = 600  # 10分钟缓存
 
@@ -551,4 +557,36 @@ class DooTaskClient:
     def get_version(self) -> VersionInfo:
         """获取版本信息"""
         headers = {'version': True}
-        return self._get_request('/api/system/version', headers=headers, response_type=VersionInfo) 
+        return self._get_request('/api/system/version', headers=headers, response_type=VersionInfo)
+
+    # ------------------------------------------------------------------------------------------
+    # 应用角标相关接口
+    # ------------------------------------------------------------------------------------------
+
+    def set_app_badge(self, userid: Union[int, List[int]], count: int = 0,
+                      dot: bool = False, menu_key: str = "") -> None:
+        """设置应用菜单角标（绝对覆盖/幂等）
+
+        以应用身份（appid + secret，缺省取环境变量 APP_ID/APP_SECRET，或创建客户端时传入）
+        对 (应用, 菜单, 每个 userid) 设置角标。
+
+        Args:
+            userid: 用户ID，支持单个 int 或 List[int]
+            count: 角标数字，默认 0
+            dot: 是否显示小红点，默认 False
+            menu_key: 菜单标识，留空表示应用第一个菜单
+
+        当 count=0 且 dot=False 时即清除该角标。
+        """
+        if not self.appid or not self.secret:
+            raise DooTaskException("appid 或 secret 为空（请设置环境变量 APP_ID/APP_SECRET 或在创建客户端时传入）")
+
+        request = SetAppBadgeRequest(
+            appid=self.appid,
+            secret=self.secret,
+            userid=userid,
+            menu_key=menu_key,
+            count=count,
+            dot=dot,
+        )
+        self._post_request('/api/apps/badge/set', request)

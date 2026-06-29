@@ -99,6 +99,24 @@ client.add_group_user(AddGroupUserRequest(
 ))
 ```
 
+### 应用菜单角标
+
+```python
+from dootask import DooTaskClient
+
+# appid/secret 缺省取环境变量 APP_ID / APP_SECRET（插件容器内置），也可显式传入
+client = DooTaskClient(token="YOUR_TOKEN", appid="APP_ID", secret="APP_SECRET")
+
+# 给单个用户的第一个菜单设置数字角标
+client.set_app_badge(123, count=5)
+
+# 给多个用户的指定菜单设置小红点
+client.set_app_badge([123, 456], dot=True, menu_key="tasks")
+
+# 清除角标（count=0 且 dot=False）
+client.set_app_badge(123, menu_key="tasks")
+```
+
 ## API 方法列表
 
 ### 基础方法
@@ -211,6 +229,12 @@ client.add_group_user(AddGroupUserRequest(
 |------|------|------|--------|
 | `get_system_settings` | 获取系统设置 | - | `SystemSettings` |
 | `get_version` | 获取版本信息 | - | `VersionInfo` |
+
+### 应用角标相关接口
+
+| 方法 | 描述 | 参数 | 返回值 |
+|------|------|------|--------|
+| `set_app_badge` | 设置应用菜单角标 | `userid: int \| List[int], count=0, dot=False, menu_key=""` | `None` |
 
 ## 主要数据类型
 

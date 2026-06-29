@@ -11,6 +11,8 @@ type Client struct {
 	token     string
 	server    string
 	version   string
+	appid     string
+	secret    string
 	cache     map[string]UserCache
 	cacheTime time.Duration
 	timeout   time.Duration
@@ -716,4 +718,25 @@ type SystemSettings struct {
 type VersionInfo struct {
 	DeviceCount int    `json:"device_count"` // 设备数量
 	Version     string `json:"version"`      // 版本号
+}
+
+// ------------------------------------------------------------------------------------------
+// 应用角标相关结构体
+// ------------------------------------------------------------------------------------------
+
+// AppBadgeOptions 设置应用菜单角标可选参数
+type AppBadgeOptions struct {
+	Count   int    // 可选：角标数字，默认 0
+	Dot     bool   // 可选：是否显示小红点，默认 false
+	MenuKey string // 可选：菜单标识，留空表示应用第一个菜单
+}
+
+// SetAppBadgeRequest 设置应用菜单角标请求
+type SetAppBadgeRequest struct {
+	AppID   string `json:"appid"`              // 必填：应用 appid
+	Secret  string `json:"secret"`             // 必填：应用独立密钥
+	UserID  any    `json:"userid"`             // 必填：用户ID，支持单个 int 或 []int
+	MenuKey string `json:"menu_key,omitempty"` // 可选：菜单标识，留空表示应用第一个菜单
+	Count   int    `json:"count"`              // 可选：角标数字，默认 0
+	Dot     bool   `json:"dot"`                // 可选：是否显示小红点，默认 false
 }

@@ -583,3 +583,19 @@ export interface VersionInfo {
   device_count: number
   version: string
 }
+
+// 应用角标
+export interface SetAppBadgeOptions {
+  count?: number // 可选：角标数字，默认 0
+  dot?: boolean // 可选：是否显示小红点，默认 false
+  menuKey?: string // 可选：菜单标识，留空表示应用第一个菜单
+}
+
+export interface SetAppBadgeRequest {
+  appid: string // 必填：应用 appid
+  secret: string // 必填：应用独立密钥
+  userid: number | number[] // 必填：用户ID，支持单个或数组
+  menu_key?: string // 可选：菜单标识，留空表示应用第一个菜单
+  count?: number // 可选：角标数字，默认 0
+  dot?: boolean // 可选：是否显示小红点，默认 false
+}

@@ -697,4 +697,18 @@ class SystemSettings:
 class VersionInfo:
     """版本信息"""
     device_count: int = 0
-    version: str = "" 
+    version: str = ""
+
+# ------------------------------------------------------------------------------------------
+# 应用角标相关结构
+# ------------------------------------------------------------------------------------------
+
+@dataclass
+class SetAppBadgeRequest:
+    """设置应用菜单角标请求"""
+    appid: str
+    secret: str
+    userid: Union[int, List[int]]
+    menu_key: str = ""
+    count: int = 0
+    dot: bool = False 

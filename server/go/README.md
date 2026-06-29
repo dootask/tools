@@ -102,6 +102,22 @@ err := client.AddGroupUser(dootask.AddGroupUserRequest{
 })
 ```
 
+### 应用菜单角标
+
+```go
+// appid/secret 默认取环境变量 APP_ID / APP_SECRET（插件容器内置），
+// 也可显式传入：dootask.NewClient(token, dootask.WithApp("APP_ID", "APP_SECRET"))
+
+// 给单个用户的第一个菜单设置数字角标
+err := client.SetAppBadge(123, dootask.AppBadgeOptions{Count: 5})
+
+// 给多个用户的指定菜单设置小红点
+err = client.SetAppBadge([]int{123, 456}, dootask.AppBadgeOptions{Dot: true, MenuKey: "tasks"})
+
+// 清除角标（count=0 且 dot=false）
+err = client.SetAppBadge(123, dootask.AppBadgeOptions{MenuKey: "tasks"})
+```
+
 ## API 方法列表
 
 ### 基础方法
@@ -216,6 +232,12 @@ err := client.AddGroupUser(dootask.AddGroupUserRequest{
 |------|------|------|--------|
 | `GetSystemSettings` | 获取系统设置 | - | `*SystemSettings, error` |
 | `GetVersion` | 获取版本信息 | - | `*VersionInfo, error` |
+
+### 应用角标相关接口
+
+| 方法 | 描述 | 参数 | 返回值 |
+|------|------|------|--------|
+| `SetAppBadge` | 设置应用菜单角标 | `userid any, opts ...AppBadgeOptions` | `error` |
 
 ## 主要数据类型
 

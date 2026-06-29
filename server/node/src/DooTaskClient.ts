@@ -48,6 +48,8 @@ import type {
   ResponsePaginate,
   SearchDialogRequest,
   SearchMessageRequest,
+  SetAppBadgeOptions,
+  SetAppBadgeRequest,
   SendAnonymousMessageRequest,
   SendBotMessageRequest,
   SendMessageRequest,
@@ -94,6 +96,10 @@ export interface DooTaskClientOptions {
   fetch?: typeof fetch
   /** 客户端版本，作为 Version 头随每个请求发送，供后端 checkClientVersion 判定接口兼容性（缺省不发，后端按 0.0.1 处理） */
   version?: string
+  /** 应用 appid，缺省从环境变量 APP_ID 读取（用于 setAppBadge 等以应用身份调用的接口） */
+  appid?: string
+  /** 应用独立密钥，缺省从环境变量 APP_SECRET 读取 */
+  secret?: string
 }
 
 interface UserCache {
@@ -105,15 +111,20 @@ export class DooTaskClient {
   private readonly token: string
   private readonly server: string
   private readonly version: string
+  private readonly appid: string
+  private readonly secret: string
   private readonly timeoutMs: number
   private readonly fetchFn: typeof fetch
   private userCache?: UserCache
   private cacheTimeMs = 10 * 60 * 1000
 
   constructor(options: DooTaskClientOptions) {
+    const env = ((globalThis as any)?.process?.env ?? {}) as Record<string, string | undefined>
     this.token = options.token
     this.server = options.server ?? "http://nginx"
     this.version = options.version ?? ""
+    this.appid = options.appid ?? env.APP_ID ?? ""
+    this.secret = options.secret ?? env.APP_SECRET ?? ""
     this.timeoutMs = options.timeoutMs ?? 10_000
     this.fetchFn = options.fetch ?? (globalThis.fetch as typeof fetch)
     if (!this.fetchFn) {
@@ -504,5 +515,31 @@ export class DooTaskClient {
 
   async getVersion(): Promise<VersionInfo> {
     return this.get<VersionInfo>("/api/system/version", { version: true })
+  }
+
+  // ------------------------------------------------------------------------------------------
+  // 应用角标
+  // ------------------------------------------------------------------------------------------
+  /**
+   * 设置应用菜单角标（绝对覆盖/幂等）
+   *
+   * 以应用身份（appid + secret，缺省取环境变量 APP_ID/APP_SECRET，或构造时传入）
+   * 对 (应用, 菜单, 每个 userid) 设置角标。
+   * @param userid 用户ID，支持单个或数组
+   * @param options count（默认 0）、dot（默认 false）、menuKey（留空表示应用第一个菜单）；count=0 且 dot=false 即清除
+   */
+  async setAppBadge(userid: number | number[], options: SetAppBadgeOptions = {}): Promise<void> {
+    if (!this.appid || !this.secret) {
+      throw new DooTaskApiError("appid 或 secret 为空（请设置环境变量 APP_ID/APP_SECRET 或在创建客户端时传入）")
+    }
+    const payload: SetAppBadgeRequest = {
+      appid: this.appid,
+      secret: this.secret,
+      userid,
+      menu_key: options.menuKey,
+      count: options.count ?? 0,
+      dot: options.dot ?? false,
+    }
+    await this.post<void>("/api/apps/badge/set", payload)
   }
 }

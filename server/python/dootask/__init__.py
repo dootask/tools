@@ -31,6 +31,7 @@ __all__ = [
     'CreateProjectRequest',
     'CreateTaskRequest',
     'CreateGroupRequest',
+    'SetAppBadgeRequest',
     
     # 常用响应类
     'UserInfo',

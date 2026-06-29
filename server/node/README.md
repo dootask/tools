@@ -116,6 +116,28 @@ await client.addGroupUser({
 })
 ```
 
+### 应用菜单角标
+
+```typescript
+import { DooTaskClient } from "@dootask/tools"
+
+// appid/secret 缺省取环境变量 APP_ID / APP_SECRET（插件容器内置），也可显式传入
+const client = new DooTaskClient({
+  token: "YOUR_TOKEN",
+  appid: "APP_ID",
+  secret: "APP_SECRET",
+})
+
+// 给单个用户的第一个菜单设置数字角标
+await client.setAppBadge(123, { count: 5 })
+
+// 给多个用户的指定菜单设置小红点
+await client.setAppBadge([123, 456], { dot: true, menuKey: "tasks" })
+
+// 清除角标（count=0 且 dot=false）
+await client.setAppBadge(123, { menuKey: "tasks" })
+```
+
 ### 消息搜索与待办
 
 ```typescript
@@ -267,3 +289,9 @@ if (results.length) {
 |------|------|------|--------|
 | `getSystemSettings` | 获取系统设置 | - | `Promise<SystemSettings>` |
 | `getVersion` | 获取版本信息 | - | `Promise<VersionInfo>` |
+
+### 应用角标相关接口
+
+| 方法 | 描述 | 参数 | 返回值 |
+|------|------|------|--------|
+| `setAppBadge` | 设置应用菜单角标 | `userid: number \| number[], options?: SetAppBadgeOptions` | `Promise<void>` |

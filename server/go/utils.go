@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"reflect"
 	"slices"
 	"strconv"
@@ -41,11 +42,24 @@ func WithVersion(version string) ClientOption {
 	}
 }
 
+// WithApp 设置应用 appid 与独立密钥（覆盖默认从环境变量 APP_ID/APP_SECRET 读取的值）
+func WithApp(appid, secret string) ClientOption {
+	return func(c *Client) {
+		c.appid = appid
+		c.secret = secret
+	}
+}
+
 // NewClient 创建客户端实例
+//
+// appid/secret 默认从环境变量 APP_ID/APP_SECRET 读取（每个已安装插件容器内置），
+// 可通过 WithApp 显式覆盖。它们用于 SetAppBadge 等以应用身份调用的接口。
 func NewClient(token string, opts ...ClientOption) *Client {
 	client := &Client{
 		token:     token,
 		server:    "http://nginx",
+		appid:     os.Getenv("APP_ID"),
+		secret:    os.Getenv("APP_SECRET"),
 		cache:     make(map[string]UserCache),
 		cacheTime: 10 * time.Minute,
 		timeout:   10 * time.Second,
@@ -934,4 +948,34 @@ func (c *Client) GetVersion() (*VersionInfo, error) {
 		return nil, err
 	}
 	return &resp, nil
+}
+
+// ------------------------------------------------------------------------------------------
+// 应用角标相关接口
+// ------------------------------------------------------------------------------------------
+
+// SetAppBadge 设置应用菜单角标（绝对覆盖/幂等）
+//
+// 以应用身份（appid + secret，默认取环境变量 APP_ID/APP_SECRET，或经 WithApp 传入）
+// 对 (应用, 菜单, 每个 userid) 设置角标。userid 支持单个 int 或 []int；
+// opts 可选 Count（默认 0）、Dot（默认 false）、MenuKey（留空表示应用第一个菜单）。
+// 当 Count=0 且 Dot=false 时即清除该角标。
+func (c *Client) SetAppBadge(userid any, opts ...AppBadgeOptions) error {
+	if c.appid == "" || c.secret == "" {
+		return errors.New("appid 或 secret 为空（请设置环境变量 APP_ID/APP_SECRET 或通过 WithApp 传入）")
+	}
+
+	var opt AppBadgeOptions
+	if len(opts) > 0 {
+		opt = opts[0]
+	}
+
+	return c.NewPostRequest("/api/apps/badge/set", SetAppBadgeRequest{
+		AppID:   c.appid,
+		Secret:  c.secret,
+		UserID:  userid,
+		MenuKey: opt.MenuKey,
+		Count:   opt.Count,
+		Dot:     opt.Dot,
+	}, nil)
 }
