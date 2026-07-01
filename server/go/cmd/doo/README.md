@@ -54,7 +54,7 @@ doo message   send | send-user | list | search | view | withdraw | forward | tod
 doo group     create | edit | add-user | remove-user | exit | transfer | disband
 doo user      info | departments | basic | search
 doo bot       list | view | create | update | delete
-doo file      list | search | view | fetch          (实验性)
+doo file      list | search | view | fetch | history | create | save | rename | restore | delete   (实验性)
 doo report    received | my | view | template | submit | mark   (实验性)
 doo search    <关键词> [--types ...]                 (实验性)
 doo page      context | action | element             (需 --session <fd>)
