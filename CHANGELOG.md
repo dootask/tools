@@ -2,6 +2,18 @@
 
 DooTask Tools 仓库的版本变更记录。包含前端工具库 `@dootask/tools`、命令行 `@dootask/cli`（含 doo 二进制）、Python SDK `dootask-tools`、Node SDK 与 Go SDK，统一版本号发布。
 
+## [1.3.6]
+
+`doo` 命令行文件操作补齐增删改与历史版本能力。
+
+### Features
+
+- `doo file` 补齐文件 CRUD：新增 `create`（新建文件/文件夹，`--type` 指定类型）、`save`（保存文本内容，支持 `--content` 直传或 `--file` 从本地文件读取）、`rename`（重命名）、`delete`（可批量删除）、`history`（查看文件内容的修改历史）、`restore`（恢复到指定历史版本）。此前 `file` 仅支持 list/search/view/fetch，现覆盖完整文件生命周期；`delete`/`restore` 等写操作带 `--yes` 确认护栏，非交互环境不加则拒绝执行
+
+### Documentation
+
+- `@dootask/cli` 新增独立 README 的「For AI Agents」章节：提供可直接粘贴进 system prompt 的接入片段（环境变量认证、`--json` 机器可读输出、退出码约定、危险操作 `--yes`），方便把 `doo` 作为工具交给 LLM Agent 调用；同步更新命令一览中 `file` 的子命令列表
+
 ## [1.3.5]
 
 Go / Node / Python 三端 SDK 新增设置应用菜单角标能力。
