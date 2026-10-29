@@ -149,7 +149,7 @@ func newBotDeleteCmd() *cobra.Command {
 			if remark == "" {
 				return fmt.Errorf("--remark 必填")
 			}
-			if err := cli.Confirm(fmt.Sprintf("确认删除机器人 #%d?", id)); err != nil {
+			if err := cli.Confirm(fmt.Sprintf("删除机器人 #%d", id), cli.Target{Type: "bot", ID: id}); err != nil {
 				return err
 			}
 			c, err := cli.Opts.Client()

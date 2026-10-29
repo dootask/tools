@@ -25,27 +25,30 @@ type Options struct {
 	JSON   bool
 	Yes    bool
 	Quiet  bool
+	DryRun bool
+	Fields []string
+	Limit  int
+	JQ     string
 }
 
 // Opts 是本次调用生效的全局参数（CLI 单次执行，进程级单例）。
 var Opts Options
 
-// Resolve 按 flag > env > 配置文件 > 默认 的优先级合并参数。
-func Resolve(flagServer, flagToken string, jsonOut, yes, quiet bool) {
+// Resolve 按 flag > env > 配置文件 > 默认 的优先级补齐 Server/Token，其余字段取自 flag。
+func Resolve(o Options) {
 	cfg, _ := config.Load()
-	Opts = Options{
-		Server: first(flagServer, os.Getenv("DOO_SERVER"), cfg.Server, "http://nginx"),
-		Token:  first(flagToken, os.Getenv("DOO_TOKEN"), cfg.Token),
-		JSON:   jsonOut,
-		Yes:    yes,
-		Quiet:  quiet,
-	}
+	o.Server = first(o.Server, os.Getenv("DOO_SERVER"), cfg.Server, "http://nginx")
+	o.Token = first(o.Token, os.Getenv("DOO_TOKEN"), cfg.Token)
+	Opts = o
 }
 
 // Client 用当前 token/server 构造 SDK 客户端；缺 token 时返回 ErrNoAuth。
 func (o Options) Client() (*dootask.Client, error) {
 	if o.Token == "" {
 		return nil, ErrNoAuth
+	}
+	if err := guard(); err != nil {
+		return nil, err
 	}
 	return dootask.NewClient(o.Token, dootask.WithServer(o.Server), dootask.WithTimeout(30*time.Second), dootask.WithVersion(CompatVersion)), nil
 }
@@ -55,19 +58,12 @@ func (o Options) AnonClient() *dootask.Client {
 	return dootask.NewClient("", dootask.WithServer(o.Server), dootask.WithTimeout(30*time.Second))
 }
 
-// ExitCode 把错误映射为进程退出码。
-func ExitCode(err error) int {
-	if err == nil {
-		return 0
-	}
-	if errors.Is(err, ErrNoAuth) {
-		return 3
-	}
-	return 1
-}
-
-// OK 打印一条成功/提示信息（--quiet 时抑制）。
+// OK 打印一条成功/提示信息（--quiet 时抑制）；--json 时并入信封的 message 字段。
 func OK(format string, a ...any) {
+	if Opts.JSON {
+		Current.messages = append(Current.messages, fmt.Sprintf(format, a...))
+		return
+	}
 	if !Opts.Quiet {
 		fmt.Printf(format+"\n", a...)
 	}

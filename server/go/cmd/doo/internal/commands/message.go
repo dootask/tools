@@ -186,7 +186,7 @@ func newMessageWithdrawCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if err := cli.Confirm(fmt.Sprintf("确认撤回消息 #%d?", id)); err != nil {
+			if err := cli.Confirm(fmt.Sprintf("撤回消息 #%d", id), cli.Target{Type: "message", ID: id}); err != nil {
 				return err
 			}
 			c, err := cli.Opts.Client()

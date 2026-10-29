@@ -7,22 +7,106 @@ import (
 	"sort"
 	"strings"
 	"text/tabwriter"
+
+	"github.com/itchyny/gojq"
 )
 
-// Output 统一输出：--json 输出紧凑 JSON；否则人类可读表格/键值。
-// cols 是表格首选列（json key），为空时自动挑选标量字段。
+// Output 统一输出：--json 时暂存，由 Finish 包成 {"ok":true,"data":...} 输出；否则人类可读表格/键值。
+// cols 是表格首选列（json key），为空时自动挑选标量字段。--fields/--limit/--jq 两种模式都生效。
 func Output(v any, cols []string) error {
 	if Opts.JSON {
-		enc := json.NewEncoder(os.Stdout)
-		enc.SetEscapeHTML(false)
-		return enc.Encode(v)
+		Current.data = v
+		Current.hasData = true
+		return nil
 	}
-	g, err := toGeneric(v)
+	g, err := shape(v)
 	if err != nil {
 		return err
 	}
+	if len(Opts.Fields) > 0 {
+		cols = Opts.Fields
+	}
 	renderHuman(g, cols)
 	return nil
+}
+
+// shape 按 --fields / --limit / --jq 裁剪输出，大结果不进模型上下文。
+// 列表（数组或分页对象的 data）逐项取字段、截断条数；单个对象只取字段。--jq 最后执行。
+func shape(v any) (any, error) {
+	g, err := toGeneric(v)
+	if err != nil {
+		return nil, err
+	}
+	if len(Opts.Fields) > 0 || Opts.Limit > 0 {
+		g = trimValue(g, Opts.Fields, Opts.Limit)
+	}
+	if Opts.JQ != "" {
+		return runJQ(g, Opts.JQ)
+	}
+	return g, nil
+}
+
+func trimValue(v any, fields []string, limit int) any {
+	switch t := v.(type) {
+	case []any:
+		if limit > 0 && len(t) > limit {
+			t = t[:limit]
+		}
+		out := make([]any, len(t))
+		for i, item := range t {
+			out[i] = pickFields(item, fields)
+		}
+		return out
+	case map[string]any:
+		if arr, ok := t["data"].([]any); ok {
+			cp := make(map[string]any, len(t))
+			for k, val := range t {
+				cp[k] = val
+			}
+			cp["data"] = trimValue(arr, fields, limit)
+			return cp
+		}
+		return pickFields(t, fields)
+	}
+	return v
+}
+
+func pickFields(v any, fields []string) any {
+	m, ok := v.(map[string]any)
+	if !ok || len(fields) == 0 {
+		return v
+	}
+	out := make(map[string]any, len(fields))
+	for _, f := range fields {
+		if val, ok := m[f]; ok {
+			out[f] = val
+		}
+	}
+	return out
+}
+
+// runJQ 执行 jq 表达式：单个结果直接返回，多个结果收成数组。
+func runJQ(v any, expr string) (any, error) {
+	q, err := gojq.Parse(expr)
+	if err != nil {
+		return nil, Errorf(CodeInvalidArgs, "无效的 --jq 表达式: "+err.Error())
+	}
+	var results []any
+	iter := q.Run(v)
+	for {
+		r, ok := iter.Next()
+		if !ok {
+			break
+		}
+		if e, isErr := r.(error); isErr {
+			return nil, Errorf(CodeInvalidArgs, "--jq 执行失败: "+e.Error())
+		}
+		results = append(results, r)
+	}
+	if len(results) == 1 {
+		return results[0], nil
+	}
+	return results, nil
 }
 
 // toGeneric 把任意值经 JSON 归一成 map/slice/标量，渲染与 SDK 结构体字段名解耦。

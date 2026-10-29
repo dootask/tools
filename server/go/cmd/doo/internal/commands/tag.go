@@ -99,6 +99,9 @@ func newTagDeleteCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			if err := cli.Confirm(fmt.Sprintf("删除任务标签 #%d", id), cli.Target{Type: "tag", ID: id}); err != nil {
+				return err
+			}
 			c, err := cli.Opts.Client()
 			if err != nil {
 				return err

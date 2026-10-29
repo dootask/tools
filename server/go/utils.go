@@ -240,14 +240,14 @@ func (c *Client) NewRequest(method, api string, requestData any, responseData an
 	client := &http.Client{Timeout: c.timeout}
 	resp, err := client.Do(req)
 	if err != nil {
-		return fmt.Errorf("request failed: %w", err)
+		return &TransportError{Err: err}
 	}
 	defer resp.Body.Close()
 
 	// 检查 HTTP 状态码
 	if resp.StatusCode != http.StatusOK {
 		bodyBytes, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("HTTP %d: %s, body: %s", resp.StatusCode, resp.Status, string(bodyBytes))
+		return &HTTPError{StatusCode: resp.StatusCode, Status: resp.Status, Body: string(bodyBytes)}
 	}
 
 	// 读取响应体
@@ -264,10 +264,7 @@ func (c *Client) NewRequest(method, api string, requestData any, responseData an
 
 	// 检查业务状态
 	if apiResp.Ret != 1 {
-		if apiResp.Msg != "" {
-			return fmt.Errorf("%s", apiResp.Msg)
-		}
-		return fmt.Errorf("API error: %d", apiResp.Ret)
+		return &APIError{Ret: apiResp.Ret, Msg: apiResp.Msg, Data: apiResp.Data}
 	}
 
 	// 如果不需要响应数据，直接返回
