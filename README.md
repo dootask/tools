@@ -82,7 +82,7 @@ export default defineExtension({
 | 环境 | ✓ | ✓ | ✓ | ✓ |
 | 身份和请求 | ✓ | ✓ | ✓ | ✓ |
 | 界面 | ✓ | ✓ | ✓ | ✓（桥接页临时铺满页面显示） |
-| 操作主程序 | ✓ | ✓ | ✓ | ✓（转给用户已打开的 DooTask 窗口） |
+| 操作主程序 | ✓ | ✓ | ✓ | ✓（转给用户已打开的 DooTask 桌面客户端） |
 | 窗口 | ✓ | ✗ | ✓ | ✗ |
 | 扩展 | ✗ | ✓ | ✗ | ✗ |
 
@@ -238,7 +238,7 @@ interface SelectUsersOptions {
 | `getTaskFields(taskId)` | `Promise<Record<string, any>>` | 读本应用在 `task.create.field` 里声明的字段值 |
 | `setTaskFields(taskId, values)` | `Promise<void>` | 写本应用声明的字段值 |
 
-浏览器里外部打开的页面调用这一组接口时，会转给用户已打开的 DooTask 窗口执行；用户没有打开 DooTask 时，在新标签打开 DooTask 的对应页面。
+浏览器里外部打开的页面（`bridge` 通道）调用这一组接口时，会转给用户已打开的 DooTask 桌面客户端执行；用户没有打开桌面客户端时，在新标签打开 DooTask 并执行（`openAI` 只填进输入框，不直接发送）。这个通道里没有 `openApp`、`getHostPreference`、`setHostPreference`。
 
 ### 窗口
 
@@ -429,7 +429,13 @@ const res = await fetch("/apps/example/api/list", {
 
 ### 外部打开的页面
 
-页面照常调用 `ready()` 即可。浏览器里，工具库会自动取走地址上的 `dootask_launch` 启动码、从地址栏里删掉，并通过桥接页换取应用令牌。页面所在的域名要登记在应用 `config.yml` 的 `origins` 里。
+页面照常调用 `ready()` 即可。浏览器里，DooTask 打开页面时会在地址上带 `dootask_launch`（启动码，60 秒内有效、只能用一次）和 `dootask_origin`（DooTask 的地址），工具库自动取走并从地址栏删掉，再插入一个隐藏的 DooTask 桥接页换取应用令牌：
+
+- 页面所在的域名要登记在应用 `config.yml` 的 `origins`（或 `menu_items` 的地址）里，否则 DooTask 不签发启动码，桥接页也不允许被嵌入；
+- 页面内跳转、刷新后不需要启动码，桥接页沿用上次换到的凭证（7 天内用过就一直有效，用户退出 DooTask 后失效）；
+- 换不到凭证时 `ready()` 抛 `auth_failed`，请提示用户从 DooTask 重新打开应用；
+- 弹框、选人、图片预览由桥接页临时铺满页面显示，只有轻提示时只占页面顶部，平时隐藏、不挡点击；
+- 页面不能用 `Content-Security-Policy` 的 `frame-src` / `child-src` 拦掉 DooTask 的地址。
 
 ## 从 1.x 升级
 

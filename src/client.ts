@@ -130,7 +130,11 @@ function connect(): Promise<Session> {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => {
       reject(new DooTaskError("unsupported", "no response from DooTask"))
-    }, HELLO_TIMEOUT)
+    }, channel.helloTimeout ?? HELLO_TIMEOUT)
+    const fail = (reason: string) => {
+      clearTimeout(timer)
+      reject(new DooTaskError("auth_failed", reason))
+    }
     channel.listen(message => {
       switch (message.kind) {
         case "welcome":
@@ -168,7 +172,7 @@ function connect(): Promise<Session> {
           void onCallback(message)
           break
       }
-    })
+    }, fail)
     send("hello", { sdk: SDK_VERSION })
   })
 }
