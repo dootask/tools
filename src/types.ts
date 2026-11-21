@@ -2,7 +2,7 @@ export type Channel = "frame" | "inline" | "electron" | "app" | "bridge"
 
 export type Platform = "web" | "electron" | "app"
 
-export type Presentation = "page" | "panel" | "modal"
+export type Presentation = "page" | "window"
 
 export type Theme = "light" | "dark"
 

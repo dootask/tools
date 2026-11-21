@@ -216,10 +216,11 @@ export function close(): Promise<void> {
 }
 
 /**
- * 关闭前询问：cb 返回 false（或 resolve 为 false）时阻止关闭
+ * 关闭前询问：cb 返回 false 或一段提示文字时，DooTask 弹确认框，用户选「关闭」才关；
+ * 返回其他值、抛错、2 秒内没回复都直接关闭。应用自己调用 close() 不会问
  * 第一个登记时告诉 DooTask 关闭前要问，全部取消后告诉它不用问了
  */
-export function onBeforeClose(cb: () => boolean | void | Promise<boolean | void>): () => void {
+export function onBeforeClose(cb: () => boolean | string | void | Promise<boolean | string | void>): () => void {
   const first = listenerCount("before_close") === 0
   const off = listen("before_close", cb)
   if (first) {
@@ -229,6 +230,40 @@ export function onBeforeClose(cb: () => boolean | void | Promise<boolean | void>
     off()
     if (listenerCount("before_close") === 0) {
       call("sdk.onBeforeClose", false).catch(error => console.error("[dootask]", error))
+    }
+  }
+}
+
+const nativeBackHandlers: (() => void)[] = []
+let stopNativeBack: (() => void) | null = null
+
+/**
+ * 移动端原生返回（Android 返回键、iOS 侧滑、手机浏览器返回）交给应用：登记期间原生返回不再收起应用，
+ * 而是调用最后登记的 cb（后进先出）；全部取消后恢复默认（收起成浮窗）。桌面端不会触发
+ */
+export function onNativeBack(cb: () => void): () => void {
+  const handler = () => cb()
+  nativeBackHandlers.push(handler)
+  if (!stopNativeBack) {
+    stopNativeBack = listen("native_back", () => {
+      try {
+        nativeBackHandlers[nativeBackHandlers.length - 1]?.()
+      } catch (error) {
+        console.error("[dootask]", error)
+      }
+    })
+    call("sdk.onNativeBack", true).catch(error => console.error("[dootask]", error))
+  }
+  return () => {
+    const index = nativeBackHandlers.indexOf(handler)
+    if (index < 0) {
+      return
+    }
+    nativeBackHandlers.splice(index, 1)
+    if (nativeBackHandlers.length === 0 && stopNativeBack) {
+      stopNativeBack()
+      stopNativeBack = null
+      call("sdk.onNativeBack", false).catch(error => console.error("[dootask]", error))
     }
   }
 }

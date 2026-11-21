@@ -119,7 +119,7 @@ export default defineExtension({
 interface Env {
   channel: "frame" | "inline" | "electron" | "app" | "bridge"
   platform: "web" | "electron" | "app"
-  presentation: "page" | "panel" | "modal" | null   // 只有窗口有，其他为 null
+  presentation: "page" | "window" | null   // 只有窗口有，其他为 null；手机上总是 "page"
   mobile: boolean
   protocol: number                                  // 通信协议版本，2.x 为 2
 }
@@ -247,10 +247,11 @@ interface SelectUsersOptions {
 | 接口 | 返回 | 说明 |
 | --- | --- | --- |
 | `close()` | `Promise<void>` | 关闭当前窗口 |
-| `onBeforeClose(cb)` | `() => void` | 关闭前询问：`cb` 返回 `false`（或 resolve 为 `false`）时阻止关闭。用户点关闭、返回、侧滑、按系统返回键都会触发 |
+| `onBeforeClose(cb)` | `() => void` | 关闭前询问：`cb` 返回 `false` 或一段提示文字时，DooTask 弹确认框「(提示文字)，确定关闭？」，用户选「关闭」才关；返回其他值、抛错、2 秒内没回复都直接关闭。自己调用 `close()` 不会问 |
+| `onNativeBack(cb)` | `() => void` | 手机上的原生返回（Android 返回键、iOS 侧滑、手机浏览器返回）交给应用处理。默认原生返回会把应用收成浮窗；登记期间改为调用最后登记的 `cb`（后进先出），全部取消后恢复默认。电脑上不会触发 |
 | `popout()` | `Promise<void>` | 弹出到浏览器新标签或桌面客户端的独立窗口，要求入口配置了 `popout: true` |
 | `openWindow(url, options?)` | `Promise<void>` | 打开一个外部窗口：桌面客户端里是独立窗口，其他端是浏览器新标签 |
-| `getPresentation()` | `Promise<"page" \| "panel" \| "modal">` | 当前的打开方式 |
+| `getPresentation()` | `Promise<"page" \| "window">` | 当前的打开方式（手机上总是 `page`） |
 | `onPresentationChange(cb)` | `() => void` | 用户在胶囊菜单里改了打开方式 |
 | `getCapsuleRect()` | `Promise<Rect>` | 胶囊的位置和大小，沉浸式页面用来给胶囊留位置 |
 | `setCapsuleMenus(menus)` | `Promise<void>` | 替换胶囊「···」里应用自己的菜单项 |
@@ -377,17 +378,37 @@ if (await isSupported("popout")) {
 ### 关闭前确认
 
 ```typescript
-import { onBeforeClose, dialog } from "@dootask/tools"
+import { onBeforeClose } from "@dootask/tools"
 
 let dirty = false
 
-const off = onBeforeClose(async () => {
-  if (!dirty) return true
-  return await dialog.confirm({ title: "提示", content: "有未保存的内容，确定关闭吗？" })
+const off = onBeforeClose(() => {
+  // 返回提示文字：DooTask 弹「有未保存的内容，确定关闭？」，用户选「关闭」才关
+  if (dirty) return "有未保存的内容"
 })
 
 // 不再需要时取消登记
 // off()
+```
+
+### 手机返回先关自己的弹层
+
+```typescript
+import { onNativeBack } from "@dootask/tools"
+
+// 打开弹层时登记，关掉时取消：登记期间手机返回只关弹层，不会把应用收起来
+let offBack: (() => void) | null = null
+
+function openSheet() {
+  showSheet.value = true
+  offBack = onNativeBack(closeSheet)
+}
+
+function closeSheet() {
+  showSheet.value = false
+  offBack?.()
+  offBack = null
+}
 ```
 
 ### 沉浸式页面给胶囊让位
@@ -456,7 +477,7 @@ const res = await fetch("/apps/example/api/list", {
 | `modalSuccess()` 等 `modalXxx` | `dialog.success()` 等，`modalConfirm` 改为 `dialog.confirm` |
 | `messageSuccess()` 等 `messageXxx` | `toast.success()` 等 |
 | `closeApp()`、`backApp()` | `close()`，返回由 DooTask 处理 |
-| `interceptBack(cb)`（返回 `true` 阻止） | `onBeforeClose(cb)`（返回 `false` 阻止） |
+| `interceptBack(cb)`（返回 `true` 阻止） | 关闭前确认用 `onBeforeClose(cb)`（返回 `false` 或提示文字）；拦截手机返回关掉自己的弹层用 `onNativeBack(cb)` |
 | `popoutWindow(params)` | `popout()` |
 | `openWindow(params)`、`openTabWindow(url)` | `openWindow(url, options)` |
 | `openAppPage(params)` | `openApp(appid, key, query)` |

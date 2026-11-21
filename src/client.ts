@@ -107,12 +107,13 @@ async function onEvent(message: Envelope) {
     })
     return
   }
-  // 需要回复的事件（before_close）：依次问，有一个返回 false 就回 false
+  // 需要回复的事件（before_close）：依次问，有一个返回 false 或提示文字就回它（DooTask 弹确认），抛错的跳过
   let value: unknown = true
   for (const handler of handlers) {
     try {
-      if ((await handler(message.data)) === false) {
-        value = false
+      const result = await handler(message.data)
+      if (result === false || typeof result === "string") {
+        value = result
         break
       }
     } catch (error) {
