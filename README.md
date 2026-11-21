@@ -253,7 +253,8 @@ interface SelectUsersOptions {
 | `openWindow(url, options?)` | `Promise<void>` | 打开一个外部窗口：桌面客户端里是独立窗口，其他端是浏览器新标签 |
 | `getPresentation()` | `Promise<"page" \| "window">` | 当前的打开方式（手机上总是 `page`） |
 | `onPresentationChange(cb)` | `() => void` | 用户在胶囊菜单里改了打开方式 |
-| `getCapsuleRect()` | `Promise<Rect>` | 胶囊的位置和大小，沉浸式页面用来给胶囊留位置 |
+| `getCapsuleRect()` | `Promise<Rect>` | 胶囊的位置和大小（`top` 已含安全距离，`right` 是到窗口右边的距离），沉浸式页面用来给胶囊留位置；非沉浸式和外部页面全为 0 |
+| `onCapsuleChange(cb)` | `() => void` | 胶囊位置变了（换打开方式、转屏、安全距离变化），`cb(rect)` |
 | `setCapsuleMenus(menus)` | `Promise<void>` | 替换胶囊「···」里应用自己的菜单项 |
 | `onCapsuleMenu(cb)` | `() => void` | 胶囊菜单项被点击，`cb(value)` |
 
@@ -413,15 +414,26 @@ function closeSheet() {
 
 ### 沉浸式页面给胶囊让位
 
+胶囊的位置由 DooTask 决定，手机、电脑整页、窗口各不相同，应用的顶栏按它对齐：右边留出胶囊的宽度，顶栏里的按钮和胶囊上下居中对齐。
+
 ```typescript
-import { getCapsuleRect, getSafeArea } from "@dootask/tools"
+import { getCapsuleRect, getSafeArea, onCapsuleChange, onSafeAreaChange } from "@dootask/tools"
 
-const capsule = await getCapsuleRect()
-const safe = await getSafeArea()
+async function layoutHeader() {
+  const [capsule, safe] = await Promise.all([getCapsuleRect(), getSafeArea()])
+  const header = document.querySelector<HTMLElement>(".app-header")!
+  header.style.paddingTop = `${safe.top}px`
+  if (!capsule.width) {
+    return // 非沉浸式，胶囊不在页面里
+  }
+  // 胶囊上下留出同样的空隙，顶栏内容上下居中就和胶囊对齐
+  header.style.height = `${capsule.top * 2 - safe.top + capsule.height}px`
+  header.style.paddingRight = `${capsule.right + capsule.width + 12}px`
+}
 
-const header = document.querySelector<HTMLElement>(".app-header")!
-header.style.paddingTop = `${safe.top}px`
-header.style.paddingRight = `${capsule.right + capsule.width + 8}px`
+layoutHeader()
+onCapsuleChange(layoutHeader)
+onSafeAreaChange(layoutHeader)
 ```
 
 ### 胶囊菜单

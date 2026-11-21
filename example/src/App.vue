@@ -185,7 +185,8 @@ onMounted(async () => {
         env.value.presentation = value
       }
     }),
-    doo.onCapsuleMenu(value => log("胶囊菜单", value))
+    doo.onCapsuleMenu(value => log("胶囊菜单", value)),
+    doo.onCapsuleChange(rect => log("胶囊位置", rect))
   )
 })
 

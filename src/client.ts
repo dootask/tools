@@ -87,7 +87,7 @@ async function onCallback(message: Envelope) {
 async function onEvent(message: Envelope) {
   const name = String(message.name)
   if (session) {
-    if (name === "theme" || name === "language" || name === "safe_area" || name === "presentation") {
+    if (name === "theme" || name === "language" || name === "safe_area" || name === "presentation" || name === "capsule") {
       session.state[name] = message.data
       if (name === "presentation") {
         session.env.presentation = message.data

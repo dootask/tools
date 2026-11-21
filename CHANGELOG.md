@@ -15,7 +15,7 @@ DooTask Tools 仓库的版本变更记录。包含前端工具库 `@dootask/tool
 
 ### Features
 
-- 新增窗口相关接口：`getPresentation` / `onPresentationChange`、`getCapsuleRect`、`setCapsuleMenus` / `onCapsuleMenu`、`openWindow`、`openApp`
+- 新增窗口相关接口：`getPresentation` / `onPresentationChange`、`getCapsuleRect` / `onCapsuleChange`、`setCapsuleMenus` / `onCapsuleMenu`、`openWindow`、`openApp`
 - 外部打开的页面也能用工具库：桌面客户端、App 里由客户端注入通道（`electron` / `app`），浏览器里取走地址上的启动码（`dootask_launch`），经隐藏的 DooTask 桥接页换取应用令牌（`bridge`）
 - 主题、语言、安全距离握手时就带过来，`getTheme` 等直接返回，变化时通过 `onThemeChange` 等通知
 - Go / Node / Python 三端 SDK：`token` 传应用令牌（`dta_` 开头）时用 `Authorization: Bearer` 发送，应用后端可以直接拿页面请求里的应用令牌调用主程序接口；个人访问令牌（`dtp_` 开头）同样用 `Authorization: Bearer` 发送

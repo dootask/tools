@@ -289,9 +289,14 @@ export function onPresentationChange(cb: (presentation: Presentation) => void): 
   return listen("presentation", cb)
 }
 
-/** 胶囊的位置和大小，沉浸式页面用来给胶囊留位置 */
-export function getCapsuleRect(): Promise<Rect> {
-  return call("getCapsuleRect")
+/** 胶囊的位置和大小，沉浸式页面用来给胶囊留位置；非沉浸式（胶囊在 DooTask 的标题栏里）和外部页面全为 0 */
+export async function getCapsuleRect(): Promise<Rect> {
+  return { top: 0, right: 0, width: 0, height: 0, ...(await state<Rect | null>("capsule")) }
+}
+
+/** 胶囊位置变了：换打开方式（整页 / 窗口）、转屏、安全距离变化 */
+export function onCapsuleChange(cb: (rect: Rect) => void): () => void {
+  return listen("capsule", cb)
 }
 
 /** 替换胶囊「···」里应用自己的菜单项 */
