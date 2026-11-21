@@ -165,8 +165,9 @@ export class DooTaskClient {
     const isGetLike = method === "GET" || method === "DELETE"
     const url = isGetLike ? this.buildURL(this.server + api, payload as Record<string, unknown>) : this.server + api
 
+    // 应用令牌（dta_）、个人访问令牌（dtp_）放 Authorization: Bearer，用户登录 token 放 Token
     const headers: Record<string, string> = {
-      Token: this.token,
+      ...(/^dt[ap]_/.test(this.token) ? { Authorization: `Bearer ${this.token}` } : { Token: this.token }),
       "User-Agent": "DooTask-Node-Client/1.0",
     }
     if (this.version) headers.Version = this.version

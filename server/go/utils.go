@@ -222,8 +222,12 @@ func (c *Client) NewRequest(method, api string, requestData any, responseData an
 		return fmt.Errorf("create request failed: %w", err)
 	}
 
-	// 设置通用请求头
-	req.Header.Set("Token", c.token)
+	// 设置通用请求头：应用令牌（dta_）、个人访问令牌（dtp_）放 Authorization: Bearer，用户登录 token 放 Token
+	if strings.HasPrefix(c.token, "dta_") || strings.HasPrefix(c.token, "dtp_") {
+		req.Header.Set("Authorization", "Bearer "+c.token)
+	} else {
+		req.Header.Set("Token", c.token)
+	}
 	req.Header.Set("User-Agent", "DooTask-Go-Client/1.0")
 	if c.version != "" {
 		req.Header.Set("Version", c.version)

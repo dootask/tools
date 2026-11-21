@@ -1,331 +1,156 @@
-/**
- * 微应用数据类型定义
- */
+export type Channel = "frame" | "inline" | "electron" | "app" | "bridge"
 
-/** eslint-disable-next-line @typescript-eslint/no-explicit-any */
-export type Any = any
+export type Platform = "web" | "electron" | "app"
 
-/** eslint-disable-next-line @typescript-eslint/no-unsafe-function-type */
-export type Func = Function
+export type Presentation = "page" | "panel" | "modal"
 
-/** 扩展Window全局接口 */
-declare global {
-  interface Window {
-    microApp?: {
-      getData: () => MicroAppData
-      addDataListener?: (callback: Func, autoTrigger?: boolean) => void
-      removeDataListener?: (callback: Func) => void
-    }
-    microInitialized?: boolean
-    modalTransferIndex?: number
-    systemInfo?: DooTaskSystemInfo
-  }
+export type Theme = "light" | "dark"
+
+export type Language = "zh" | "zh-CHT" | "en" | "ko" | "ja" | "de" | "fr" | "id" | "ru"
+
+export interface Env {
+  channel: Channel
+  platform: Platform
+  /** 只有窗口有，其他为 null */
+  presentation: Presentation | null
+  mobile: boolean
+  /** 通信协议版本，2.x 为 2 */
+  protocol: number
 }
 
-/** 环境不支持错误 */
-export class UnsupportedError extends Error {
-  constructor(message?: string) {
-    super(message ?? "environment not supported")
-    Object.setPrototypeOf(this, UnsupportedError.prototype)
-  }
-}
-
-/** 微应用属性接口 */
-export interface MicroAppProps {
-  name: string
-  url: string
-  type: string
-
-  userId: number
-  userToken: string
-  userInfo: DooTaskUserInfo
-
-  baseUrl: string
-  systemInfo: DooTaskSystemInfo
-  windowType: "popout" | "embed"
-
-  isEEUIApp: boolean
-  isElectron: boolean
-  isMainElectron: boolean
-  isSubElectron: boolean
-
-  languageList: DooTaskLanguage[]
-  languageName: string
-  themeName: string
-
-  [key: string]: Any
-}
-
-/** 微应用方法接口 */
-export interface MicroAppMethods {
-  close: (destroy?: boolean) => void
-  back: () => void
-  openWindow: (params: OpenWindowParams) => void
-  openTabWindow: (url: string) => void
-  openAppPage: (params: OpenAppPageParams) => void
-  requestAPI: (params: requestParams) => Promise<ApiSuccess>
-  selectUsers: (params: SelectUsersParams) => Promise<number[]>
-  nextZIndex: () => number
-  extraCallA: (...args: Any[]) => Any
-
-  [key: string]: Any
-}
-
-/** 微应用实例类型 */
-export interface MicroAppInstance {
-  Vue: Any
-  store: Any
-  components: {
-    DialogWrapper: Any
-    UserSelect: Any
-    DatePicker: Any
-    [key: string]: Any
-  }
-}
-
-/** 完整微应用数据接口 */
-export interface MicroAppData {
-  type: string
-  props: MicroAppProps
-  methods?: MicroAppMethods
-  instance?: MicroAppInstance
-}
-
-/** 窗口配置接口 */
-export interface WindowConfig {
-  /** 窗口标题 */
-  title?: string
-  /** 窗口标题是否固定 */
-  titleFixed?: boolean
-  /** 窗口宽度 */
-  width?: number
-  /** 窗口高度 */
-  height?: number
-  /** 窗口最小宽度 */
-  minWidth?: number
-  [key: string]: Any
-
-  /** 更多配置项参考 https://www.electronjs.org/docs/latest/api/structures/base-window-options */
-}
-
-/** 打开独立窗口参数接口 */
-export interface PopoutWindowParams extends WindowConfig {
-  /** 自定义访问地址，如果为空则打开当前页面 */
-  url?: string
-  [key: string]: Any
-}
-
-/** 打开窗口参数接口 */
-export interface OpenWindowParams {
-  /** 窗口唯一标识 */
-  name?: string
-  /** 访问地址 */
-  url?: string
-  /** 是否强制创建新窗口，而不是重用已有窗口 */
-  force?: boolean
-  config?: WindowConfig
-
-  [key: string]: Any
-}
-
-/** 打开应用页面参数接口 */
-export interface OpenAppPageParams {
-  /** 页面标题 */
-  title?: string
-  /** 窗口标题是否固定 */
-  titleFixed?: boolean
-  /** 访问地址 */
-  url?: string
-  [key: string]: Any
-}
-
-/** 选择用户参数接口 */
-export interface SelectUsersParams {
-  /** 已选择的值，默认值: [] */
-  value?: string | number | Array<string | number>
-  /** 不允许取消的列表，默认值: [] */
-  uncancelable?: Array<string | number>
-  /** 禁止选择的列表，默认值: [] */
-  disabledChoice?: Array<string | number>
-  /** 指定项目ID，默认值: 0 */
-  projectId?: number
-  /** 指定非项目ID，默认值: 0 */
-  noProjectId?: number
-  /** 指定会话ID，默认值: 0 */
-  dialogId?: number
-  /** 是否显示机器人，默认值: false */
-  showBot?: boolean
-  /** 是否显示禁用的，默认值: false */
-  showDisable?: boolean
-  /** 最大选择数量 */
-  multipleMax?: number
-  /** 弹窗标题 */
-  title?: string
-  /** 搜索提示 */
-  placeholder?: string
-  /** 显示全选项，默认值: true */
-  showSelectAll?: boolean
-  /** 是否显示会话，默认值: false */
-  showDialog?: boolean
-  /** 仅显示群组，默认值: false */
-  onlyGroup?: boolean
-  /** 提交前的回调 */
-  beforeSubmit?: Func
-  [key: string]: Any
-}
-
-/** 胶囊配置接口 */
-export interface CapsuleConfig {
-  /** 胶囊是否显示（默认：true） */
-  visible?: boolean
-  /** 胶囊按钮距离顶部的像素值（默认：10） */
-  top?: number
-  /** 胶囊按钮距离右侧的像素值（默认：10） */
-  right?: number
-  /** 胶囊按钮"更多"菜单项配置 */
-  more_menus?: Array<{
-    /** 菜单项显示文本 */
-    label: string
-    /** 菜单项值 */
-    value: string | number
-    [key: string]: Any
-  }>
-  [key: string]: Any
-}
-
-/** 弹出提示框参数接口 */
-export interface ModalParams {
+export interface SystemInfo {
+  /** DooTask 版本 */
+  version: string
+  /** 系统名称 */
   title: string
-  content?: string
-  width?: number
-  okText?: string
-  cancelText?: string
-  scrollable?: boolean
-  closable?: boolean
-  [key: string]: Any
+  /** DooTask 的访问地址 */
+  baseUrl: string
 }
 
-/** 请求服务器API参数接口 */
-export interface requestParams {
-  /** 请求地址 */
-  url: string
-  /** 请求方式 */
-  method?: string
-  /** 请求数据 */
-  data?: Any
-  /** 请求超时时间 */
-  timeout?: number
-  /** 请求头 */
-  header?: Any
-  /** 是否显示加载动画 */
-  spinner?: boolean
-  [key: string]: Any
+export interface SafeArea {
+  top: number
+  bottom: number
 }
 
-/** API响应成功数据 */
-export interface ApiSuccess {
-  /** 返回消息 */
-  msg: string
-  /** 返回数据 */
-  data: Any
-  /** XMLHttpRequest对象 */
-  xhr: Any
-  [key: string]: Any
-}
-
-/** API响应错误数据 */
-export interface ApiErrorData {
-  /** 返回状态 */
-  ret: number
-  /** 返回消息 */
-  msg: string
-  /** 返回数据 */
-  data: Any
-  [key: string]: Any
-}
-
-/** API响应错误 */
-export class ApiError extends Error {
-  ret: number
-  msg: string
-  data: Any
-  [key: string]: Any
-
-  constructor(data?: ApiErrorData) {
-    super(data?.msg || "API Error")
-    this.name = "ApiError"
-    this.ret = data?.ret || 0
-    this.msg = data?.msg || "API Error"
-    this.data = data?.data || {}
-  }
-}
-
-/** 用户信息接口 */
-export interface DooTaskUserInfo {
-  /** 用户ID */
+export interface UserInfo {
   userid: number
-  /** 身份列表 */
+  nickname: string
+  email: string
+  /** 头像地址 */
+  userimg: string
+  /** 身份，比如 ["admin"] */
   identity: string[]
-  /** 部门ID列表 */
+  /** 部门 ID */
   department: number[]
-  /** 邮箱 */
-  email: string
-  /** 电话 */
-  tel: string
-  /** 昵称 */
-  nickname: string
-  /** 职业 */
   profession: string
-  /** 用户头像 */
-  userimg: string
-  /** 是否机器人 */
-  bot: number
-  /** 创建时间 */
+  tel: string
+  bot: boolean
   created_at: string
-  [key: string]: Any
+  [key: string]: any
 }
 
-/** 用户基本信息接口 */
-export interface DooTaskUserBasicInfo {
-  /** 用户ID */
+export interface UserBasic {
   userid: number
-  /** 部门ID列表 */
-  department: number[]
-  /** 邮箱 */
-  email: string
-  /** 昵称 */
   nickname: string
-  /** 职业 */
-  profession: string
-  /** 用户头像 */
+  email: string
   userimg: string
-  /** 是否机器人 */
-  bot: number
-  /** 是否在线 */
+  department: number[]
+  profession: string
+  bot: boolean
   online: boolean
-  /** 最近上线时间 */
+  /** 最近在线时间 */
   line_at: string
   [key: string]: any
 }
 
-/** 系统信息接口 */
-export interface DooTaskSystemInfo {
-  /** 应用标题 */
-  title?: string
-  /** 系统版本 */
-  version: string
-  /** API地址 */
-  apiUrl?: string
-  [key: string]: Any
+export interface RequestOptions {
+  /** 默认 GET */
+  method?: "GET" | "POST"
+  data?: Record<string, any>
+  headers?: Record<string, string>
 }
 
-/** 语言列表接口 */
-export type DooTaskLanguage = "zh" | "zh-CHT" | "en" | "ko" | "ja" | "de" | "fr" | "id" | "ru"
+export interface DialogOptions {
+  title: string
+  /** 纯文本 */
+  content?: string
+  okText?: string
+  cancelText?: string
+  width?: number
+}
 
-/** 安全距离接口 */
-export interface DooTaskSafeArea {
-  /** 顶部安全距离 */
+export interface SelectedIds {
+  users: number[]
+  groups: number[]
+}
+
+export interface SelectUsersOptions {
+  /** 已选的用户 */
+  selected?: number[]
+  /** 已选、不能取消的用户 */
+  locked?: number[]
+  /** 不能选的用户 */
+  disabled?: number[]
+  /** 最多选几个 */
+  max?: number
+  /** 只在这个项目的成员里选 */
+  projectId?: number
+  /** 只在这个会话的成员里选 */
+  dialogId?: number
+  /** 显示机器人，默认 false */
+  includeBots?: boolean
+  /** 显示已停用的用户，默认 false */
+  includeDisabled?: boolean
+  /** 同时可以选群组，默认 false */
+  includeGroups?: boolean
+  /** 只选群组，默认 false */
+  onlyGroups?: boolean
+  title?: string
+  placeholder?: string
+  /** 返回 false 阻止提交 */
+  beforeSubmit?: (ids: SelectedIds) => boolean | Promise<boolean>
+}
+
+export interface AddTaskParams {
+  projectId?: number
+  columnId?: number
+  name?: string
+  /** HTML */
+  content?: string
+  /** 开始、结束时间（YYYY-MM-DD HH:mm） */
+  times?: [string, string]
+  owner?: number[]
+}
+
+export interface MeetingParams {
+  /** 预选的成员 */
+  userids?: number[]
+  /** 会议消息发到哪个会话 */
+  dialogId?: number
+}
+
+export interface OpenAIParams {
+  /** 填进输入框 */
+  prompt?: string
+  /** 直接发送 */
+  send?: boolean
+}
+
+export interface Rect {
   top: number
-  /** 底部安全距离 */
-  bottom: number
+  /** 胶囊右边到窗口右边的距离 */
+  right: number
+  width: number
+  height: number
+}
+
+export interface CapsuleMenu {
+  label: string
+  value: string | number
+}
+
+export interface OpenWindowOptions {
+  title?: string
+  width?: number
+  height?: number
 }

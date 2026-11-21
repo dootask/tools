@@ -4,495 +4,471 @@
 [![npm downloads](https://img.shields.io/npm/dm/@dootask/tools.svg?style=flat-square)](https://www.npmjs.com/package/@dootask/tools)
 [![license](https://img.shields.io/npm/l/@dootask/tools.svg?style=flat-square)](https://github.com/dootask/tools/blob/main/LICENSE)
 
-这是一个为 DooTask 应用开发设计的工具库，提供了一系列实用的 API，用于与主应用进行交互。它封装了微前端通信、用户数据获取、页面交互等多种功能，让您的 DooTask 应用开发变得简单高效。
+DooTask 应用的前端工具库。应用的窗口页面、扩展、外部打开的页面都用它和 DooTask 交互：拿用户信息和应用令牌、调用主程序接口、选人、弹提示、打开任务和会话等。
+
+应用的配置写法（`config.yml` 的 `menu_items`、`extensions`、`permissions` 等）见 [DooTask 应用开发指南](https://appstore.dootask.com/development/manual)。
+
+> 2.x 是重新设计的版本，接口和通信协议都和 1.x 不兼容，需要 DooTask 1.11.0 以上。从 1.x 升级见文末「从 1.x 升级」。
 
 ## 特点
 
-- **类型支持** - 完善的 TypeScript 类型定义，提供智能提示
-- **异步 API** - 所有方法都返回 Promise，支持异步操作
-- **强大功能** - 提供完整的用户、系统信息和交互方法
+- **一套接口，各端通用**：网页、桌面客户端、App 里的窗口页面，外部打开的页面，扩展，都用同一套接口。工具库自动选择通信方式。
+- **不支持就报错**：当前环境不支持的接口一律抛出 `unsupported` 错误，不会静默失败。
+- **类型完整**：完整的 TypeScript 类型定义。
 
 ## 安装
 
 ```bash
-npm install @dootask/tools --save
+npm install @dootask/tools@^2
 ```
 
-## 使用方法
+## 快速开始
 
-### 基本使用
-
-直接引入并使用，所有方法都是异步的：
+### 窗口页面
 
 ```typescript
-import {
-  appReady,
-  isMicroApp,
-  getThemeName,
-  getUserInfo,
-  openWindow,
-  closeApp,
-  UnsupportedError,
-  // 更多API...
-} from "@dootask/tools"
+import { ready, getUserInfo, getTheme, onThemeChange, request, toast } from "@dootask/tools"
 
-// 等待应用准备就绪
-try {
-  await appReady()
-  console.log("应用已准备就绪")
-} catch (error) {
-  if (error instanceof UnsupportedError) {
-    console.log("当前环境不支持微前端模式")
-  }
-}
+const env = await ready()                 // 等待和 DooTask 握手完成
+const user = await getUserInfo()
 
-// 检查是否在微前端环境中
-const isMicro = await isMicroApp()
-if (isMicro) {
-  console.log("当前在微前端环境中运行")
+document.documentElement.dataset.theme = await getTheme()
+onThemeChange(theme => {
+  document.documentElement.dataset.theme = theme
+})
 
-  try {
-    // 获取当前主题
-    const theme = await getThemeName()
-    console.log("当前主题：", theme)
-
-    // 获取用户信息
-    const user = await getUserInfo()
-    console.log("用户信息：", user)
-
-    // 打开新窗口（需要在 Electron 环境中）
-    await openWindow({
-      name: "my-window",
-      url: "https://example.com",
-    })
-
-    // 关闭当前应用
-    await closeApp()
-  } catch (error) {
-    if (error instanceof UnsupportedError) {
-      console.log("当前操作在此环境下不支持")
-    }
-  }
-}
+const projects = await request("project/lists", { data: { page: 1 } })
+toast.success(`你好，${user.nickname}`)
 ```
+
+### 扩展
+
+```typescript
+import { defineExtension, registerHandler, defineSlot } from "@dootask/tools"
+
+export default defineExtension({
+  activate() {
+    registerHandler("convertToApprove", async ctx => {
+      // ctx 里是挂载点的上下文，比如 {msg_id, dialog_id, msg_type}
+    })
+    defineSlot("task.detail.block", "okr-link", {
+      mount(el, ctx) { /* 在 el 里渲染，ctx.task_id */ },
+      update(ctx) {},
+      unmount() {},
+    })
+  },
+  deactivate() {
+    // 清掉定时器、监听和其他副作用
+  },
+})
+```
+
+## 运行环境
+
+工具库加载后自动判断所在的环境，选择通信方式（通道）：
+
+| 通道 | 环境 |
+| --- | --- |
+| `frame` | DooTask 里的窗口页面（iframe），包括新标签打开、桌面客户端的应用窗口 |
+| `inline` | 扩展，和 DooTask 在同一个页面里运行 |
+| `electron` | 桌面客户端里外部打开的页面，由客户端注入通道 |
+| `app` | App 里外部打开的页面和独立 WebView 页面，由 App 注入通道 |
+| `bridge` | 浏览器里外部打开的页面，通过隐藏的 DooTask 桥接页通信 |
+
+各组接口在不同通道里的支持情况：
+
+| 接口组 | frame | inline | electron / app | bridge |
+| --- | --- | --- | --- | --- |
+| 环境 | ✓ | ✓ | ✓ | ✓ |
+| 身份和请求 | ✓ | ✓ | ✓ | ✓ |
+| 界面 | ✓ | ✓ | ✓ | ✓（桥接页临时铺满页面显示） |
+| 操作主程序 | ✓ | ✓ | ✓ | ✓（转给用户已打开的 DooTask 窗口） |
+| 窗口 | ✓ | ✗ | ✓ | ✗ |
+| 扩展 | ✗ | ✓ | ✗ | ✗ |
+
+不确定某个接口能不能用时，先用 `isSupported(name)` 判断。
+
+## 接口约定
+
+- **调用类接口都返回 Promise**。
+- **登记类接口是同步的**：`on*`、`register*`、`defineSlot` 立即返回一个取消登记的函数。
+- **出错一律抛 `DooTaskError`**，用 `code` 区分（见「错误」）。
+- **文字由应用自己翻译**：传给 `toast`、`dialog` 等接口的文字原样显示，请按 `getLanguage()` 翻译好再传。
 
 ## API 文档
 
-### 应用状态相关
+### 环境
 
-| 函数名             | 参数 | 返回值             | 异常               | 说明                                   |
-| ------------------ | ---- | ------------------ | ------------------ | -------------------------------------- |
-| `appReady()`       | -    | `Promise<void>`    | `UnsupportedError` | 应用准备就绪的 Promise 对象            |
-| `isMicroApp()`     | -    | `Promise<boolean>` | -                  | 检查当前是否在微前端环境中运行         |
-| `isEEUIApp()`      | -    | `Promise<boolean>` | -                  | 检查是否为 EEUI 应用（App 客户端）     |
-| `isElectron()`     | -    | `Promise<boolean>` | -                  | 检查是否为 Electron 应用（电脑客户端） |
-| `isMainElectron()` | -    | `Promise<boolean>` | -                  | 检查是否为主 Electron 窗口             |
-| `isSubElectron()`  | -    | `Promise<boolean>` | -                  | 检查是否为子 Electron 窗口             |
-
-### 用户和系统信息
-
-| 函数名              | 参数 | 返回值                                      | 异常               | 说明                                         |
-| ------------------- | ---- | ------------------------------------------- | ------------------ | -------------------------------------------- |
-| `getThemeName()`    | -    | `Promise<string>`                           | `UnsupportedError` | 获取当前主题名称                             |
-| `getUserId()`       | -    | `Promise<number>`                           | `UnsupportedError` | 获取当前用户 ID，0 表示未登录                |
-| `getUserToken()`    | -    | `Promise<string>`                           | `UnsupportedError` | 获取当前用户 Token                           |
-| `getUserInfo()`     | -    | `Promise<DooTaskUserInfo>`                  | `UnsupportedError` | 获取当前用户信息对象                         |
-| `getBaseUrl()`      | -    | `Promise<string>`                           | `UnsupportedError` | 获取基础 URL                                 |
-| `getSystemInfo()`   | -    | `Promise<DooTaskSystemInfo>`                | `UnsupportedError` | 获取系统信息对象                             |
-| `getWindowType()`   | -    | `Promise<string>`                           | `UnsupportedError` | 获取页面类型，可能的值为 'popout' 或 'embed' |
-| `getLanguageList()` | -    | `Promise<{[key: DooTaskLanguage]: string}>` | `UnsupportedError` | 获取语言列表                                 |
-| `getLanguageName()` | -    | `Promise<DooTaskLanguage>`                  | `UnsupportedError` | 获取当前语言名称                             |
-| `getSafeArea()`     | -    | `Promise<DooTaskSafeArea>`                  | `UnsupportedError` | 获取移动端安全距离                           |
-
-### 应用控制
-
-| 函数名                        | 参数                      | 返回值                | 异常               | 说明                                                                 |
-| ----------------------------- | ------------------------- | --------------------- | ------------------ | -------------------------------------------------------------------- |
-| `backApp()`                   | -                         | `Promise<void>`       | `UnsupportedError` | 返回上一页，返回到最后一个页面时会关闭应用                           |
-| `closeApp(destroy?: boolean)` | `destroy?: boolean`       | `Promise<void>`       | `UnsupportedError` | 关闭当前应用，destroy 为 true 时销毁应用                             |
-| `interceptBack(callback)`     | `callback: () => boolean` | `Promise<() => void>` | `UnsupportedError` | 设置应用关闭前的回调，返回 true 可阻止关闭。返回一个可注销监听的函数 |
-| `nextZIndex()`                | -                         | `Promise<number>`     | -                  | 获取下一个可用的模态框 z-index                                       |
-
-### 窗口操作
-
-| 函数名                  | 参数                          | 返回值          | 异常               | 说明                                           |
-| ----------------------- | ----------------------------- | --------------- | ------------------ | ---------------------------------------------- |
-| `popoutWindow(params?)` | `params?: PopoutWindowParams` | `Promise<void>` | `UnsupportedError` | 应用窗口独立显示                               |
-| `openWindow(params)`    | `params: OpenWindowParams`    | `Promise<void>` | `UnsupportedError` | 打开新窗口（只在 isElectron 环境有效）         |
-| `openTabWindow(url)`    | `url: string`                 | `Promise<void>` | `UnsupportedError` | 在新标签页打开 URL（只在 isElectron 环境有效） |
-| `openAppPage(params)`   | `params: OpenAppPageParams`   | `Promise<void>` | `UnsupportedError` | 打开应用页面（只在 isEEUIApp 环境有效）        |
-
-### 用户交互
-
-| 函数名                    | 参数                          | 返回值                              | 异常                             | 说明                                         |
-|---------------------------|-------------------------------|-------------------------------------|----------------------------------|----------------------------------------------|
-| `selectUsers(params)`     | `params: SelectUsersParams`   | `Promise<number[]>`                 | `UnsupportedError`               | 选择用户，可通过多种配置自定义选择器         |
-| `requestAPI(params)`      | `params: requestParams`       | `Promise<ApiSuccess>`               | `UnsupportedError` \| `ApiError` | 请求服务器 API                              |
-| `fetchUserBasic(userid)`  | `userid: number \| number[]`  | `Promise<DooTaskUserBasicInfo[]>`   | `UnsupportedError` \| `ApiError` | 查询用户基本信息                            |
-| `setCapsuleConfig(config)`| `config: CapsuleConfig`       | `Promise<void>`                     | `UnsupportedError`               | 设置胶囊配置                                 |
-
-### 提示框
-
-| 函数名                  | 参数                             | 返回值             | 异常               | 说明           |
-| ----------------------- | -------------------------------- | ------------------ | ------------------ | -------------- |
-| `modalSuccess(message)` | `message: string \| ModalParams` | `Promise<void>`    | `UnsupportedError` | 弹出成功提示框 |
-| `modalError(message)`   | `message: string \| ModalParams` | `Promise<void>`    | `UnsupportedError` | 弹出错误提示框 |
-| `modalWarning(message)` | `message: string \| ModalParams` | `Promise<void>`    | `UnsupportedError` | 弹出警告提示框 |
-| `modalInfo(message)`    | `message: string \| ModalParams` | `Promise<void>`    | `UnsupportedError` | 弹出信息提示框 |
-| `modalConfirm(message)` | `message: string \| ModalParams` | `Promise<boolean>` | `UnsupportedError` | 弹出确认提示框 |
-| `modalAlert(message)`   | `message: string`                | `Promise<void>`    | `UnsupportedError` | 弹出系统提示框 |
-
-### 消息框
-
-| 函数名                    | 参数              | 返回值          | 异常               | 说明         |
-| ------------------------- | ----------------- | --------------- | ------------------ | ------------ |
-| `messageSuccess(message)` | `message: string` | `Promise<void>` | `UnsupportedError` | 弹出成功消息 |
-| `messageError(message)`   | `message: string` | `Promise<void>` | `UnsupportedError` | 弹出错误消息 |
-| `messageWarning(message)` | `message: string` | `Promise<void>` | `UnsupportedError` | 弹出警告消息 |
-| `messageInfo(message)`    | `message: string` | `Promise<void>` | `UnsupportedError` | 弹出信息消息 |
-
-### 打开特定窗口
-
-| 函数名                          | 参数               | 返回值         | 异常               | 说明                                       |
-| ------------------------------- | ------------------ | -------------- | ------------------ | ------------------------------------------ |
-| `openDialog(dialogId)`          | `dialogId: number` | `Promise<any>` | `UnsupportedError` | 打开对话框                                 |
-| `openDialogNewWindow(dialogId)` | `dialogId: number` | `Promise<any>` | `UnsupportedError` | 打开对话框（新窗口，仅支持 Electron 环境） |
-| `openDialogUserid(userid)`      | `userid: number`   | `Promise<any>` | `UnsupportedError` | 打开对话框（指定用户）                     |
-| `openTask(taskId)`              | `taskId: number`   | `Promise<any>` | `UnsupportedError` | 打开任务                                   |
-| `downloadUrl(url)`              | `url: string`      | `Promise<any>` | `UnsupportedError` | 下载文件                                   |
-
-### 扩展功能
-
-| 函数名                                   | 参数                                    | 返回值         | 异常               | 说明                              |
-| ---------------------------------------- | --------------------------------------- | -------------- | ------------------ | --------------------------------- |
-| `callExtraA(methodName, ...args)`        | `methodName: string, ...args: any[]`    | `Promise<any>` | `UnsupportedError` | 调用 $A 上的额外方法              |
-| `callExtraStore(actionName, ...payload)` | `actionName: string, ...payload: any[]` | `Promise<any>` | `UnsupportedError` | 调用 $store.dispatch 上的额外方法 |
-| `callExtraEmitter(eventName, ...args)`   | `eventName: string, ...args: any[]`     | `Promise<any>` | `UnsupportedError` | 调用 emitter.emit 上的额外方法    |
-
-### PopoutWindowParams
+| 接口 | 返回 | 说明 |
+| --- | --- | --- |
+| `ready()` | `Promise<Env>` | 等待握手完成。不在 DooTask 里时抛 `unsupported`；协议版本不一致时抛 `version_mismatch` |
+| `isHosted()` | `Promise<boolean>` | 是否运行在 DooTask 里，不抛错 |
+| `getEnv()` | `Promise<Env>` | 当前环境，见下方类型 |
+| `capabilities()` | `Promise<string[]>` | 当前环境支持的接口名列表 |
+| `isSupported(name)` | `Promise<boolean>` | 某个接口能不能用，`name` 就是接口名，比如 `"popout"`、`"toast.success"` |
+| `getSystemInfo()` | `Promise<SystemInfo>` | DooTask 的版本、标题、访问地址 |
+| `getTheme()` | `Promise<"light" \| "dark">` | 当前主题 |
+| `onThemeChange(cb)` | `() => void` | 主题变化 |
+| `getLanguage()` | `Promise<Language>` | 当前语言 |
+| `getLanguageList()` | `Promise<Record<Language, string>>` | 支持的语言和显示名 |
+| `onLanguageChange(cb)` | `() => void` | 语言变化 |
+| `getSafeArea()` | `Promise<SafeArea>` | 移动端顶部和底部的安全距离 |
+| `onSafeAreaChange(cb)` | `() => void` | 安全距离变化 |
 
 ```typescript
-interface PopoutWindowParams {
-  title?: string // 窗口标题
-  titleFixed?: boolean // 窗口标题是否固定
-  width?: number // 窗口宽度
-  height?: number // 窗口高度
-  minWidth?: number // 窗口最小宽度
-  url?: string // 自定义访问地址，如果为空则打开当前页面
+interface Env {
+  channel: "frame" | "inline" | "electron" | "app" | "bridge"
+  platform: "web" | "electron" | "app"
+  presentation: "page" | "panel" | "modal" | null   // 只有窗口有，其他为 null
+  mobile: boolean
+  protocol: number                                  // 通信协议版本，2.x 为 2
+}
+
+interface SystemInfo {
+  version: string      // DooTask 版本
+  title: string        // 系统名称
+  baseUrl: string      // DooTask 的访问地址
+}
+
+type Language = "zh" | "zh-CHT" | "en" | "ko" | "ja" | "de" | "fr" | "id" | "ru"
+
+interface SafeArea {
+  top: number
+  bottom: number
 }
 ```
 
-### OpenWindowParams
+### 身份和请求
+
+| 接口 | 返回 | 说明 |
+| --- | --- | --- |
+| `getAppToken()` | `Promise<string>` | 应用令牌，调用应用自己的后端时放在 `Authorization: Bearer` 里。令牌会自动续期，每次请求时取，不要长期保存 |
+| `getUserInfo()` | `Promise<UserInfo>` | 当前用户 |
+| `fetchUsers(ids)` | `Promise<UserBasic[]>` | 一批用户的基本信息 |
+| `request(path, options?)` | `Promise<any>` | 调用主程序接口，返回接口的 `data`。只能调用 `permissions` 里声明过的接口 |
 
 ```typescript
-interface OpenWindowParams {
-  name?: string // 窗口唯一标识
-  url?: string // 访问地址
-  force?: boolean // 是否强制创建新窗口，而不是重用已有窗口
-  config?: WindowConfig // 窗口配置
+interface UserInfo {
+  userid: number
+  nickname: string
+  email: string
+  userimg: string         // 头像地址
+  identity: string[]      // 身份，比如 ["admin"]
+  department: number[]    // 部门 ID
+  profession: string
+  tel: string
+  bot: boolean
+  created_at: string
+}
+
+interface UserBasic {
+  userid: number
+  nickname: string
+  email: string
+  userimg: string
+  department: number[]
+  profession: string
+  bot: boolean
+  online: boolean
+  line_at: string         // 最近在线时间
+}
+
+interface RequestOptions {
+  method?: "GET" | "POST" // 默认 GET
+  data?: Record<string, any>
+  headers?: Record<string, string>
 }
 ```
 
-### OpenAppPageParams
+- `path` 是主程序接口路径，不带 `api/` 前缀，比如 `"project/lists"`。
+- 接口返回失败时抛 `api_error`，`error.data` 是 `{ret, msg, data}`；没有权限时抛 `permission_denied`。
+
+### 界面
+
+| 接口 | 返回 | 说明 |
+| --- | --- | --- |
+| `toast.success(text)` / `toast.error(text)` / `toast.warning(text)` / `toast.info(text)` | `Promise<void>` | 轻提示 |
+| `dialog.alert(options)` / `dialog.info(options)` / `dialog.success(options)` / `dialog.warning(options)` / `dialog.error(options)` | `Promise<void>` | 提示框，关闭后 resolve |
+| `dialog.confirm(options)` | `Promise<boolean>` | 确认框，确定返回 `true`，取消返回 `false` |
+| `selectUsers(options?)` | `Promise<{users: number[], groups: number[]}>` | 选人，用户关掉选择器时抛 `cancelled` |
+| `previewImage(urls, index?)` | `Promise<void>` | 预览图片 |
+| `download(url)` | `Promise<void>` | 下载文件 |
 
 ```typescript
-interface OpenAppPageParams {
-  title?: string // 页面标题
-  titleFixed?: boolean // 窗口标题是否固定
-  url?: string // 访问地址
+interface DialogOptions {
+  title: string
+  content?: string        // 纯文本
+  okText?: string
+  cancelText?: string
+  width?: number
+}
+
+interface SelectUsersOptions {
+  selected?: number[]                 // 已选的用户
+  locked?: number[]                   // 已选、不能取消的用户
+  disabled?: number[]                 // 不能选的用户
+  max?: number                        // 最多选几个
+  projectId?: number                  // 只在这个项目的成员里选
+  dialogId?: number                   // 只在这个会话的成员里选
+  includeBots?: boolean               // 显示机器人，默认 false
+  includeDisabled?: boolean           // 显示已停用的用户，默认 false
+  includeGroups?: boolean             // 同时可以选群组，默认 false
+  onlyGroups?: boolean                // 只选群组，默认 false
+  title?: string
+  placeholder?: string
+  beforeSubmit?: (ids: {users: number[], groups: number[]}) => boolean | Promise<boolean>  // 返回 false 阻止提交
 }
 ```
 
-### SelectUsersParams
+### 操作主程序
+
+| 接口 | 返回 | 说明 |
+| --- | --- | --- |
+| `openTask(id)` | `Promise<void>` | 打开任务 |
+| `addTask(params?)` | `Promise<void>` | 打开新建任务表单并预填。`params`：`{projectId?: number, columnId?: number, name?: string, content?: string, times?: [string, string], owner?: number[]}`，`content` 是 HTML，`times` 是开始、结束时间（`YYYY-MM-DD HH:mm`） |
+| `openDialog(id)` | `Promise<void>` | 打开会话 |
+| `openDialogWithUser(userid)` | `Promise<void>` | 打开和某个用户的单聊 |
+| `createGroup(userids)` | `Promise<void>` | 打开创建群组，预选这些成员 |
+| `startMeeting(params?)` | `Promise<void>` | 打开新会议。`params`：`{userids?: number[], dialogId?: number}`，预选成员、会议消息发到哪个会话 |
+| `joinMeeting()` | `Promise<void>` | 加入会议 |
+| `openSearch(keyword?)` | `Promise<void>` | 打开全局搜索 |
+| `openAI(params?)` | `Promise<void>` | 打开 AI 助手。`params`：`{prompt?: string, send?: boolean}`，`prompt` 填进输入框，`send: true` 直接发送 |
+| `openApp(appid, key, query?)` | `Promise<void>` | 打开某个应用的窗口入口，`key` 是 `menu_items` 的 `key`，`query` 拼到地址上 |
+| `getHostPreference(key)` / `setHostPreference(key, value)` | `Promise<any>` / `Promise<void>` | 读写 DooTask 的偏好设置，只开放登记过的键，目前只有 `ai.float_button` |
+| `getTaskFields(taskId)` | `Promise<Record<string, any>>` | 读本应用在 `task.create.field` 里声明的字段值 |
+| `setTaskFields(taskId, values)` | `Promise<void>` | 写本应用声明的字段值 |
+
+浏览器里外部打开的页面调用这一组接口时，会转给用户已打开的 DooTask 窗口执行；用户没有打开 DooTask 时，在新标签打开 DooTask 的对应页面。
+
+### 窗口
+
+只在窗口页面里可用（`frame`、`electron`、`app` 通道），扩展和浏览器里外部打开的页面调用时抛 `unsupported`。
+
+| 接口 | 返回 | 说明 |
+| --- | --- | --- |
+| `close()` | `Promise<void>` | 关闭当前窗口 |
+| `onBeforeClose(cb)` | `() => void` | 关闭前询问：`cb` 返回 `false`（或 resolve 为 `false`）时阻止关闭。用户点关闭、返回、侧滑、按系统返回键都会触发 |
+| `popout()` | `Promise<void>` | 弹出到浏览器新标签或桌面客户端的独立窗口，要求入口配置了 `popout: true` |
+| `openWindow(url, options?)` | `Promise<void>` | 打开一个外部窗口：桌面客户端里是独立窗口，其他端是浏览器新标签 |
+| `getPresentation()` | `Promise<"page" \| "panel" \| "modal">` | 当前的打开方式 |
+| `onPresentationChange(cb)` | `() => void` | 用户在胶囊菜单里改了打开方式 |
+| `getCapsuleRect()` | `Promise<Rect>` | 胶囊的位置和大小，沉浸式页面用来给胶囊留位置 |
+| `setCapsuleMenus(menus)` | `Promise<void>` | 替换胶囊「···」里应用自己的菜单项 |
+| `onCapsuleMenu(cb)` | `() => void` | 胶囊菜单项被点击，`cb(value)` |
 
 ```typescript
-interface SelectUsersParams {
-  value?: string | number | Array<any> // 已选择的值，默认值: []
-  uncancelable?: Array<any> // 不允许取消的列表，默认值: []
-  disabledChoice?: Array<any> // 禁止选择的列表，默认值: []
-  projectId?: number // 指定项目ID，默认值: 0
-  noProjectId?: number // 指定非项目ID，默认值: 0
-  dialogId?: number // 指定会话ID，默认值: 0
-  showBot?: boolean // 是否显示机器人，默认值: false
-  showDisable?: boolean // 是否显示禁用的，默认值: false
-  multipleMax?: number // 最大选择数量
-  title?: string // 弹窗标题
-  placeholder?: string // 搜索提示
-  showSelectAll?: boolean // 显示全选项，默认值: true
-  showDialog?: boolean // 是否显示会话，默认值: false
-  onlyGroup?: boolean // 仅显示群组，默认值: false
+interface Rect {
+  top: number
+  right: number         // 胶囊右边到窗口右边的距离
+  width: number
+  height: number
+}
+
+interface CapsuleMenu {
+  label: string
+  value: string | number
+}
+
+interface OpenWindowOptions {
+  title?: string
+  width?: number
+  height?: number
 }
 ```
 
-### requestParams
+### 扩展
+
+只在扩展里可用（`inline` 通道）。
+
+| 接口 | 返回 | 说明 |
+| --- | --- | --- |
+| `defineExtension({activate, deactivate})` | 扩展对象 | 扩展入口的默认导出 |
+| `registerHandler(name, fn)` | `() => void` | 登记 `action: {call: name}` 的处理函数，`fn(context)` |
+| `defineSlot(point, key, slot)` | `() => void` | 渲染型挂载点，`slot` 见下方类型 |
+| `registerSearch(key, fn)` | `() => void` | 搜索源：`fn(keyword)` 返回搜索结果，DooTask 会设超时 |
+| `getOverlayRoot()` | `ShadowRoot` | 本扩展的浮层根节点，全屏层、弹窗、下拉菜单都挂到这里 |
+| `openLayer(layer)` | `Promise<() => void>` | 在浮层根节点里打开一个全屏层，resolve 为关闭函数 |
+| `showBanner(banner)` | `Promise<() => void>` | 显示顶部横幅，resolve 为关闭函数 |
+| `nextZIndex()` | `Promise<number>` | 在浮层根节点里叠多层时取层级 |
+| `onHostEvent(name, cb)` | `() => void` | 监听 DooTask 的事件，给后台常驻扩展用。第一批事件：`message.new`（新消息）、`task.update`（任务变更） |
 
 ```typescript
-interface requestParams {
-  url: string // 请求地址
-  method?: string // 请求方式
-  data?: any // 请求数据
-  timeout?: number // 请求超时时间
-  header?: any // 请求头
-  spinner?: boolean // 是否显示加载动画
+interface Extension {
+  activate(): void | Promise<void>      // 超过 10 秒没完成或抛错，这个扩展的挂载点都不显示
+  deactivate?(): void | Promise<void>   // 应用卸载或更新时调用
+}
+
+interface Slot {
+  mount(el: HTMLElement, ctx: SlotContext): void | Promise<void>  // el 在一个 Shadow Root 里
+  update?(ctx: SlotContext): void       // 上下文变化，比如切换到另一个任务
+  unmount?(): void
+}
+
+type SlotContext = Record<string, any>  // 比如 {task_id, project_id}，字段见开发指南的挂载点表
+
+interface SearchResult {
+  title: string
+  desc?: string
+  icon?: string
+  action: {open: string} | {call: string}
+}
+
+interface Layer {
+  mount(el: HTMLElement): void | Promise<void>
+  unmount?(): void
+}
+
+interface Banner {
+  text: string
+  tone?: "success" | "danger" | "warning" | "info" | "muted"
+  action?: {label: string} & ({open: string} | {call: string})  // 横幅上的按钮
 }
 ```
 
-### ModalParams
+扩展的几条规则：
+
+- `mount(el, ctx)` 里的 `el` 在 Shadow Root 里：样式只在里面生效，要注入到 Shadow Root，不要插到 `document.head`。DooTask 的主题 CSS 变量能穿进去。
+- 组件库的弹窗、下拉要挂到 `getOverlayRoot()`，比如 Vue 的 `<Teleport :to="overlayRoot">`。
+- 不能修改 `window` 上的属性、全局样式和原型链；框架和依赖打包进自己的入口。
+- 定时器、监听在 `deactivate` 里清掉。
+
+### 错误
+
+所有错误都是 `DooTaskError`，用 `code` 区分：
+
+| `code` | 含义 |
+| --- | --- |
+| `unsupported` | 当前环境不支持这个接口 |
+| `cancelled` | 用户取消，比如关掉了选人 |
+| `permission_denied` | 应用没有在 `permissions` 里声明这个主程序接口 |
+| `api_error` | 主程序接口返回失败，`data` 是 `{ret, msg, data}` |
+| `invalid_args` | 参数不对 |
+| `timeout` | 超时 |
+| `version_mismatch` | 工具库和 DooTask 的通信协议版本不一致，需要升级其中一方 |
+| `auth_failed` | 启动码无效或者应用令牌已失效 |
 
 ```typescript
-interface ModalParams {
-  title: string // 标题
-  content?: string // 内容
-  width?: number // 宽度
-  okText?: string // 确定按钮文本
-  cancelText?: string // 取消按钮文本
-  scrollable?: boolean // 是否可滚动
-  closable?: boolean // 是否可关闭
+import { selectUsers, DooTaskError } from "@dootask/tools"
+
+try {
+  const { users } = await selectUsers({ max: 5 })
+} catch (e) {
+  if (e instanceof DooTaskError && e.code === "cancelled") return
+  throw e
 }
 ```
 
 ## 使用示例
 
-### 检测运行环境
+### 判断能不能用
 
 ```typescript
-import { appReady, isMicroApp, isElectron, isEEUIApp, UnsupportedError } from "@dootask/tools"
+import { isHosted, isSupported, popout } from "@dootask/tools"
 
-// 使用 try-catch 处理异常
-try {
-  await appReady()
-  console.log("应用已准备就绪")
-} catch (error) {
-  if (error instanceof UnsupportedError) {
-    console.log("当前环境不支持微前端模式")
-  }
+if (!(await isHosted())) {
+  // 不在 DooTask 里，比如开发时直接打开了页面
 }
 
-// 环境检测方法不会抛出异常，而是返回 boolean
-const isMicro = await isMicroApp()
-if (isMicro) {
-  console.log("在微前端环境中运行")
-
-  // 检测是否为Electron应用
-  const isElectronEnv = await isElectron()
-  if (isElectronEnv) {
-    console.log("在Electron环境中运行")
-  }
-
-  // 检测是否为EEUI应用
-  const isEEUI = await isEEUIApp()
-  if (isEEUI) {
-    console.log("在EEUI应用环境中运行")
-  }
-} else {
-  console.log("不在微前端环境中运行")
+if (await isSupported("popout")) {
+  await popout()
 }
 ```
 
-### 应用关闭拦截
+### 关闭前确认
 
 ```typescript
-import { interceptBack, modalConfirm } from "@dootask/tools"
+import { onBeforeClose, dialog } from "@dootask/tools"
 
-let hasUnsavedChanges = true
+let dirty = false
 
-// 设置应用关闭前的回调
-const unsubscribe = interceptBack(async data => {
-  if (hasUnsavedChanges) {
-    // 如果有未保存的数据，则阻止关闭
-    if (await modalConfirm("有未保存的数据，确定要关闭吗？")) {
-      // 用户确认关闭，可以执行保存操作
-      saveData()
-      return false // 允许关闭
-    } else {
-      return true // 阻止关闭
-    }
-  }
-  return false // 没有未保存的数据，允许关闭
+const off = onBeforeClose(async () => {
+  if (!dirty) return true
+  return await dialog.confirm({ title: "提示", content: "有未保存的内容，确定关闭吗？" })
 })
 
-// 取消监听
-// unsubscribe();
+// 不再需要时取消登记
+// off()
 ```
 
-### 选择用户
+### 沉浸式页面给胶囊让位
 
 ```typescript
-import { selectUsers } from "@dootask/tools"
+import { getCapsuleRect, getSafeArea } from "@dootask/tools"
 
-// 选择用户
-selectUsers({
-  value: [], // 已选择的值
-  projectId: 123, // 指定项目ID
-  title: "选择成员", // 弹窗标题
-  showSelectAll: true, // 显示全选项
-}).then(result => {
-  console.log("选择的用户：", result)
-})
+const capsule = await getCapsuleRect()
+const safe = await getSafeArea()
 
-// 选择群组
-selectUsers({
-  value: [],
-  onlyGroup: true, // 仅显示群组
-  showBot: false, // 不显示机器人
-}).then(result => {
-  console.log("选择的群组：", result)
-})
+const header = document.querySelector<HTMLElement>(".app-header")!
+header.style.paddingTop = `${safe.top}px`
+header.style.paddingRight = `${capsule.right + capsule.width + 8}px`
 ```
 
-### 弹出窗口和页面
+### 胶囊菜单
 
 ```typescript
-import { popoutWindow, openWindow, openTabWindow, openAppPage, isElectron, isEEUIApp } from "@dootask/tools"
+import { setCapsuleMenus, onCapsuleMenu } from "@dootask/tools"
 
-// 将当前页面作为独立窗口显示
-popoutWindow()
+await setCapsuleMenus([{ label: "使用帮助", value: "help" }])
 
-// 将当前页面作为独立窗口显示（自定义窗口信息）
-popoutWindow({
-  title: "独立窗口", // 窗口标题
-  width: 1000, // 窗口宽度
-  height: 700, // 窗口高度
-  minWidth: 800, // 窗口最小宽度
-})
-
-// 在Electron环境中打开新窗口
-isElectron().then(isElectron => {
-  if (isElectron) {
-    openWindow({
-      name: "my-window-id", // 窗口唯一标识
-      url: "https://example.com", // 访问地址
-      force: false, // 是否强制创建新窗口，而不是重用已有窗口
-      config: {
-        title: "标题", // 窗口标题
-        titleFixed: true, // 窗口标题是否固定
-        width: Math.min(window.screen.availWidth, 1200), // 窗口宽度
-        height: Math.min(window.screen.availHeight, 800), // 窗口高度
-      },
-    })
-
-    // 在新标签页打开URL
-    openTabWindow("https://example.com")
-  }
-})
-
-// 在EEUI环境中打开应用页面
-isEEUIApp().then(isEEUI => {
-  if (isEEUI) {
-    openAppPage({
-      title: "标题", // 页面标题
-      titleFixed: true, // 窗口标题是否固定
-      url: "https://example.com", // 访问地址
-    })
-  }
+onCapsuleMenu(value => {
+  if (value === "help") showHelp()
 })
 ```
 
-### 请求服务器 API
+### 调用应用自己的后端
 
 ```typescript
-import { requestAPI } from "@dootask/tools"
+import { getAppToken } from "@dootask/tools"
 
-// 请求服务器API
-requestAPI({
-  url: "users/info", // 访问接口路径，接口文档请查看 https://你的域名/docs/index.html
-}).then(res => {
-  console.log(res)
+const res = await fetch("/apps/example/api/list", {
+  headers: { Authorization: `Bearer ${await getAppToken()}` },
 })
 ```
 
-### 显示提示框
+后端拿到令牌后，用后端工具库（或者直接请求主程序的 `users/info`，同样放在 `Authorization: Bearer` 里）反查当前用户。
 
-```typescript
-import { modalSuccess, modalError, modalWarning, modalInfo, modalAlert } from "@dootask/tools"
+### 外部打开的页面
 
-// 显示成功提示
-modalSuccess("操作成功！")
+页面照常调用 `ready()` 即可。浏览器里，工具库会自动取走地址上的 `dootask_launch` 启动码、从地址栏里删掉，并通过桥接页换取应用令牌。页面所在的域名要登记在应用 `config.yml` 的 `origins` 里。
 
-// 显示错误提示
-modalError("操作失败！")
+## 从 1.x 升级
 
-// 显示警告提示
-modalWarning("请注意！")
+2.x 不兼容 1.x，接口对照如下：
 
-// 显示信息提示
-modalInfo("提示信息")
+| 1.x | 2.x |
+| --- | --- |
+| `appReady()` | `ready()` |
+| `isMicroApp()`、`isEEUIApp()`、`isElectron()`、`isMainElectron()`、`isSubElectron()`、`isFullScreen()`、`isIframe()`、`getWindowType()` | `isHosted()`、`getEnv()`；具体能力用 `isSupported(name)` 判断 |
+| `getThemeName()` | `getTheme()`、`onThemeChange(cb)` |
+| `getLanguageName()` | `getLanguage()`、`onLanguageChange(cb)` |
+| `getUserId()` | `getUserInfo()` 的 `userid` |
+| `getUserToken()` | `getAppToken()`（应用令牌，不再提供用户的登录 token） |
+| `getBaseUrl()` | `getSystemInfo()` 的 `baseUrl` |
+| `requestAPI({url, ...})` | `request(path, options)`，只能调用 `permissions` 里声明的接口 |
+| `fetchUserBasic(ids)` | `fetchUsers(ids)` |
+| `selectUsers({value, uncancelable, disabledChoice, multipleMax, showBot, showDisable, showDialog, onlyGroup})` | `selectUsers({selected, locked, disabled, max, includeBots, includeDisabled, includeGroups, onlyGroups})`，返回 `{users, groups}`，取消时抛 `cancelled` |
+| `modalSuccess()` 等 `modalXxx` | `dialog.success()` 等，`modalConfirm` 改为 `dialog.confirm` |
+| `messageSuccess()` 等 `messageXxx` | `toast.success()` 等 |
+| `closeApp()`、`backApp()` | `close()`，返回由 DooTask 处理 |
+| `interceptBack(cb)`（返回 `true` 阻止） | `onBeforeClose(cb)`（返回 `false` 阻止） |
+| `popoutWindow(params)` | `popout()` |
+| `openWindow(params)`、`openTabWindow(url)` | `openWindow(url, options)` |
+| `openAppPage(params)` | `openApp(appid, key, query)` |
+| `openDialogUserid(userid)` | `openDialogWithUser(userid)` |
+| `openDialogNewWindow(id)` | 删除，用 `openDialog(id)` |
+| `downloadUrl(url)` | `download(url)` |
+| `setCapsuleConfig(config)`、`addMenuClickListener(cb)` | `setCapsuleMenus(menus)`、`onCapsuleMenu(cb)`；胶囊的显隐和位置由 DooTask 决定 |
+| `nextZIndex()` | 窗口里删除；扩展里保留 |
+| `callExtraA()`、`callExtraStore()`、`callExtraEmitter()` | 删除，改用上面的显式接口（比如 `previewImage`、`openTask`） |
+| `addDataListener()`、`removeDataListener()` | 删除，用各个 `on*Change` |
+| `initSlideBack()` | 删除，侧滑返回由 DooTask 处理 |
+| `UnsupportedError`、`ApiError` | `DooTaskError`，用 `code` 区分 |
 
-// 显示系统提示框
-modalAlert("系统消息")
-
-// 使用复杂参数
-modalSuccess({
-  title: "成功",
-  content: "操作已完成",
-  width: 400,
-})
-```
-
-### 弹出消息框
-
-```typescript
-import { messageSuccess, messageError, messageWarning, messageInfo } from "@dootask/tools"
-
-// 弹出成功消息
-messageSuccess("操作成功！")
-
-// 弹出错误消息
-messageError("操作失败！")
-
-// 弹出警告消息
-messageWarning("请注意！")
-
-// 弹出信息消息
-messageInfo("提示信息")
-```
-
-## 示例项目
-
-我们提供了一个完整的示例项目，展示如何在 Vue 3 + Vite 项目中使用 `@dootask/tools`：
-
-### 查看示例
-
-```bash
-# 进入示例目录
-cd example
-
-# 安装依赖
-npm install
-
-# 启动开发服务器
-npm run dev
-```
-
-示例项目包含以下功能演示：
-
-- **应用状态检测** - 检测微前端环境、获取用户信息、主题、语言等
-- **窗口管理** - 打开独立窗口、新窗口等操作
-- **用户交互** - 用户选择器、API 请求等
-- **应用控制** - 关闭应用、返回操作等
-- **提示框** - 各种类型的提示框演示
-
-## 注意事项
-
-1. **环境检测与异常处理**: 这个库会自动检测是否在微前端环境中运行。如果不在微前端环境中，标注了 `UnsupportedError` 的方法将抛出 `UnsupportedError` 异常，而环境检测方法（如 `isMicroApp`、`isElectron` 等）会返回 `false`。
-
-2. **异步操作**: 所有方法都是异步的，返回 Promise 对象，需要使用 `await` 或 `.then()` 来处理结果。建议使用 try-catch 语句捕获 `UnsupportedError` 异常。
-
-3. **应用初始化**: 在使用任何方法之前，建议先调用 `appReady()` 确保应用已准备就绪。
-
-4. **环境限制**: 某些方法只在特定环境中有效（如 `openWindow` 只在 Electron 环境中有效），使用前请检查运行环境。
-
-5. **扩展调用**: 如果你希望调用 `$A` 上的方法，可以使用 `callExtraA` 方法。
-
-6. **示例学习**: 建议先运行示例项目了解各种功能的使用方法。
-
-## 贡献和反馈
-
-如果你在使用中发现任何问题，或者有改进建议，欢迎在 GitHub 仓库提交 Issue 或 Pull Request。
+配置文件也要一起改：`menu_items` 的 `type`、`immersive`、`width`、`{user_token}` 这类旧字段和占位符都已删除，见开发指南。
 
 ## 后端服务
 
-DooTask 提供多语言后端 SDK，方便在服务端调用同一套 API：
+DooTask 提供多语言后端工具库，方便在服务端调用主程序接口、用应用令牌校验用户：
 
 - [Go](server/go)
 - [Python](server/python)

@@ -181,6 +181,8 @@ if (results.length) {
 |------|------|------|--------|
 | `DooTaskClient` | 创建客户端实例 | `options: { token, server?, timeoutMs?, fetch? }` | `DooTaskClient` |
 
+> `token` 可以是应用令牌、个人访问令牌或用户登录令牌。应用后端收到 DooTask 里页面的请求时，从 `Authorization: Bearer` 取出应用令牌（`dta_` 开头）直接传进来即可；脚本等外部程序用用户在「设置 → 访问令牌」创建的个人访问令牌（`dtp_` 开头，主程序 1.11.0+）。客户端发请求时，应用令牌和个人访问令牌放 `Authorization: Bearer`，其他放 `Token` 头。应用令牌只能调用应用 `permissions` 里声明过的接口。
+
 > 说明：`server` 默认值为 `http://nginx`，适用于在 Docker / K8s 等环境中通过服务名 `nginx` 访问 DooTask 主程序；在这种部署方式下生产环境通常只需传入 `token`。
 >
 > 所有方法返回 `Promise`。请求失败或业务 `ret != 1` 时，会抛出 `DooTaskApiError`。

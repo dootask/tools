@@ -1,408 +1,196 @@
 <template>
-  <div class="h-screen flex flex-col max-w-7xl mx-auto bg-gray-50 dark:bg-gray-900">
-    <!-- 页面内容 -->
-    <div class="flex-1 px-4 py-6">
-      <!-- 页面标题 -->
-      <header class="text-center mb-8">
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">DooTask Tools</h1>
-        <p class="text-gray-600 dark:text-gray-400">现代化的 Vite 开发工具集成示例</p>
+  <div class="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+    <div class="max-w-5xl mx-auto px-4 py-6 flex flex-col gap-6">
+      <header>
+        <h1 class="text-2xl font-bold">DooTask Tools 2.x 示例</h1>
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          把这个页面配置成应用的窗口入口，在 DooTask 里打开后逐个试接口
+        </p>
       </header>
 
-      <!-- 应用状态信息 -->
-      <section class="mb-8">
-        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">应用状态</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div class="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-            <div class="flex justify-between items-center">
-              <span class="text-sm text-gray-600 dark:text-gray-400">是否为微应用</span>
-              <span class="font-medium" :class="isMicroAppRef ? 'text-green-600' : 'text-red-500'">
-                {{ isMicroAppRef ? '是' : '否' }}
-              </span>
-            </div>
-          </div>
-          <div class="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-            <div class="flex justify-between items-center">
-              <span class="text-sm text-gray-600 dark:text-gray-400">是否为Electron</span>
-              <span class="font-medium" :class="isElectronRef ? 'text-green-600' : 'text-red-500'">
-                {{ isElectronRef ? '是' : '否' }}
-              </span>
-            </div>
-          </div>
-          <div class="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-            <div class="flex justify-between items-center">
-              <span class="text-sm text-gray-600 dark:text-gray-400">是否为EEUI应用</span>
-              <span class="font-medium" :class="isEEUIAppRef ? 'text-green-600' : 'text-red-500'">
-                {{ isEEUIAppRef ? '是' : '否' }}
-              </span>
-            </div>
-          </div>
-          <div class="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-            <div class="flex justify-between items-center">
-              <span class="text-sm text-gray-600 dark:text-gray-400">用户ID</span>
-              <span class="font-medium text-blue-600">{{ userId }}</span>
-            </div>
-          </div>
-          <div class="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-            <div class="flex justify-between items-center">
-              <span class="text-sm text-gray-600 dark:text-gray-400">主题</span>
-              <span class="font-medium text-purple-600">{{ themeName || '--' }}</span>
-            </div>
-          </div>
-          <div class="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-            <div class="flex justify-between items-center">
-              <span class="text-sm text-gray-600 dark:text-gray-400">语言</span>
-              <span class="font-medium text-orange-600">{{ languageName || '--' }}</span>
-            </div>
-          </div>
+      <section class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div v-for="item in status" :key="item.label" class="rounded-lg bg-white dark:bg-gray-800 p-3">
+          <div class="text-xs text-gray-500 dark:text-gray-400">{{ item.label }}</div>
+          <div class="mt-1 font-medium break-all">{{ item.value }}</div>
         </div>
       </section>
 
-      <!-- 功能演示 -->
-      <section class="mb-8">
-        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">功能演示</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <button @click="handlePopoutWindow" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg font-medium">
-            打开独立窗口
-          </button>
-          <button @click="handleOpenWindow" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-3 rounded-lg font-medium">
-            打开新窗口
-          </button>
-          <button @click="handleSelectUsers" class="bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg font-medium">
-            选择用户
-          </button>
-          <button @click="handleRequestAPI" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-3 rounded-lg font-medium">
-            测试API请求
-          </button>
-          <button @click="handleCloseApp" class="bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-lg font-medium">
-            关闭应用
-          </button>
-          <button @click="handleBackApp" class="bg-orange-600 hover:bg-orange-700 text-white px-4 py-3 rounded-lg font-medium">
-            返回
-          </button>
-
-          <!-- 是否阻止关闭应用 -->
+      <section v-for="group in groups" :key="group.title">
+        <h2 class="mb-2 font-semibold">{{ group.title }}</h2>
+        <div class="flex flex-wrap gap-2">
           <button
-            @click="preventCloseApp = !preventCloseApp"
-            class="bg-gray-600 hover:bg-gray-700 px-4 py-3 rounded-lg font-medium flex items-center justify-center gap-2"
-            :aria-pressed="preventCloseApp"
-            type="button"
+            v-for="action in group.actions"
+            :key="action.label"
+            class="px-3 py-1.5 rounded-md text-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-blue-500 disabled:opacity-40"
+            :disabled="!capabilities.includes(action.name)"
+            @click="run(action)"
           >
-            <span>
-              <svg v-if="preventCloseApp" class="h-5 w-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                <rect width="20" height="20" rx="4" fill="currentColor"/>
-                <polyline points="5 11 9 15 15 7" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              <svg v-else class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 20 20">
-                <rect x="2" y="2" width="16" height="16" rx="4" stroke="currentColor" stroke-width="2" fill="none"/>
-              </svg>
-            </span>
-            <span class="text-white">阻止返回</span>
+            {{ action.label }}
           </button>
         </div>
       </section>
 
-      <!-- 提示框演示 -->
-      <section class="mb-8">
-        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">提示框演示</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <button @click="handleOpenModal('info')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg font-medium">
-            打开默认提示框
-          </button>
-          <button @click="handleOpenModal('warning')" class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-3 rounded-lg font-medium">
-            打开警告提示框
-          </button>
-          <button @click="handleOpenModal('error')" class="bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-lg font-medium">
-            打开错误提示框
-          </button>
-          <button @click="handleOpenModal('success')" class="bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg font-medium">
-            打开成功提示框
-          </button>
-          <button @click="handleOpenModal('confirm')" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-3 rounded-lg font-medium">
-            打开确认提示框
-          </button>
-          <button @click="handleOpenModal('alert')" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-3 rounded-lg font-medium">
-            打开系统提示框
-          </button>
-        </div>
-      </section>
-
-      <!-- 消息框演示 -->
-      <section class="mb-8">
-        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">消息框演示</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <button @click="handleOpenMessage('info')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg font-medium">
-            打开默认消息框
-          </button>
-          <button @click="handleOpenMessage('warning')" class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-3 rounded-lg font-medium">
-            打开警告消息框
-          </button>
-          <button @click="handleOpenMessage('error')" class="bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-lg font-medium">
-            打开错误消息框
-          </button>
-          <button @click="handleOpenMessage('success')" class="bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg font-medium">
-            打开成功消息框
-          </button>
-        </div>
-      </section>
-
-      <!-- 用户信息 -->
-      <section v-if="userInfo" class="mb-8">
-        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">用户信息</h2>
-        <div class="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-          <pre class="text-sm text-gray-700 dark:text-gray-300 overflow-x-auto">{{ JSON.stringify(userInfo, null, 2) }}</pre>
-        </div>
-      </section>
-
-      <!-- 系统信息 -->
-      <section v-if="systemInfo" class="mb-8">
-        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">系统信息</h2>
-        <div class="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-          <pre class="text-sm text-gray-700 dark:text-gray-300 overflow-x-auto">{{ JSON.stringify(systemInfo, null, 2) }}</pre>
-        </div>
+      <section>
+        <h2 class="mb-2 font-semibold">日志</h2>
+        <pre class="rounded-lg bg-white dark:bg-gray-800 p-3 text-xs h-64 overflow-auto whitespace-pre-wrap">{{
+          logs.join("\n")
+        }}</pre>
       </section>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from "vue"
-import {
-  isMicroApp,
-  getUserId,
-  getThemeName,
-  getLanguageName,
-  isElectron,
-  isEEUIApp,
-  getSystemInfo,
-  getUserInfo,
-  appReady,
-  popoutWindow,
-  openWindow,
-  selectUsers,
-  requestAPI,
-  closeApp,
-  backApp,
-  modalInfo,
-  modalWarning,
-  modalError,
-  modalSuccess,
-  modalConfirm,
-  modalAlert,
-  messageInfo,
-  messageWarning,
-  messageError,
-  messageSuccess,
-  DooTaskUserInfo,
-  DooTaskSystemInfo,
-  interceptBack,
-  addMenuClickListener
-} from '../../src/index'
+import { computed, onMounted, onUnmounted, ref } from "vue"
+import * as doo from "../../src/index"
 
-// 响应式数据
-const isMicroAppRef = ref(false)
-const userId = ref(0)
-const themeName = ref('')
-const languageName = ref('')
-const isElectronRef = ref(false)
-const isEEUIAppRef = ref(false)
-const preventCloseApp = ref(false)
-const userInfo = ref<DooTaskUserInfo | null>(null)
-const systemInfo = ref<DooTaskSystemInfo | null>(null)
+interface Action {
+  /** 接口名，当前环境不支持时按钮置灰 */
+  name: string
+  label: string
+  handler: () => Promise<unknown>
+}
 
-// 初始化应用
+const env = ref<doo.Env | null>(null)
+const theme = ref("")
+const language = ref("")
+const user = ref("")
+const capabilities = ref<string[]>([])
+const logs = ref<string[]>([])
+const cleanups: Array<() => void> = []
+let offBeforeClose: (() => void) | null = null
+
+const status = computed(() => [
+  { label: "通道", value: env.value?.channel ?? "不在 DooTask 里" },
+  { label: "呈现方式", value: env.value?.presentation ?? "--" },
+  { label: "平台", value: env.value ? `${env.value.platform}${env.value.mobile ? "（移动端）" : ""}` : "--" },
+  { label: "当前用户", value: user.value || "--" },
+  { label: "主题", value: theme.value || "--" },
+  { label: "语言", value: language.value || "--" },
+  { label: "可用接口", value: env.value ? `${capabilities.value.length} 个` : "--" },
+])
+
+function log(label: string, value?: unknown) {
+  const time = new Date().toLocaleTimeString()
+  const text = value === undefined ? "" : ` ${typeof value === "string" ? value : JSON.stringify(value)}`
+  logs.value.unshift(`[${time}] ${label}${text}`)
+}
+
+async function run(action: Action) {
+  try {
+    log(`${action.label} →`, await action.handler())
+  } catch (error) {
+    if (error instanceof doo.DooTaskError) {
+      log(`${action.label} ✗ ${error.code}`, error.message)
+    } else {
+      log(`${action.label} ✗`, String(error))
+    }
+  }
+}
+
+function applyTheme(value: doo.Theme) {
+  theme.value = value
+  document.documentElement.classList.toggle("dark", value === "dark")
+}
+
+async function toggleBeforeClose() {
+  if (offBeforeClose) {
+    offBeforeClose()
+    offBeforeClose = null
+    return "已关闭"
+  }
+  offBeforeClose = doo.onBeforeClose(() => doo.dialog.confirm({ title: "确定关闭吗？" }))
+  return "已开启"
+}
+
+const groups: Array<{ title: string; actions: Action[] }> = [
+  {
+    title: "身份和请求",
+    actions: [
+      { name: "getAppToken", label: "应用令牌", handler: async () => `${(await doo.getAppToken()).slice(0, 12)}…` },
+      { name: "request", label: "请求 users/info", handler: () => doo.request("users/info") },
+      { name: "fetchUsers", label: "查用户 1", handler: () => doo.fetchUsers([1]) },
+      { name: "getUserInfo", label: "当前用户", handler: () => doo.getUserInfo() },
+    ],
+  },
+  {
+    title: "界面",
+    actions: [
+      { name: "toast.success", label: "成功提示", handler: () => doo.toast.success("操作成功") },
+      { name: "toast.error", label: "错误提示", handler: () => doo.toast.error("操作失败") },
+      {
+        name: "dialog.confirm",
+        label: "确认框",
+        handler: () => doo.dialog.confirm({ title: "删除", content: "确定删除这条记录吗？" }),
+      },
+      {
+        name: "selectUsers",
+        label: "选人（最多 3 个）",
+        handler: () => doo.selectUsers({ max: 3, title: "选择成员", beforeSubmit: ids => ids.users.length > 0 }),
+      },
+      {
+        name: "previewImage",
+        label: "预览图片",
+        handler: () => doo.previewImage(`${location.origin}/favicon.ico`),
+      },
+    ],
+  },
+  {
+    title: "操作 DooTask",
+    actions: [
+      { name: "addTask", label: "新建任务", handler: () => doo.addTask({ name: "来自示例应用" }) },
+      { name: "openSearch", label: "搜索", handler: () => doo.openSearch("任务") },
+      { name: "openAI", label: "AI 助手", handler: () => doo.openAI({ prompt: "总结一下今天的任务" }) },
+      { name: "startMeeting", label: "发起会议", handler: () => doo.startMeeting() },
+    ],
+  },
+  {
+    title: "窗口",
+    actions: [
+      { name: "popout", label: "弹出窗口", handler: () => doo.popout() },
+      {
+        name: "openWindow",
+        label: "打开外部窗口",
+        handler: () => doo.openWindow("https://www.dootask.com", { title: "DooTask" }),
+      },
+      { name: "close", label: "关闭", handler: () => doo.close() },
+      { name: "getCapsuleRect", label: "胶囊位置", handler: () => doo.getCapsuleRect() },
+      {
+        name: "setCapsuleMenus",
+        label: "胶囊菜单",
+        handler: () => doo.setCapsuleMenus([{ label: "刷新数据", value: "refresh" }]),
+      },
+      { name: "close", label: "关闭前询问（开/关）", handler: toggleBeforeClose },
+    ],
+  },
+]
+
 onMounted(async () => {
   try {
-    // 等待应用准备就绪
-    await appReady()
-    console.log('应用已准备就绪')
+    env.value = await doo.ready()
+  } catch (error) {
+    log("不在 DooTask 里", error instanceof doo.DooTaskError ? error.code : String(error))
+    return
+  }
+  capabilities.value = await doo.capabilities()
+  applyTheme(await doo.getTheme())
+  language.value = await doo.getLanguage()
+  doo.getUserInfo().then(info => (user.value = `${info.nickname}（${info.userid}）`))
 
-    // 更新状态
-    isMicroAppRef.value = await isMicroApp()
-    userId.value = await getUserId()
-    themeName.value = await getThemeName()
-    languageName.value = await getLanguageName()
-    isElectronRef.value = await isElectron()
-    isEEUIAppRef.value = await isEEUIApp()
-    userInfo.value = await getUserInfo()
-    systemInfo.value = await getSystemInfo()
-
-    // 添加菜单点击监听器
-    addMenuClickListener((message: string) => {
-      modalAlert('菜单点击:' + message)
-    })
-
-    // 阻止返回
-    interceptBack(() => {
-      if (preventCloseApp.value) {
-        modalInfo("阻止返回")
-        return true
-      } else {
-        return false
+  cleanups.push(
+    doo.onThemeChange(applyTheme),
+    doo.onLanguageChange(value => (language.value = value)),
+    doo.onPresentationChange(value => {
+      if (env.value) {
+        env.value.presentation = value
       }
-    })
-  } catch (error) {
-    console.error('应用初始化失败:', error)
-  }
+    }),
+    doo.onCapsuleMenu(value => log("胶囊菜单", value))
+  )
 })
 
-// 监听主题变化
-watch(themeName, (newTheme: string) => {
-  if (newTheme === 'dark') {
-    document.documentElement.classList.remove('light')
-  } else {
-    document.documentElement.classList.remove('dark')
-  }
-  document.documentElement.classList.add(newTheme)
-  localStorage.setItem('theme', newTheme)
+onUnmounted(() => {
+  cleanups.forEach(off => off())
+  offBeforeClose?.()
 })
-
-// 处理函数
-const handlePopoutWindow = () => {
-  if (!isMicroAppRef.value) {
-    alert('环境不支持')
-    return
-  }
-  
-  popoutWindow({
-    title: '独立窗口示例',
-    width: 800,
-    height: 600,
-    url: window.location.href
-  })
-}
-
-const handleOpenWindow = () => {
-  if (!isMicroAppRef.value) {
-    alert('环境不支持')
-    return
-  }
-
-  openWindow({
-    name: 'example-window',
-    url: 'https://example.com',
-    config: {
-      title: '新窗口示例',
-      width: 800,
-      height: 600
-    }
-  })
-}
-
-const handleSelectUsers = async () => {
-  if (!isMicroAppRef.value) {
-    alert('环境不支持')
-    return
-  }
-
-  try {
-    const result = await selectUsers({
-      title: '选择用户',
-      placeholder: '搜索用户...',
-      multipleMax: 5
-    })
-    console.log('选择的用户:', result)
-    modalAlert(`选择了 ${result.length} 个用户`)
-  } catch (error) {
-    console.error('选择用户失败:', error)
-  }
-}
-
-const handleRequestAPI = async () => {
-  if (!isMicroAppRef.value) {
-    alert('环境不支持')
-    return
-  }
-
-  try {
-    const result = await requestAPI({
-      url: 'users/info',
-      method: 'GET',
-      spinner: true
-    })
-    console.log('API请求结果:', result)
-    modalInfo({
-      title: 'API请求成功',
-      content: '<pre style="white-space:pre-wrap">' + JSON.stringify(result.data, null, 2) + '</pre>',
-    })
-  } catch (error) {
-    console.error('API请求失败:', error)
-  }
-}
-
-const handleCloseApp = () => {
-  if (!isMicroAppRef.value) {
-    alert('环境不支持')
-    return
-  }
-
-  closeApp()
-}
-
-const handleBackApp = () => {
-  if (!isMicroAppRef.value) {
-    alert('环境不支持')
-    return
-  }
-
-  backApp()
-}
-
-const handleOpenModal = (type: string) => {
-  if (!isMicroAppRef.value) {
-    alert('环境不支持')
-    return
-  }
-
-  switch (type) {
-    case 'info':
-      modalInfo('info')
-      break;
-    case 'warning':
-      modalWarning('warning')
-      break;
-    case 'error':
-      modalError('error')
-      break;
-    case 'success':
-      modalSuccess('success')
-      break;
-    case 'confirm':
-      modalConfirm({
-        title: '确认提示框',
-        content: '确认提示框内容',
-      }).then(res => {
-        if (res) {
-          messageSuccess('确认')
-        } else {
-          messageInfo('取消')
-        }
-      })
-      break;
-    case 'alert':
-      modalAlert('alert')
-      break;
-  }
-}
-
-const handleOpenMessage = (type: string) => {
-  if (!isMicroAppRef.value) {
-    alert('环境不支持')
-    return
-  }
-
-  switch (type) {
-    case 'info':
-      messageInfo('info')
-      break;
-    case 'warning':
-      messageWarning('warning')
-      break;
-    case 'error':
-      messageError('error')
-      break;
-    case 'success':
-      messageSuccess('success')
-      break;
-  }
-}
 </script>

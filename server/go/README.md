@@ -128,6 +128,8 @@ err = client.SetAppBadge(123, dootask.AppBadgeOptions{MenuKey: "tasks"})
 | `WithServer` | 设置服务器地址 | `server` | `ClientOption` |
 | `WithTimeout` | 设置超时时间 | `timeout` | `ClientOption` |
 
+> `token` 可以是应用令牌、个人访问令牌或用户登录令牌。应用后端收到 DooTask 里页面的请求时，从 `Authorization: Bearer` 取出应用令牌（`dta_` 开头）直接传进来即可；脚本等外部程序用用户在「设置 → 访问令牌」创建的个人访问令牌（`dtp_` 开头，主程序 1.11.0+）。客户端发请求时，应用令牌和个人访问令牌放 `Authorization: Bearer`，其他放 `Token` 头。应用令牌只能调用应用 `permissions` 里声明过的接口。
+
 ### 用户相关接口
 
 | 方法 | 描述 | 参数 | 返回值 |

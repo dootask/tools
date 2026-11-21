@@ -2,6 +2,23 @@
 
 DooTask Tools 仓库的版本变更记录。包含前端工具库 `@dootask/tools`、命令行 `@dootask/cli`（含 doo 二进制）、Python SDK `dootask-tools`、Node SDK 与 Go SDK，统一版本号发布。
 
+## [2.0.0]
+
+前端工具库按新的应用通信协议（第 2 版）重写，不兼容 1.x；服务端 SDK 支持应用令牌。需要 DooTask 主程序支持协议第 2 版。
+
+### Breaking Changes
+
+- 不再依赖 micro-app：应用的窗口页面都在 iframe 里打开，通过 `postMessage` 和 DooTask 握手（`hello` / `welcome`），1.x 的 `window.microApp`、`methodTryParent`、`getAppData` 等全部移除
+- 接口重新设计，见 README「API 文档」：调用类接口返回 Promise，登记类接口（`on*`）返回取消函数；`popoutWindow` → `popout`，`closeApp` → `close`，`interceptBack` → `onBeforeClose`，`requestAPI` → `request`（返回接口的 `data`，只能调用应用 `permissions` 里声明过的接口），`selectUsers` 参数改为 `selected` 并返回 `{users, groups}`；移除 `isMicroApp`、`isElectron`、`isEEUIApp` 等环境探测函数，改用 `ready()` / `getEnv()` / `isSupported()`；窗口里不再需要 `nextZIndex`（只在扩展里提供）
+- 不再提供用户登录令牌：应用调用自己的后端时用 `getAppToken()` 取应用令牌，放在 `Authorization: Bearer` 里
+- 调用失败统一抛 `DooTaskError`（带 `code`）
+
+### Features
+
+- 新增窗口相关接口：`getPresentation` / `onPresentationChange`、`getCapsuleRect`、`setCapsuleMenus` / `onCapsuleMenu`、`openWindow`、`openApp`
+- 主题、语言、安全距离握手时就带过来，`getTheme` 等直接返回，变化时通过 `onThemeChange` 等通知
+- Go / Node / Python 三端 SDK：`token` 传应用令牌（`dta_` 开头）时用 `Authorization: Bearer` 发送，应用后端可以直接拿页面请求里的应用令牌调用主程序接口；个人访问令牌（`dtp_` 开头）同样用 `Authorization: Bearer` 发送
+
 ## [1.3.6]
 
 `doo` 命令行文件操作补齐增删改与历史版本能力。

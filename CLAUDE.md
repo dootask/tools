@@ -24,39 +24,43 @@ npm publish
 
 ## 项目结构
 
-- `src/` - 前端工具库源码，入口 `index.ts`，核心逻辑在 `utils.ts`，类型定义在 `types.ts`
+- `src/` - 前端工具库（2.x），入口 `index.ts`
+  - `channel.ts` - 通道：只负责收发协议信封（目前有 frame，electron / app / bridge 待补）
+  - `client.ts` - 连接：握手、调用、事件、回调、应用令牌续期
+  - `api.ts` - 对外接口，和 README「API 文档」一一对应
+  - `errors.ts` - `DooTaskError` 和错误码
+  - `types.ts` - 对外类型
 - `server/go/` - Go SDK
 - `server/python/dootask/` - Python SDK，核心类 `DooTaskClient`
 - `server/node/src/` - Node.js SDK
-- `example/` - Vue 3 + Vite 示例应用，用于本地验证
+- `example/` - Vue 3 + Vite 示例应用，配置成应用的窗口入口后在 DooTask 里逐个试接口
 
 ## 架构要点
 
-### 微前端通信模式
+### 通信协议
 
-前端工具通过 `window.microApp.getData()` 获取主应用注入的数据。所有对主应用的方法调用必须经由：
-- `methodTryParent` - 底层通信封装
-- 已有高层封装（`requestAPI`、`openWindow`、`closeApp`、`getUserInfo` 等）
+前端工具库和 DooTask 之间只走协议第 2 版的信封 `{dootask: 2, kind, ...}`，协议定义在主程序仓库 `docs/microapp-window/contract.md`：
 
-**禁止在新代码中直接使用 `postMessage` 或自定义全局字段。**
+- 加载后自动选通道并发 `hello`，收到 `welcome` 后就绪；`welcome` 带环境、状态（主题、语言、安全距离……）、可用接口列表和应用令牌
+- 调用走 `call` / `result`；参数里的函数换成 `{__fn: id}`，DooTask 用 `callback` 调回
+- DooTask 主动推的走 `event`，带 `id` 的事件要用 `reply` 回答（如 `before_close`）
+- frame 通道只认父窗口发来的消息，`welcome` 之后只发给、只认 DooTask 的 origin
 
-### 运行环境判断
+**新接口只在 `api.ts` 里用 `call` / `listen` 实现，不要直接 `postMessage`，也不要读主程序注入的全局变量。** `sdk.` 开头的方法是工具库内部用的，不对应用公开。
 
-统一使用已有函数：`isMicroApp`、`isElectron`、`isEEUIApp`、`isIframe`。避免重复实现环境探测逻辑。
+### 错误处理
 
-### 错误处理模式
-
-- 环境检测方法（如 `isMicroApp`）返回 `boolean`，不抛异常
-- API 方法在不支持的环境下抛出 `UnsupportedError`
-- 网络请求失败抛出 `ApiError`
+- `ready()` 不在 DooTask 里抛 `unsupported`，协议版本不一致抛 `version_mismatch`；`isHosted()` / `isSupported()` 不抛错
+- 调用失败统一抛 `DooTaskError`，`code` 是 `errors.ts` 里的错误码
+- 应用令牌只在内存里，离过期不到 10 分钟时 `getAppToken()` 自动换新
 
 ## 扩展指引
 
 ### 扩展前端 API
 
-1. 在 `src/types.ts` 补充类型定义
-2. 在 `src/utils.ts` 复用 `getAppData` / `methodTryParent` 实现新函数
-3. 在 `README.md` 补充使用示例
+1. 主程序宿主端先实现并登记到 capabilities，协议文档同步
+2. 在 `src/types.ts` 补充类型，在 `src/api.ts` 用 `call` / `listen` 实现
+3. 在 `README.md` 补充说明和示例，示例页加一个按钮
 
 ### 扩展后端 SDK
 

@@ -44,8 +44,10 @@ class DooTaskClient:
 
         # 创建会话
         self.session = requests.Session()
+        # 应用令牌（dta_）、个人访问令牌（dtp_）放 Authorization: Bearer，用户登录 token 放 Token
+        auth = {'Authorization': f'Bearer {token}'} if token.startswith(('dta_', 'dtp_')) else {'Token': token}
         self.session.headers.update({
-            'Token': token,
+            **auth,
             'User-Agent': 'DooTask-Tools/1.0',
             'Content-Type': 'application/json'
         })
