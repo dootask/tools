@@ -167,6 +167,9 @@ function whenBody(run: (body: HTMLElement) => void) {
  * - 只和这个 iframe、这个 origin 通信；launch_code 只经 postMessage 交给它，不出现在 iframe 地址上
  * - 桥接页告诉显示方式（overlay）：有弹窗时铺满，只有轻提示时占顶部，否则隐藏且不挡点击
  * - 桥接页弹不出新窗口（会被拦截），要打开的地址（下载、主程序深度链接）由本页打开
+ * - 铺满时把键盘焦点交给 iframe（Esc 等快捷键才能关掉弹窗），隐藏后还给原来的元素
+ * - welcome 之前 iframe 重新加载（如开发环境的依赖重新构建）时重发 launch 和已发的消息；
+ *   launch_code 只能用一次，之后的 launch 不带，桥接页沿用换到的凭证
  */
 function bridgeTransport(origin: string, code: string): Transport {
   const frame = document.createElement("iframe")
@@ -186,25 +189,38 @@ function bridgeTransport(origin: string, code: string): Transport {
     background: "transparent",
     colorScheme: "normal",
   })
+  let focusBefore: Element | null = null
   const setOverlay = (mode: unknown) => {
     const shown = mode === "full" || mode === "toast"
     frame.style.visibility = shown ? "visible" : "hidden"
     frame.style.pointerEvents = shown ? "auto" : "none"
     frame.style.height = mode === "toast" ? `${TOAST_BAND_HEIGHT}px` : "100%"
     frame.setAttribute("aria-hidden", shown ? "false" : "true")
+    if (mode === "full" && document.activeElement !== frame) {
+      focusBefore = document.activeElement
+      frame.focus()
+    } else if (mode !== "full" && focusBefore) {
+      if (document.activeElement === frame && focusBefore instanceof HTMLElement) {
+        focusBefore.focus()
+      }
+      focusBefore = null
+    }
   }
   setOverlay("hidden")
 
+  let launchCode = code
   let loaded = false
-  const queue: Record<string, any>[] = []
+  let welcomed = false
+  const sent: Envelope[] = []
   const post = (message: Record<string, any>) => frame.contentWindow?.postMessage(message, origin)
   frame.addEventListener("load", () => {
-    if (loaded) {
+    loaded = true
+    if (welcomed) {
       return
     }
-    loaded = true
-    post({ dootask: PROTOCOL_VERSION, kind: "bridge", action: "launch", code })
-    queue.splice(0).forEach(post)
+    post({ dootask: PROTOCOL_VERSION, kind: "bridge", action: "launch", code: launchCode })
+    launchCode = ""
+    sent.forEach(post)
   })
   whenBody(body => body.appendChild(frame))
 
@@ -212,10 +228,11 @@ function bridgeTransport(origin: string, code: string): Transport {
     channel: "bridge",
     helloTimeout: 30000,
     send(message) {
+      if (!welcomed) {
+        sent.push(message)
+      }
       if (loaded) {
         post(message)
-      } else {
-        queue.push(message)
       }
     },
     listen(receive, fail) {
@@ -229,6 +246,10 @@ function bridgeTransport(origin: string, code: string): Transport {
         }
         if (data.kind !== "bridge") {
           if (isEnvelope(data)) {
+            if (data.kind === "welcome") {
+              welcomed = true
+              sent.length = 0
+            }
             receive(data)
           }
           return

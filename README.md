@@ -434,7 +434,7 @@ const res = await fetch("/apps/example/api/list", {
 - 页面所在的域名要登记在应用 `config.yml` 的 `origins`（或 `menu_items` 的地址）里，否则 DooTask 不签发启动码，桥接页也不允许被嵌入；
 - 页面内跳转、刷新后不需要启动码，桥接页沿用上次换到的凭证（7 天内用过就一直有效，用户退出 DooTask 后失效）；
 - 换不到凭证时 `ready()` 抛 `auth_failed`，请提示用户从 DooTask 重新打开应用；
-- 弹框、选人、图片预览由桥接页临时铺满页面显示，只有轻提示时只占页面顶部，平时隐藏、不挡点击；
+- 弹框、选人、图片预览由桥接页临时铺满页面显示，只有轻提示时只占页面顶部，铺满时键盘焦点在桥接页里（Esc 可关闭弹框），关闭后还给页面原来的元素；平时隐藏、不挡点击；
 - 页面不能用 `Content-Security-Policy` 的 `frame-src` / `child-src` 拦掉 DooTask 的地址。
 
 ## 从 1.x 升级
