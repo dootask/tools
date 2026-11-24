@@ -2,7 +2,9 @@
 
 DooTask Tools 仓库的版本变更记录。包含前端工具库 `@dootask/tools`、命令行 `@dootask/cli`（含 doo 二进制）、Python SDK `dootask-tools`、Node SDK 与 Go SDK，统一版本号发布。
 
-## [Unreleased]
+## [2.1.0]
+
+前端工具库新增 `selectImage`，可直接从 DooTask 的图片空间选图。
 
 ### Features
 
