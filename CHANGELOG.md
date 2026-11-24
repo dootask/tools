@@ -2,6 +2,12 @@
 
 DooTask Tools 仓库的版本变更记录。包含前端工具库 `@dootask/tools`、命令行 `@dootask/cli`（含 doo 二进制）、Python SDK `dootask-tools`、Node SDK 与 Go SDK，统一版本号发布。
 
+## [Unreleased]
+
+### Features
+
+- 新增 `selectImage({width, height, crop})`：打开 DooTask 的图片空间选一张图片（点选上传过的，或上传新图片，上传时按给的尺寸缩放、`crop` 为 `true` 时裁满），返回 `{url, path}`，用户关掉时抛 `cancelled`。需要 DooTask 主程序支持，可以先用 `isSupported("selectImage")` 判断
+
 ## [2.0.0]
 
 前端工具库按新的应用通信协议（第 2 版）重写，不兼容 1.x；服务端 SDK 支持应用令牌。需要 DooTask 主程序支持协议第 2 版。

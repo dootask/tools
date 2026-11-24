@@ -111,6 +111,22 @@ export interface SelectUsersOptions {
   beforeSubmit?: (ids: SelectedIds) => boolean | Promise<boolean>
 }
 
+export interface SelectImageOptions {
+  /** 上传新图片时缩放到的宽度，不传按 DooTask 默认 */
+  width?: number
+  /** 上传新图片时缩放到的高度，不传按 DooTask 默认 */
+  height?: number
+  /** true 时上传的图片按 width、height 裁满（如头像），默认等比缩小 */
+  crop?: boolean
+}
+
+export interface SelectedImage {
+  /** 图片的完整地址 */
+  url: string
+  /** 服务器上的相对路径 */
+  path: string
+}
+
 export interface AddTaskParams {
   projectId?: number
   columnId?: number

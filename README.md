@@ -191,6 +191,7 @@ interface RequestOptions {
 | `dialog.alert(options)` / `dialog.info(options)` / `dialog.success(options)` / `dialog.warning(options)` / `dialog.error(options)` | `Promise<void>` | 提示框，关闭后 resolve |
 | `dialog.confirm(options)` | `Promise<boolean>` | 确认框，确定返回 `true`，取消返回 `false` |
 | `selectUsers(options?)` | `Promise<{users: number[], groups: number[]}>` | 选人，用户关掉选择器时抛 `cancelled` |
+| `selectImage(options?)` | `Promise<{url: string, path: string}>` | 选一张图片：打开 DooTask 的图片空间，可以点选上传过的图片，也可以上传新图片；用户关掉时抛 `cancelled` |
 | `previewImage(urls, index?)` | `Promise<void>` | 预览图片 |
 | `download(url)` | `Promise<void>` | 下载文件 |
 
@@ -217,6 +218,22 @@ interface SelectUsersOptions {
   title?: string
   placeholder?: string
   beforeSubmit?: (ids: {users: number[], groups: number[]}) => boolean | Promise<boolean>  // 返回 false 阻止提交
+}
+
+interface SelectImageOptions {
+  width?: number                      // 上传新图片时缩放到的宽度，不传按 DooTask 默认
+  height?: number                     // 上传新图片时缩放到的高度
+  crop?: boolean                      // true 时上传的图片按宽高裁满（如头像），默认等比缩小
+}
+```
+
+```typescript
+// 换头像：选好后拿到图片地址，用户关掉时什么也不做
+try {
+  const { url } = await selectImage({ width: 512, height: 512, crop: true })
+  setAvatar(url)
+} catch (error) {
+  if (!(error instanceof DooTaskError && error.code === "cancelled")) throw error
 }
 ```
 

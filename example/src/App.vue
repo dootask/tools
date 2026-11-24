@@ -129,6 +129,11 @@ const groups: Array<{ title: string; actions: Action[] }> = [
         handler: () => doo.selectUsers({ max: 3, title: "选择成员", beforeSubmit: ids => ids.users.length > 0 }),
       },
       {
+        name: "selectImage",
+        label: "选图片（512 裁满）",
+        handler: () => doo.selectImage({ width: 512, height: 512, crop: true }),
+      },
+      {
         name: "previewImage",
         label: "预览图片",
         handler: () => doo.previewImage(`${location.origin}/favicon.ico`),

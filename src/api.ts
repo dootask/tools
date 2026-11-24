@@ -19,6 +19,8 @@ import type {
   RequestOptions,
   SafeArea,
   SelectedIds,
+  SelectedImage,
+  SelectImageOptions,
   SelectUsersOptions,
   SystemInfo,
   Theme,
@@ -139,6 +141,11 @@ export const dialog = {
 /** 选人，用户关掉选择器时抛 cancelled */
 export function selectUsers(options: SelectUsersOptions = {}): Promise<SelectedIds> {
   return call("selectUsers", options)
+}
+
+/** 选一张图片：在图片空间里点选上传过的，或上传新图片；用户关掉时抛 cancelled */
+export function selectImage(options: SelectImageOptions = {}): Promise<SelectedImage> {
+  return call("selectImage", options)
 }
 
 export function previewImage(urls: string | string[], index = 0): Promise<void> {
