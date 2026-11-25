@@ -3,6 +3,7 @@
  * - 加载后自动选择通道并发 hello，收到 welcome 后就绪；HELLO_TIMEOUT 内没有 welcome 视为不在 DooTask 里
  * - 参数里的函数换成 {__fn: id}，DooTask 用 callback 调回来
  * - welcome 里的状态（主题、语言、安全距离……）存在本地，随事件更新
+ * - 握手后应用里没处理的 Esc 转给 DooTask（forwardEscape）
  */
 import { DooTaskError, fromPayload, toPayload } from "./errors"
 import { detectTransport, PROTOCOL_VERSION, type Envelope, type EnvelopeKind, type Transport } from "./channel"
@@ -123,6 +124,28 @@ async function onEvent(message: Envelope) {
   send("reply", { id: message.id, value })
 }
 
+/**
+ * 应用里没处理的 Esc 转给 DooTask，和焦点在 DooTask 时按 Esc 一样：DooTask 没开弹窗时交给最上面的应用，
+ * 登记了 onNativeBack 就发 native_back，窗口里没登记时离开，整页没登记不做任何事
+ * - 应用自己处理了（preventDefault、stopPropagation）不转，等这次按键派发完再看，后登记的监听也来得及处理
+ * - 焦点在输入框、可编辑区域里或输入法正在组字时，Esc 留给输入
+ */
+function forwardEscape(event: KeyboardEvent) {
+  if (event.key !== "Escape" || event.repeat || event.isComposing || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
+    return
+  }
+  const target = event.target
+  if (target instanceof HTMLElement && (target.isContentEditable || target.matches("input, textarea, select"))) {
+    return
+  }
+  setTimeout(() => {
+    if (!event.defaultPrevented) {
+      // 旧版 DooTask 没有这个接口，忽略
+      call("sdk.escape").catch(() => {})
+    }
+  })
+}
+
 function connect(): Promise<Session> {
   if (!transport) {
     return Promise.reject(new DooTaskError("unsupported", "not running in DooTask"))
@@ -152,6 +175,7 @@ function connect(): Promise<Session> {
             state: message.state ?? {},
             capabilities: Array.isArray(message.capabilities) ? message.capabilities : [],
           }
+          window.addEventListener("keydown", forwardEscape)
           resolve(session)
           break
         case "result": {

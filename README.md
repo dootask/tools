@@ -265,7 +265,7 @@ try {
 | --- | --- | --- |
 | `close()` | `Promise<void>` | 关闭当前窗口 |
 | `onBeforeClose(cb)` | `() => void` | 关闭前询问：`cb` 返回 `false` 或一段提示文字时，DooTask 弹确认框「(提示文字)，确定关闭？」，用户选「关闭」才关；返回其他值、抛错、2 秒内没回复都直接关闭。离开（胶囊 ×、返回）不会问；后台的应用太多、要挤掉最早的时也会问，但拦住时不弹确认、只是留着；自己调用 `close()` 不会问 |
-| `onNativeBack(cb, options?)` | `() => void` | 返回（Android 返回键、iOS 侧滑、导航栏返回、手机浏览器返回、电脑窗口里按 Esc）交给应用处理。默认返回会离开应用（转到后台，状态保留）；登记期间改为调用最后登记的 `cb`（后进先出），全部取消后恢复默认。`options.indicator`（默认 `true`）：侧滑时跟手画返回指示器（iOS App、手机浏览器；Android 系统自己画），以最后登记的为准 |
+| `onNativeBack(cb, options?)` | `() => void` | 返回（Android 返回键、iOS 侧滑、导航栏返回、手机浏览器返回、电脑上按 Esc）交给应用处理。默认返回会离开应用（转到后台，状态保留；电脑上整页打开时按 Esc 不离开）；应用里按的 Esc 只有应用自己没处理（`preventDefault`、`stopPropagation`）且焦点不在输入框里才算返回；登记期间改为调用最后登记的 `cb`（后进先出），全部取消后恢复默认。`options.indicator`（默认 `true`）：侧滑时跟手画返回指示器（iOS App、手机浏览器；Android 系统自己画），以最后登记的为准 |
 | `popout()` | `Promise<void>` | 弹出到浏览器新标签或桌面客户端的独立窗口，要求入口配置了 `popout: true` |
 | `openWindow(url, options?)` | `Promise<void>` | 打开一个外部窗口：桌面客户端里是独立窗口，其他端是浏览器新标签 |
 | `getPresentation()` | `Promise<"page" \| "window">` | 当前的打开方式（手机上总是 `page`） |

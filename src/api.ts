@@ -263,8 +263,9 @@ function syncNativeBack() {
 }
 
 /**
- * 返回（Android 返回键、iOS 侧滑、导航栏返回、手机浏览器返回、电脑窗口里按 Esc）交给应用：登记期间返回不再离开应用，
- * 而是调用最后登记的 cb（后进先出）；全部取消后恢复默认（离开，应用转到后台）
+ * 返回（Android 返回键、iOS 侧滑、导航栏返回、手机浏览器返回、电脑上按 Esc）交给应用：登记期间返回不再离开应用，
+ * 而是调用最后登记的 cb（后进先出）；全部取消后恢复默认（离开，应用转到后台；电脑上整页打开时按 Esc 不离开）
+ * 应用里按 Esc 时，应用自己没处理（preventDefault、stopPropagation）且焦点不在输入框里，才算返回
  * options.indicator（默认 true）：侧滑时跟手画返回指示器，以最后登记的为准
  */
 export function onNativeBack(cb: () => void, options: NativeBackOptions = {}): () => void {
