@@ -2,7 +2,7 @@
 
 DooTask Tools 仓库的版本变更记录。包含前端工具库 `@dootask/tools`、命令行 `@dootask/cli`（含 doo 二进制）、Python SDK `dootask-tools`、Node SDK 与 Go SDK，统一版本号发布。
 
-## [Unreleased]
+## [2.2.0]
 
 前端工具库新增 `setCapsulePosition`，沉浸式页面可以临时移动胶囊。
 
