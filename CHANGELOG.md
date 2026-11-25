@@ -2,7 +2,7 @@
 
 DooTask Tools 仓库的版本变更记录。包含前端工具库 `@dootask/tools`、命令行 `@dootask/cli`（含 doo 二进制）、Python SDK `dootask-tools`、Node SDK 与 Go SDK，统一版本号发布。
 
-## [Unreleased]
+## [3.0.0]
 
 `doo` 命令行按机器调用规范输出：统一的 JSON 结果、错误码和命令风险级别，危险操作返回确认信息由调用方弹确认，适合交给 AI 调用。
 
