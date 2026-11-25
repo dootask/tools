@@ -2,6 +2,18 @@
 
 DooTask Tools 仓库的版本变更记录。包含前端工具库 `@dootask/tools`、命令行 `@dootask/cli`（含 doo 二进制）、Python SDK `dootask-tools`、Node SDK 与 Go SDK，统一版本号发布。
 
+## [2.3.0]
+
+前端工具库 `onNativeBack` 支持控制侧滑返回指示器，返回的默认语义统一为「离开」。
+
+### Features
+
+- `onNativeBack(cb, options?)` 新增 `options.indicator`（默认 `true`）：侧滑返回时是否跟手画返回指示器（iOS App、手机浏览器；Android 由系统绘制），多次登记以最后登记的为准。返回的默认行为随之明确为「离开应用（转到后台，状态保留）」，并补充电脑窗口里按 Esc 也算返回
+
+### Documentation
+
+- `onBeforeClose` 说明澄清：离开（胶囊 ×、返回）不会询问；后台应用过多需要挤掉最早的时也会询问，但被拦住时不弹确认框，只保留原应用
+
 ## [2.2.0]
 
 前端工具库新增 `setCapsulePosition`，沉浸式页面可以临时移动胶囊。
