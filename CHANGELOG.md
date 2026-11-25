@@ -2,6 +2,28 @@
 
 DooTask Tools 仓库的版本变更记录。包含前端工具库 `@dootask/tools`、命令行 `@dootask/cli`（含 doo 二进制）、Python SDK `dootask-tools`、Node SDK 与 Go SDK，统一版本号发布。
 
+## [Unreleased]
+
+`doo` 命令行按机器调用规范输出：统一的 JSON 结果、错误码和命令风险级别，危险操作返回确认信息由调用方弹确认，适合交给 AI 调用。
+
+### Breaking Changes
+
+- `doo --json` 的输出改为信封：成功 `{"ok":true,"data":...,"message":...}`，失败 `{"ok":false,"code":"...","message":"..."}`，失败信息也在 stdout（此前成功时直接输出数据、失败时写 stderr）。直接解析旧格式的脚本需要改为读 `data`
+- 危险操作在 `--json` 或非交互环境下未带 `--yes` 时返回 `needs_confirm`（退出码 4），附 `confirm`（摘要、命令、风险级别、涉及对象）；此前是报错退出
+- 新增退出码 2（参数错误）、4（需要确认），0 / 1 / 3 含义不变
+
+### Features
+
+- 新增 `doo meta`：输出机器可读的命令清单（命令、用法、参数、风险级别）
+- 每个命令标注风险级别 `read` / `write` / `danger`；发请求前统一校验，危险命令漏写确认时也会拦下
+- 新增全局参数 `--dry-run`（预演写操作，不执行）、`--fields`（只取指定字段）、`--limit`（限制列表条数）、`--jq`（内置 jq 处理输出）
+- 错误码固定清单：`invalid_args`、`auth_required`、`permission_denied`、`not_found`、`needs_confirm`、`api_error`、`server_error`、`network_error`、`timeout`、`cancelled`、`error`
+- Go SDK：请求失败返回 `APIError` / `HTTPError` / `TransportError`，可用 `errors.As` 区分，`Error()` 文本与之前一致
+
+### Documentation
+
+- `@dootask/cli` README 的「For AI Agents」按新输出格式更新：信封、错误码、退出码、`needs_confirm` 确认流程、`doo meta` 做权限控制，参考实现改为指向 AI 插件目录
+
 ## [2.3.1]
 
 应用里按 Esc 现在会交给 DooTask 处理，和焦点在 DooTask 时按 Esc 一致。

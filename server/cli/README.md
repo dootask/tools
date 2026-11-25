@@ -41,14 +41,21 @@ doo app catalog --search 客户管理
 ```
 你可以使用 `doo` 命令行调用 DooTask。约定：
 - 认证已通过 DOO_SERVER / DOO_TOKEN 环境变量注入，无需登录。
-- 命令都加 --json 取机器可读输出（需纯净再加 --quiet）。
-- 退出码：0=成功；3=未认证；1=其它错误。数据在 stdout，错误在 stderr（"doo:" 前缀）。
-- 删除等危险操作先征得用户同意，再带 --yes 重发（非交互不加会被拒绝）。
+- 命令都加 --json：stdout 只输出一行 JSON，成功 {"ok":true,"data":...}，失败 {"ok":false,"code":"...","message":"..."}，按 code 判断原因（not_found、permission_denied、auth_required 等）。
+- 退出码：0=成功；1=其他错误；2=参数错误；3=未认证；4=需要确认。
+- 删除、解散群、撤回消息等危险操作不带 --yes 时不会执行，而是返回 code=needs_confirm 和 confirm.summary（操作摘要）；先把摘要告诉用户，同意后再带 --yes 重发。
+- 结果太大时用 --fields 只取需要的字段、--limit 限制条数，或用 --jq 处理；拿不准的写操作先加 --dry-run 预演。
 - 用 `doo --help` / `doo <命令> --help` 自查参数，不要臆造。
 先运行 `doo user info --json` 确认认证可用。
 ```
 
-封装成工具时：argv 传数组、认证仅经环境变量、不要开放 `auth` 子命令。生产参考实现见 DooTask AI 插件的 [`doo_tool.py`](https://github.com/dootask/system-plugins/blob/main/ai/src/helper/doo_tool.py)。
+封装成工具时：
+
+- argv 传数组，认证只经环境变量，不要开放 `auth` 子命令。
+- 启动时运行一次 `doo meta --json`，拿到全部命令及其风险级别（`read` / `write` / `danger`），据此做只读模式或权限控制；清单里没有的命令按 `write` 处理。
+- 收到 `needs_confirm` 时用 `confirm` 字段（摘要、命令、涉及对象）向用户弹确认，确认后带 `--yes` 重跑。
+
+错误码、输出信封的完整说明见 [doo CLI 文档](https://github.com/dootask/tools/blob/main/server/go/cmd/doo/README.md)，生产环境的参考实现见 [DooTask AI 插件](https://github.com/dootask/system-plugins/tree/main/ai)。
 
 ---
 
