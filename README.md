@@ -272,6 +272,7 @@ try {
 | `onPresentationChange(cb)` | `() => void` | 用户在胶囊菜单里改了打开方式 |
 | `getCapsuleRect()` | `Promise<Rect>` | 胶囊的位置和大小（`top` 已含安全距离，`right` 是到窗口右边的距离），沉浸式页面用来给胶囊留位置；非沉浸式和外部页面全为 0 |
 | `onCapsuleChange(cb)` | `() => void` | 胶囊位置变了（换打开方式、转屏、安全距离变化），`cb(rect)` |
+| `setCapsulePosition(position)` | `Promise<Rect>` | 临时改胶囊位置（只对沉浸式页面生效），`position` 为 `{top?, right?}`（`top` 和 `getCapsuleRect` 一样从页面顶边算），缺的一边用默认位置，`null` 恢复默认；移动有过渡动画，返回实际位置。数值不限，超出页面时贴边（手机上不会进状态栏）；换打开方式、转屏、重新加载后自动恢复默认，应用里换页要自己传 `null` 恢复。需要 DooTask 主程序支持，可以先用 `isSupported("setCapsulePosition")` 判断 |
 | `setCapsuleMenus(menus)` | `Promise<void>` | 替换胶囊「···」里应用自己的菜单项 |
 | `onCapsuleMenu(cb)` | `() => void` | 胶囊菜单项被点击，`cb(value)` |
 
@@ -451,6 +452,29 @@ async function layoutHeader() {
 layoutHeader()
 onCapsuleChange(layoutHeader)
 onSafeAreaChange(layoutHeader)
+```
+
+### 移动胶囊位置
+
+胶囊默认的位置可以在入口的 `capsule.position` 里按场景配置（见 DooTask 应用开发文档）；可以临时把胶囊移到别处（比如：运行中进到子页面、打开抽屉时），胶囊高 30，想让胶囊和某一行上下居中，`top` 就是这一行中线减 15。
+
+```typescript
+import { getSafeArea, isSupported, setCapsulePosition } from "@dootask/tools"
+
+async function openDrawer() {
+  drawer.show()
+  if (await isSupported("setCapsulePosition")) {
+    const safe = await getSafeArea()
+    // 抽屉标题栏 64 高：胶囊和标题上下居中，离右边 24
+    const rect = await setCapsulePosition({ top: safe.top + 32 - 15, right: 24 })
+    drawerHeader.style.paddingRight = `${rect.right + rect.width + 12}px`
+  }
+}
+
+function closeDrawer() {
+  drawer.hide()
+  void setCapsulePosition(null)
+}
 ```
 
 ### 胶囊菜单

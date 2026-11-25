@@ -8,6 +8,7 @@ import { DooTaskError } from "./errors"
 import type {
   AddTaskParams,
   CapsuleMenu,
+  CapsulePosition,
   DialogOptions,
   Env,
   Language,
@@ -304,6 +305,14 @@ export async function getCapsuleRect(): Promise<Rect> {
 /** 胶囊位置变了：换打开方式（整页 / 窗口）、转屏、安全距离变化 */
 export function onCapsuleChange(cb: (rect: Rect) => void): () => void {
   return listen("capsule", cb)
+}
+
+/**
+ * 临时改胶囊位置（只对沉浸式页面生效），移动有过渡动画；传 null 恢复默认位置，返回实际位置
+ * 数值不限，超出页面时贴边；换打开方式、转屏、重新加载后自动恢复默认，应用里换页要自己传 null 恢复
+ */
+export function setCapsulePosition(position: CapsulePosition | null): Promise<Rect> {
+  return call("setCapsulePosition", position)
 }
 
 /** 替换胶囊「···」里应用自己的菜单项 */

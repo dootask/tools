@@ -2,6 +2,14 @@
 
 DooTask Tools 仓库的版本变更记录。包含前端工具库 `@dootask/tools`、命令行 `@dootask/cli`（含 doo 二进制）、Python SDK `dootask-tools`、Node SDK 与 Go SDK，统一版本号发布。
 
+## [Unreleased]
+
+前端工具库新增 `setCapsulePosition`，沉浸式页面可以临时移动胶囊。
+
+### Features
+
+- 新增 `setCapsulePosition({top, right} | null)`：进到子页面、打开抽屉时把胶囊移到别处（有过渡动画），缺的一边用默认位置，`null` 恢复默认，返回实际位置；超出页面时贴边，换打开方式、转屏、重新加载后自动恢复默认。需要 DooTask 主程序支持，可以先用 `isSupported("setCapsulePosition")` 判断
+
 ## [2.1.0]
 
 前端工具库新增 `selectImage`，可直接从 DooTask 的图片空间选图。

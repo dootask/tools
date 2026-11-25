@@ -160,6 +160,12 @@ export interface Rect {
   height: number
 }
 
+/** 胶囊位置：top 是到页面顶边的距离（和 getCapsuleRect 的 top 一样含安全距离），right 是到页面右边的距离；缺的一边用默认位置 */
+export interface CapsulePosition {
+  top?: number
+  right?: number
+}
+
 export interface CapsuleMenu {
   label: string
   value: string | number
