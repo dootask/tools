@@ -2,6 +2,14 @@
 
 DooTask Tools 仓库的版本变更记录。包含前端工具库 `@dootask/tools`、命令行 `@dootask/cli`（含 doo 二进制）、Python SDK `dootask-tools`、Node SDK 与 Go SDK，统一版本号发布。
 
+## [2.3.1]
+
+应用里按 Esc 现在会交给 DooTask 处理，和焦点在 DooTask 时按 Esc 一致。
+
+### Bug Fixes
+
+- 握手后，应用里没处理的 Esc 转发给 DooTask：DooTask 没开弹窗时交给最上面的应用，登记了 `onNativeBack` 就触发返回，窗口里没登记时离开。输入框 / 可编辑区域里、输入法组字中、带 Alt/Ctrl/Meta/Shift、应用自己 `preventDefault` 或 `stopPropagation` 的不转；旧版 DooTask 没有该接口时自动忽略
+
 ## [2.3.0]
 
 前端工具库 `onNativeBack` 支持控制侧滑返回指示器，返回的默认语义统一为「离开」。
