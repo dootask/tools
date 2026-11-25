@@ -242,26 +242,44 @@ export function onBeforeClose(cb: () => boolean | string | void | Promise<boolea
   }
 }
 
-const nativeBackHandlers: (() => void)[] = []
+export interface NativeBackOptions {
+  /** 侧滑返回时画返回指示器（iOS App、手机浏览器；Android 系统自己画），默认 true */
+  indicator?: boolean
+}
+
+const nativeBackHandlers: { cb: () => void, indicator: boolean }[] = []
 let stopNativeBack: (() => void) | null = null
+/** 上次告诉 DooTask 的 indicator，没登记时为 null */
+let sentIndicator: boolean | null = null
+
+/** 按最后登记的告诉 DooTask：没登记时 false，否则 {indicator} */
+function syncNativeBack() {
+  const indicator = nativeBackHandlers[nativeBackHandlers.length - 1]?.indicator ?? null
+  if (indicator === sentIndicator) {
+    return
+  }
+  sentIndicator = indicator
+  call("sdk.onNativeBack", indicator === null ? false : { indicator }).catch(error => console.error("[dootask]", error))
+}
 
 /**
- * 移动端原生返回（Android 返回键、iOS 侧滑、手机浏览器返回）交给应用：登记期间原生返回不再收起应用，
- * 而是调用最后登记的 cb（后进先出）；全部取消后恢复默认（收起成浮窗）。桌面端不会触发
+ * 返回（Android 返回键、iOS 侧滑、导航栏返回、手机浏览器返回、电脑窗口里按 Esc）交给应用：登记期间返回不再离开应用，
+ * 而是调用最后登记的 cb（后进先出）；全部取消后恢复默认（离开，应用转到后台）
+ * options.indicator（默认 true）：侧滑时跟手画返回指示器，以最后登记的为准
  */
-export function onNativeBack(cb: () => void): () => void {
-  const handler = () => cb()
+export function onNativeBack(cb: () => void, options: NativeBackOptions = {}): () => void {
+  const handler = { cb, indicator: options.indicator !== false }
   nativeBackHandlers.push(handler)
   if (!stopNativeBack) {
     stopNativeBack = listen("native_back", () => {
       try {
-        nativeBackHandlers[nativeBackHandlers.length - 1]?.()
+        nativeBackHandlers[nativeBackHandlers.length - 1]?.cb()
       } catch (error) {
         console.error("[dootask]", error)
       }
     })
-    call("sdk.onNativeBack", true).catch(error => console.error("[dootask]", error))
   }
+  syncNativeBack()
   return () => {
     const index = nativeBackHandlers.indexOf(handler)
     if (index < 0) {
@@ -271,8 +289,8 @@ export function onNativeBack(cb: () => void): () => void {
     if (nativeBackHandlers.length === 0 && stopNativeBack) {
       stopNativeBack()
       stopNativeBack = null
-      call("sdk.onNativeBack", false).catch(error => console.error("[dootask]", error))
     }
+    syncNativeBack()
   }
 }
 
