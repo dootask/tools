@@ -2,8 +2,8 @@
 package main
 
 import (
-	"fmt"
 	"os"
+	"slices"
 
 	"github.com/dootask/tools/server/go/cmd/doo/internal/cli"
 	"github.com/dootask/tools/server/go/cmd/doo/internal/commands"
@@ -11,8 +11,9 @@ import (
 
 func main() {
 	root := commands.NewRootCmd()
-	if err := root.Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, "doo: "+err.Error())
-		os.Exit(cli.ExitCode(err))
+	err := root.Execute()
+	if !cli.Current.Started && slices.Contains(os.Args[1:], "--json") {
+		cli.Opts.JSON = true // 参数校验阶段即失败时，全局 flag 尚未解析
 	}
+	os.Exit(cli.Finish(err))
 }

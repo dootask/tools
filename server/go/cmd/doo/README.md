@@ -36,11 +36,46 @@ export DOO_TOKEN=<token>
 |---|---|
 | `--server` | DooTask 服务器地址 |
 | `--token` | API token |
-| `--json` | 以紧凑 JSON 输出（适合脚本/程序解析） |
+| `--json` | 以 JSON 信封输出（适合脚本/程序解析，见下文「机器调用规范」） |
 | `--yes, -y` | 跳过危险操作确认 |
 | `--quiet, -q` | 精简输出 |
+| `--dry-run` | 预演：校验参数并返回将执行的操作，不实际执行（只读命令忽略） |
+| `--fields a,b` | 只输出指定字段（列表逐项裁剪；分页对象裁剪 `data` 内各项） |
+| `--limit N` | 列表最多输出 N 条（`file fetch` 自身的 `--limit` 为内容长度上限） |
+| `--jq 表达式` | 用内置 jq 处理输出（在 `--fields`/`--limit` 之后执行） |
 
 默认输出为人类可读表格；列表过宽的单元格会折叠换行并截断，完整数据请用 `--json`。
+
+## 机器调用规范（`--json`）
+
+**输出信封**（stdout 恰好一行 JSON）：
+
+```json
+{"ok":true,"data":{...},"message":"✓ 已删除任务 #123"}
+{"ok":false,"code":"not_found","message":"任务不存在"}
+{"ok":false,"code":"needs_confirm","message":"…","confirm":{"summary":"删除任务 #123","command":"task delete","risk":"danger","targets":[{"type":"task","id":123}]}}
+```
+
+`message` 仅在写操作有提示文案时出现；`--dry-run` 成功时 `data` 为 `{"dry_run":true,"command","risk","args","flags"}`。
+
+**错误码**（固定清单）：
+
+| code | 含义 | 退出码 |
+|---|---|---|
+| `invalid_args` | 参数/命令不合法 | 2 |
+| `auth_required` | 未登录或 token 失效 | 3 |
+| `needs_confirm` | 危险操作需确认（见 `confirm` 字段） | 4 |
+| `permission_denied` | 无权限 | 1 |
+| `not_found` | 对象不存在或不可见 | 1 |
+| `api_error` | 主程序业务错误（`message` 为原因） | 1 |
+| `server_error` | 主程序 HTTP 非 200 | 1 |
+| `network_error` / `timeout` | 网络不可达 / 请求超时 | 1 |
+| `cancelled` | 交互确认时用户取消 | 1 |
+| `error` | 其他本地错误 | 1 |
+
+**风险级别**：每个命令为 `read` / `write` / `danger` 之一，`doo meta` 输出完整清单（命令、用法、参数、风险级别）。
+`danger` 命令在 `--json` 或非交互环境下未带 `--yes` 时**不执行**，返回 `needs_confirm`；调用方向用户确认后带 `--yes` 重跑。
+带 `--recover` 的恢复类操作按 `write` 处理。
 
 ## 命令一览
 
@@ -62,6 +97,7 @@ doo app       list | updates | catalog [--search 词] | fields <ID> | upload <zi
               | uninstall <ID> [--delete-data] | remove <ID> | logs <ID> | containers <ID> | container-logs <ID> --service | refresh
               | call <ID> [指令] [K=V ...]
 doo system    version | settings
+doo meta                                             (机器可读命令清单)
 ```
 
 用 `doo <名词> --help`、`doo <名词> <动词> --help` 逐层查看参数。
@@ -73,7 +109,7 @@ doo task list --project 130 --status uncompleted
 doo task create --project 130 --name "写周报" --owner 3 --end "2026-06-20 18:00:00"
 doo task done 38001
 doo task update 38001 --content "进展更新"        # 仅提交改动字段，不会清空其它字段
-doo project list --json | jq '.data[].name'
+doo project list --jq '.data[].name'
 doo message send --dialog 2889 --text "下班啦" --silence
 doo search 财务 --types task,project
 
@@ -95,7 +131,7 @@ doo app call approve --raw GET /api/custom         # 直接调用未在规范中
 
 ## 说明
 
-- 危险/不可逆操作（删除、解散群、撤回消息等）默认需要确认；非交互环境请显式加 `--yes`。
+- 危险/不可逆操作（删除、解散群、撤回消息等）默认需要确认；非交互环境请显式加 `--yes`（`--json` 下返回 `needs_confirm`）。
 - `file` / `report` / `search` 暂走通用端点（SDK 尚无对应类型），标记为实验性，输出字段以 `--json` 为准。
 - `app`（应用插件）走 AppStore 微服务（主程序反代 `/appstore/api/v1`，响应 `{code,message,data}`，与主程序 `{ret,msg,data}` 不同；请求自动带 `Version` 头供 AppStore 校验 `require_version`）：
   - `install`/`update`/`reinstall`/`uninstall`/`remove`/`refresh` 需**管理员**权限，安装/卸载会触发 docker compose、可能耗时；`list`/`catalog`/`fields`/`logs`/`containers` 普通用户即可。

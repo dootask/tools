@@ -45,6 +45,9 @@ func AppStoreRequest(method, path string, query map[string]string, body any, out
 	if Opts.Token == "" {
 		return ErrNoAuth
 	}
+	if err := guard(); err != nil {
+		return err
+	}
 	u := strings.TrimRight(Opts.Server, "/") + "/appstore/api/v1" + path
 	if len(query) > 0 {
 		vals := url.Values{}
@@ -94,6 +97,9 @@ func AppStoreRequest(method, path string, query map[string]string, body any, out
 func AppStoreUpload(path, fileField, filePath string, fields map[string]string, out any) error {
 	if Opts.Token == "" {
 		return ErrNoAuth
+	}
+	if err := guard(); err != nil {
+		return err
 	}
 	f, err := os.Open(filePath)
 	if err != nil {

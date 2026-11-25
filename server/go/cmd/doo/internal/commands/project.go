@@ -172,7 +172,7 @@ func newProjectExitCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if err := cli.Confirm(fmt.Sprintf("确认退出项目 #%d?", id)); err != nil {
+			if err := cli.Confirm(fmt.Sprintf("退出项目 #%d", id), cli.Target{Type: "project", ID: id}); err != nil {
 				return err
 			}
 			c, err := cli.Opts.Client()
@@ -198,7 +198,7 @@ func newProjectDeleteCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if err := cli.Confirm(fmt.Sprintf("确认删除项目 #%d（不可逆）?", id)); err != nil {
+			if err := cli.Confirm(fmt.Sprintf("删除项目 #%d（不可逆）", id), cli.Target{Type: "project", ID: id}); err != nil {
 				return err
 			}
 			c, err := cli.Opts.Client()

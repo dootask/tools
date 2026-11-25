@@ -1,6 +1,11 @@
 package dootask
 
-import "time"
+import (
+	"encoding/json"
+	"errors"
+	"fmt"
+	"time"
+)
 
 // ------------------------------------------------------------------------------------------
 // 基础结构定义
@@ -739,4 +744,47 @@ type SetAppBadgeRequest struct {
 	MenuKey string `json:"menu_key,omitempty"` // 可选：菜单标识，留空表示应用第一个菜单
 	Count   int    `json:"count"`              // 可选：角标数字，默认 0
 	Dot     bool   `json:"dot"`                // 可选：是否显示小红点，默认 false
+}
+
+// ------------------------------------------------------------------------------------------
+// 错误类型（调用方可用 errors.As 区分；Error() 文本与旧版一致）
+// ------------------------------------------------------------------------------------------
+
+// APIError 主程序返回 ret != 1 的业务错误。
+type APIError struct {
+	Ret  int
+	Msg  string
+	Data json.RawMessage
+}
+
+func (e *APIError) Error() string {
+	if e.Msg != "" {
+		return e.Msg
+	}
+	return fmt.Sprintf("API error: %d", e.Ret)
+}
+
+// HTTPError 主程序返回非 200 状态码。
+type HTTPError struct {
+	StatusCode int
+	Status     string
+	Body       string
+}
+
+func (e *HTTPError) Error() string {
+	return fmt.Sprintf("HTTP %d: %s, body: %s", e.StatusCode, e.Status, e.Body)
+}
+
+// TransportError 请求未到达或未完成（网络不可达、超时等）。
+type TransportError struct {
+	Err error
+}
+
+func (e *TransportError) Error() string { return "request failed: " + e.Err.Error() }
+func (e *TransportError) Unwrap() error { return e.Err }
+
+// Timeout 是否为超时。
+func (e *TransportError) Timeout() bool {
+	var t interface{ Timeout() bool }
+	return errors.As(e.Err, &t) && t.Timeout()
 }

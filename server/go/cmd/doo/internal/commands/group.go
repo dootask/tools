@@ -139,7 +139,7 @@ func newGroupRemoveUserCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if err := cli.Confirm(fmt.Sprintf("确认从群 #%d 移除成员 %v?", id, ids)); err != nil {
+			if err := cli.Confirm(fmt.Sprintf("从群 #%d 移除成员 %v", id, ids), cli.Target{Type: "dialog", ID: id}); err != nil {
 				return err
 			}
 			c, err := cli.Opts.Client()
@@ -167,7 +167,7 @@ func newGroupExitCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if err := cli.Confirm(fmt.Sprintf("确认退出群 #%d?", id)); err != nil {
+			if err := cli.Confirm(fmt.Sprintf("退出群 #%d", id), cli.Target{Type: "dialog", ID: id}); err != nil {
 				return err
 			}
 			c, err := cli.Opts.Client()
@@ -197,7 +197,7 @@ func newGroupTransferCmd() *cobra.Command {
 			if user <= 0 {
 				return fmt.Errorf("--user 必填")
 			}
-			if err := cli.Confirm(fmt.Sprintf("确认把群 #%d 转让给用户 #%d?", id, user)); err != nil {
+			if err := cli.Confirm(fmt.Sprintf("把群 #%d 转让给用户 #%d", id, user), cli.Target{Type: "dialog", ID: id}, cli.Target{Type: "user", ID: user}); err != nil {
 				return err
 			}
 			c, err := cli.Opts.Client()
@@ -225,7 +225,7 @@ func newGroupDisbandCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if err := cli.Confirm(fmt.Sprintf("确认解散群 #%d（不可逆）?", id)); err != nil {
+			if err := cli.Confirm(fmt.Sprintf("解散群 #%d（不可逆）", id), cli.Target{Type: "dialog", ID: id}); err != nil {
 				return err
 			}
 			c, err := cli.Opts.Client()

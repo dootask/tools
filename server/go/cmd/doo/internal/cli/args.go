@@ -10,7 +10,7 @@ import (
 func ParseInt(s, name string) (int, error) {
 	n, err := strconv.Atoi(strings.TrimSpace(s))
 	if err != nil {
-		return 0, fmt.Errorf("无效的%s: %q", name, s)
+		return 0, Errorf(CodeInvalidArgs, fmt.Sprintf("无效的%s: %q", name, s))
 	}
 	return n, nil
 }
@@ -30,7 +30,7 @@ func ParseIDList(s string) ([]int, error) {
 		}
 		n, err := strconv.Atoi(p)
 		if err != nil {
-			return nil, fmt.Errorf("无效的 ID 列表项: %q", p)
+			return nil, Errorf(CodeInvalidArgs, fmt.Sprintf("无效的 ID 列表项: %q", p))
 		}
 		out = append(out, n)
 	}

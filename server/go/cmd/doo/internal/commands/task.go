@@ -585,14 +585,14 @@ func newTaskDeleteCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			c, err := cli.Opts.Client()
-			if err != nil {
-				return err
-			}
 			action := "delete"
 			if recover {
 				action = "recovery"
-			} else if err := cli.Confirm(fmt.Sprintf("确认删除任务 #%d?", id)); err != nil {
+			} else if err := cli.Confirm(fmt.Sprintf("删除任务 #%d", id), cli.Target{Type: "task", ID: id}); err != nil {
+				return err
+			}
+			c, err := cli.Opts.Client()
+			if err != nil {
 				return err
 			}
 			if err := c.DeleteTask(id, action); err != nil {

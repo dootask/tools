@@ -356,6 +356,9 @@ func newAppReinstallCmd() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			appid := args[0]
+			if err := cli.Confirm(fmt.Sprintf("重新安装应用 %s", appid), cli.Target{Type: "app", ID: appid}); err != nil {
+				return err
+			}
 			one, err := fetchAppOne(appid)
 			if err != nil {
 				return err
@@ -408,11 +411,11 @@ func newAppUninstallCmd() *cobra.Command {
 		Short: "卸载应用（--delete-data 同时删除数据）",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			msg := fmt.Sprintf("确认卸载应用 %s?", args[0])
+			msg := fmt.Sprintf("卸载应用 %s", args[0])
 			if deleteData {
-				msg = fmt.Sprintf("确认卸载应用 %s 并删除其数据（不可恢复）?", args[0])
+				msg = fmt.Sprintf("卸载应用 %s 并删除其数据（不可恢复）", args[0])
 			}
-			if err := cli.Confirm(msg); err != nil {
+			if err := cli.Confirm(msg, cli.Target{Type: "app", ID: args[0]}); err != nil {
 				return err
 			}
 			q := map[string]string{}
@@ -436,7 +439,7 @@ func newAppRemoveCmd() *cobra.Command {
 		Short: "删除社区应用（需先卸载，仅 community_ 应用）",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if err := cli.Confirm(fmt.Sprintf("确认删除应用 %s（不可恢复）?", args[0])); err != nil {
+			if err := cli.Confirm(fmt.Sprintf("删除应用 %s（不可恢复）", args[0]), cli.Target{Type: "app", ID: args[0]}); err != nil {
 				return err
 			}
 			if err := cli.AppStoreRequest("GET", "/internal/remove/"+url.PathEscape(args[0]), nil, nil, nil); err != nil {

@@ -172,11 +172,11 @@ func newFileRestoreCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			c, err := cli.Opts.Client()
-			if err != nil {
+			if err := cli.Confirm(fmt.Sprintf("将文件 #%d 恢复到历史版本 #%d", id, historyID), cli.Target{Type: "file", ID: id}); err != nil {
 				return err
 			}
-			if err := cli.Confirm(fmt.Sprintf("确认将文件 #%d 恢复到历史版本 #%d?", id, historyID)); err != nil {
+			c, err := cli.Opts.Client()
+			if err != nil {
 				return err
 			}
 			params := map[string]any{"id": id, "history_id": historyID}
@@ -313,11 +313,11 @@ func newFileDeleteCmd() *cobra.Command {
 				}
 				ids = append(ids, id)
 			}
-			c, err := cli.Opts.Client()
-			if err != nil {
+			if err := cli.Confirm(fmt.Sprintf("删除文件 %v", ids), fileTargets(ids)...); err != nil {
 				return err
 			}
-			if err := cli.Confirm(fmt.Sprintf("确认删除文件 %v?", ids)); err != nil {
+			c, err := cli.Opts.Client()
+			if err != nil {
 				return err
 			}
 			if err := c.NewGetRequest("/api/file/remove", map[string]any{"ids": ids}, nil); err != nil {
@@ -337,4 +337,12 @@ func containsStr(list []string, s string) bool {
 		}
 	}
 	return false
+}
+
+func fileTargets(ids []int) []cli.Target {
+	out := make([]cli.Target, len(ids))
+	for i, id := range ids {
+		out[i] = cli.Target{Type: "file", ID: id}
+	}
+	return out
 }
