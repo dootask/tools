@@ -19,7 +19,7 @@ def read_requirements():
 
 setup(
     name="dootask-tools",
-    version="3.0.0",
+    version="3.1.0",
     author="DooTask Team",
     author_email="support@dootask.com",
     description="DooTask Tools 客户端库",

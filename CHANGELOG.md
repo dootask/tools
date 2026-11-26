@@ -2,6 +2,14 @@
 
 DooTask Tools 仓库的版本变更记录。包含前端工具库 `@dootask/tools`、命令行 `@dootask/cli`（含 doo 二进制）、Python SDK `dootask-tools`、Node SDK 与 Go SDK，统一版本号发布。
 
+## [3.1.0]
+
+前端工具库新增 `openUserCard`，可以直接打开某个用户的卡片。
+
+### Features
+
+- 新增 `openUserCard(userid)`：打开用户卡片（资料、发消息等）。需要 DooTask 主程序支持，可以先用 `isSupported("openUserCard")` 判断
+
 ## [3.0.0]
 
 `doo` 命令行按机器调用规范输出：统一的 JSON 结果、错误码和命令风险级别，危险操作返回确认信息由调用方弹确认，适合交给 AI 调用。
