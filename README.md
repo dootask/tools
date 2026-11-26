@@ -245,6 +245,7 @@ try {
 | `addTask(params?)` | `Promise<void>` | 打开新建任务表单并预填。`params`：`{projectId?: number, columnId?: number, name?: string, content?: string, times?: [string, string], owner?: number[]}`，`content` 是 HTML，`times` 是开始、结束时间（`YYYY-MM-DD HH:mm`） |
 | `openDialog(id)` | `Promise<void>` | 打开会话 |
 | `openDialogWithUser(userid)` | `Promise<void>` | 打开和某个用户的单聊 |
+| `openUserCard(userid)` | `Promise<void>` | 打开用户卡片（资料、发消息等）；旧版 DooTask 没有，先用 `isSupported("openUserCard")` 判断 |
 | `createGroup(userids)` | `Promise<void>` | 打开创建群组，预选这些成员 |
 | `startMeeting(params?)` | `Promise<void>` | 打开新会议。`params`：`{userids?: number[], dialogId?: number}`，预选成员、会议消息发到哪个会话 |
 | `joinMeeting()` | `Promise<void>` | 加入会议 |

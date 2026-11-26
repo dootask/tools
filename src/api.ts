@@ -175,6 +175,11 @@ export function openDialogWithUser(userid: number): Promise<void> {
   return call("openDialogWithUser", userid)
 }
 
+/** 打开用户卡片（资料、发消息等），旧版 DooTask 没有时抛 unsupported，可先用 isSupported("openUserCard") 判断 */
+export function openUserCard(userid: number): Promise<void> {
+  return call("openUserCard", userid)
+}
+
 export function createGroup(userids: number[]): Promise<void> {
   return call("createGroup", userids)
 }
