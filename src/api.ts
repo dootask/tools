@@ -252,7 +252,15 @@ export interface NativeBackOptions {
   indicator?: boolean
 }
 
-const nativeBackHandlers: { cb: () => void, indicator: boolean }[] = []
+/** 返回从哪来：escape 是电脑上按 Esc，back 是返回键、侧滑、浏览器返回、导航栏返回 */
+export type NativeBackSource = "escape" | "back"
+
+export interface NativeBackEvent {
+  /** 返回从哪来；旧版 DooTask 不带，按 back 算 */
+  source: NativeBackSource
+}
+
+const nativeBackHandlers: { cb: (event: NativeBackEvent) => void, indicator: boolean }[] = []
 let stopNativeBack: (() => void) | null = null
 /** 上次告诉 DooTask 的 indicator，没登记时为 null */
 let sentIndicator: boolean | null = null
@@ -272,14 +280,16 @@ function syncNativeBack() {
  * 而是调用最后登记的 cb（后进先出）；全部取消后恢复默认（离开，应用转到后台；电脑上整页打开时按 Esc 不离开）
  * 应用里按 Esc 时，应用自己没处理（preventDefault、stopPropagation）且焦点不在输入框里，才算返回
  * options.indicator（默认 true）：侧滑时跟手画返回指示器，以最后登记的为准
+ * cb 收到 {source}：escape 是按 Esc，back 是其余返回；可以只让 Esc 关弹层、不退页面
  */
-export function onNativeBack(cb: () => void, options: NativeBackOptions = {}): () => void {
+export function onNativeBack(cb: (event: NativeBackEvent) => void, options: NativeBackOptions = {}): () => void {
   const handler = { cb, indicator: options.indicator !== false }
   nativeBackHandlers.push(handler)
   if (!stopNativeBack) {
-    stopNativeBack = listen("native_back", () => {
+    stopNativeBack = listen("native_back", (data?: { source?: unknown }) => {
+      const source: NativeBackSource = data?.source === "escape" ? "escape" : "back"
       try {
-        nativeBackHandlers[nativeBackHandlers.length - 1]?.cb()
+        nativeBackHandlers[nativeBackHandlers.length - 1]?.cb({ source })
       } catch (error) {
         console.error("[dootask]", error)
       }
