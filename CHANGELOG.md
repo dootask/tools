@@ -2,6 +2,14 @@
 
 DooTask Tools 仓库的版本变更记录。包含前端工具库 `@dootask/tools`、命令行 `@dootask/cli`（含 doo 二进制）、Python SDK `dootask-tools`、Node SDK 与 Go SDK，统一版本号发布。
 
+## [3.2.0]
+
+`onNativeBack` 回调会说明返回从哪来，可以只让电脑上的 Esc 关弹层、不退页面。
+
+### Features
+
+- `onNativeBack(cb, options?)` 的 `cb` 现在收到 `{source}`：`"escape"` 是电脑上按 Esc，`"back"` 是返回键、侧滑、导航栏返回、手机浏览器返回；旧版 DooTask 不区分，一律 `"back"`。原有不接收参数的写法照常可用
+
 ## [3.1.0]
 
 前端工具库新增 `openUserCard`，可以直接打开某个用户的卡片。
